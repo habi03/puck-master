@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      league_members: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          role: Database["public"]["Enums"]["league_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          role?: Database["public"]["Enums"]["league_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          role?: Database["public"]["Enums"]["league_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_members_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leagues: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       match_participants: {
         Row: {
           created_at: string
@@ -67,6 +129,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          league_id: string
           match_date: string
           match_time: string
           number_of_teams: number
@@ -76,6 +139,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          league_id: string
           match_date: string
           match_time: string
           number_of_teams: number
@@ -85,6 +149,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          league_id?: string
           match_date?: string
           match_time?: string
           number_of_teams?: number
@@ -96,6 +161,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
             referencedColumns: ["id"]
           },
         ]
@@ -206,9 +278,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_league_role: {
+        Args: {
+          _league_id: string
+          _role: Database["public"]["Enums"]["league_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_league_admin: {
+        Args: { _league_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_league_member: {
+        Args: { _league_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      league_role: "admin" | "plačan_član" | "neplačan_član"
       player_position: "igralec" | "vratar"
       user_role: "neplačan_član" | "administrator"
     }
@@ -338,6 +426,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      league_role: ["admin", "plačan_član", "neplačan_član"],
       player_position: ["igralec", "vratar"],
       user_role: ["neplačan_član", "administrator"],
     },

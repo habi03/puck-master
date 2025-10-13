@@ -13,6 +13,8 @@ export default function Index() {
   const [profile, setProfile] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
+  const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
+  const [currentMembership, setCurrentMembership] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,12 +42,22 @@ export default function Index() {
   }, [navigate]);
 
   useEffect(() => {
-    if (user) {
+    const leagueId = localStorage.getItem("currentLeagueId");
+    if (!leagueId) {
+      navigate("/leagues");
+    } else {
+      setCurrentLeagueId(leagueId);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user && currentLeagueId) {
       fetchProfile();
+      fetchCurrentMembership();
       fetchMatches();
       fetchParticipants();
     }
-  }, [user]);
+  }, [user, currentLeagueId]);
 
   const fetchProfile = async () => {
     try {
@@ -62,11 +74,28 @@ export default function Index() {
     }
   };
 
+  const fetchCurrentMembership = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("league_members")
+        .select("*")
+        .eq("league_id", currentLeagueId)
+        .eq("user_id", user?.id)
+        .single();
+
+      if (error) throw error;
+      setCurrentMembership(data);
+    } catch (error: any) {
+      toast.error("Napaka pri nalaganju članstva");
+    }
+  };
+
   const fetchMatches = async () => {
     try {
       const { data, error } = await supabase
         .from("matches")
         .select("*")
+        .eq("league_id", currentLeagueId)
         .order("match_date", { ascending: true })
         .order("match_time", { ascending: true });
 
@@ -93,9 +122,10 @@ export default function Index() {
   const handleUpdate = () => {
     fetchMatches();
     fetchParticipants();
+    fetchCurrentMembership();
   };
 
-  if (!user || !profile) {
+  if (!user || !profile || !currentLeagueId || !currentMembership) {
     return null;
   }
 
@@ -109,7 +139,7 @@ export default function Index() {
             Dobrodošli, {profile.full_name || user.email?.split('@')[0]}!
           </h2>
           <p className="text-sm text-muted-foreground">
-            Status: <span className="font-semibold capitalize">{profile.role.replace('_', ' ')}</span>
+            Vloga: <span className="font-semibold capitalize">{currentMembership.role.replace('_', ' ')}</span>
           </p>
         </div>
 
