@@ -103,50 +103,60 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       <Navbar user={user} />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
-            Dobrodošli, {profile.full_name || user.email}!
+      <main className="px-4 py-4">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-1">
+            Dobrodošli, {profile.full_name || user.email?.split('@')[0]}!
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Status: <span className="font-semibold capitalize">{profile.role.replace('_', ' ')}</span>
           </p>
         </div>
 
         <Tabs defaultValue="matches" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="matches">Tekme</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="matches" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {matches.length === 0 ? (
-                <p className="col-span-full text-center text-muted-foreground py-8">
-                  Trenutno ni razpisanih tekem.
-                </p>
-              ) : (
-                matches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    currentUser={profile}
-                    participants={participants.filter(p => p.match_id === match.id)}
-                    onUpdate={handleUpdate}
-                  />
-                ))
-              )}
-            </div>
+          <TabsContent value="matches" className="space-y-3 mt-4">
+            {matches.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                Trenutno ni razpisanih tekem.
+              </p>
+            ) : (
+              matches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  currentUser={profile}
+                  participants={participants.filter(p => p.match_id === match.id)}
+                  onUpdate={handleUpdate}
+                />
+              ))
+            )}
           </TabsContent>
           
-          <TabsContent value="profile" className="space-y-4">
-            <div className="max-w-2xl">
-              <h3 className="text-2xl font-bold mb-4">Vaš profil</h3>
-              <div className="space-y-2 text-muted-foreground">
-                <p><strong>Email:</strong> {profile.email}</p>
-                <p><strong>Polno ime:</strong> {profile.full_name || "Ni nastavljeno"}</p>
-                <p><strong>Vloga:</strong> <span className="capitalize">{profile.role.replace('_', ' ')}</span></p>
-                <p><strong>Član od:</strong> {new Date(profile.created_at).toLocaleDateString('sl-SI')}</p>
+          <TabsContent value="profile" className="mt-4">
+            <div className="bg-card rounded-lg p-4 border">
+              <h3 className="text-lg font-bold mb-3">Vaš profil</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="font-semibold">Email:</span>
+                  <p className="text-muted-foreground break-all">{profile.email}</p>
+                </div>
+                <div>
+                  <span className="font-semibold">Polno ime:</span>
+                  <p className="text-muted-foreground">{profile.full_name || "Ni nastavljeno"}</p>
+                </div>
+                <div>
+                  <span className="font-semibold">Vloga:</span>
+                  <p className="text-muted-foreground capitalize">{profile.role.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <span className="font-semibold">Član od:</span>
+                  <p className="text-muted-foreground">{new Date(profile.created_at).toLocaleDateString('sl-SI')}</p>
+                </div>
               </div>
             </div>
           </TabsContent>

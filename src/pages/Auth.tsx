@@ -76,20 +76,20 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" 
          style={{ background: "var(--gradient-hero)" }}>
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      <Card className="w-full max-w-sm shadow-lg">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Hokejska Liga
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleAuth} className="space-y-3">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Polno ime</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName" className="text-sm">Polno ime</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -100,8 +100,8 @@ export default function Auth() {
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -111,8 +111,8 @@ export default function Auth() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Geslo</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm">Geslo</Label>
               <Input
                 id="password"
                 type="password"
@@ -126,7 +126,7 @@ export default function Auth() {
               {loading ? "Nalaganje..." : isLogin ? "Prijava" : "Registracija"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-3 text-center text-xs">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}

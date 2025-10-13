@@ -73,31 +73,31 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="text-xl">Tekma</span>
-          <Badge variant="secondary">{match.number_of_teams} ekipe</Badge>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between text-lg">
+          <span>Tekma</span>
+          <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span className="capitalize">{formattedDate}</span>
+      <CardContent className="space-y-2 pb-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 flex-shrink-0" />
+          <span className="capitalize text-xs">{formattedDate}</span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>{match.match_time}</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 flex-shrink-0" />
+          <span className="text-xs">{match.match_time}</span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Users className="h-4 w-4" />
-          <span>{participants.length} prijavljenih igralcev</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4 flex-shrink-0" />
+          <span className="text-xs">{participants.length} prijavljenih</span>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="flex-col gap-2 pt-3">
         {!isSignedUp ? (
           <>
             <Select value={position} onValueChange={(v: any) => setPosition(v)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -105,21 +105,21 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 <SelectItem value="vratar">Vratar</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleSignUp} disabled={loading} className="flex-1">
+            <Button onClick={handleSignUp} disabled={loading} className="w-full">
               <UserPlus className="h-4 w-4 mr-2" />
               Prijavi se
             </Button>
           </>
         ) : (
-          <div className="flex flex-col gap-2 w-full">
-            <Badge variant="outline" className="justify-center">
+          <>
+            <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
               Prijavljeni kot: {userParticipation.position}
             </Badge>
-            <Button onClick={handleSignOut} disabled={loading} variant="destructive">
+            <Button onClick={handleSignOut} disabled={loading} variant="destructive" className="w-full">
               <UserMinus className="h-4 w-4 mr-2" />
               Odjavi se
             </Button>
-          </div>
+          </>
         )}
       </CardFooter>
     </Card>
