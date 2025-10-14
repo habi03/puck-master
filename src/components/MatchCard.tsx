@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -23,6 +24,7 @@ interface MatchCardProps {
 }
 
 export default function MatchCard({ match, currentUser, participants, onUpdate }: MatchCardProps) {
+  const navigate = useNavigate();
   const [position, setPosition] = useState<"igralec" | "vratar">("igralec");
   const [loading, setLoading] = useState(false);
 
@@ -72,7 +74,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: sl });
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300">
+    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-lg">
           <span>Tekma</span>
@@ -97,7 +99,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         {!isSignedUp ? (
           <>
             <Select value={position} onValueChange={(v: any) => setPosition(v)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -105,7 +107,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 <SelectItem value="vratar">Vratar</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleSignUp} disabled={loading} className="w-full">
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSignUp();
+              }} 
+              disabled={loading} 
+              className="w-full"
+            >
               <UserPlus className="h-4 w-4 mr-2" />
               Prijavi se
             </Button>
@@ -115,12 +124,33 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
               Prijavljeni kot: {userParticipation.position}
             </Badge>
-            <Button onClick={handleSignOut} disabled={loading} variant="destructive" className="w-full">
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSignOut();
+              }} 
+              disabled={loading} 
+              variant="destructive" 
+              className="w-full"
+            >
               <UserMinus className="h-4 w-4 mr-2" />
               Odjavi se
             </Button>
           </>
         )}
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full gap-1 text-xs"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/match/${match.id}`);
+          }}
+        >
+          Podrobnosti
+          <ChevronRight className="h-3 w-3" />
+        </Button>
       </CardFooter>
     </Card>
   );
