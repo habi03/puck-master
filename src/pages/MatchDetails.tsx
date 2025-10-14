@@ -345,7 +345,7 @@ export default function MatchDetails() {
         {Object.keys(teams).length > 0 && (
           <div className="space-y-3 mb-4">
             <h3 className="text-sm font-semibold">Ekipe</h3>
-            {Object.entries(teams).map(([teamNum, teamPlayers]) => (
+                {Object.entries(teams).map(([teamNum, teamPlayers]) => (
               <Card key={teamNum}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">
@@ -357,18 +357,50 @@ export default function MatchDetails() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {teamPlayers.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
+                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium truncate">
                           {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
                         </span>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
                           {p.position}
                         </Badge>
                       </div>
-                      <span className="text-muted-foreground">
-                        {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
-                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-muted-foreground">
+                          {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                        </span>
+                        {isAdmin && (
+                          <Select
+                            value={p.team_number?.toString()}
+                            onValueChange={async (value: string) => {
+                              try {
+                                const { error } = await supabase
+                                  .from("match_participants")
+                                  .update({ team_number: value === "unassigned" ? null : parseInt(value) })
+                                  .eq("id", p.id);
+                                if (error) throw error;
+                                toast.success("Ekipa posodobljena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri spreminjanju ekipe");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-16 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: match.number_of_teams }, (_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  E{i + 1}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="unassigned">-</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </CardContent>
@@ -385,18 +417,50 @@ export default function MatchDetails() {
             <Card>
               <CardContent className="pt-4 space-y-2">
                 {unassigned.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
+                  <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="font-medium truncate">
                         {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
                       </span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
                         {p.position}
                       </Badge>
                     </div>
-                    <span className="text-muted-foreground">
-                      {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
-                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-muted-foreground">
+                        {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                      </span>
+                      {isAdmin && (
+                        <Select
+                          value="unassigned"
+                          onValueChange={async (value: string) => {
+                            try {
+                              const { error } = await supabase
+                                .from("match_participants")
+                                .update({ team_number: value === "unassigned" ? null : parseInt(value) })
+                                .eq("id", p.id);
+                              if (error) throw error;
+                              toast.success("Ekipa posodobljena");
+                              fetchParticipants();
+                            } catch (error: any) {
+                              toast.error("Napaka pri spreminjanju ekipe");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-6 w-16 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: match.number_of_teams }, (_, i) => (
+                              <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                E{i + 1}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="unassigned">-</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
                   </div>
                 ))}
               </CardContent>

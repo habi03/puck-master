@@ -34,6 +34,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleSignUp = async () => {
     setLoading(true);
     try {
+      // Check goalkeeper limit per team
+      if (position === "vratar") {
+        const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
+        if (goalkeepersCount >= match.number_of_teams) {
+          toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih`);
+          setLoading(false);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from("match_participants")
         .insert({
