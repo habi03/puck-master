@@ -7,9 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar } from "lucide-react";
+import { Shield, Users, Calendar, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 export default function Admin() {
   const [user, setUser] = useState<User | null>(null);
@@ -18,7 +25,23 @@ export default function Admin() {
   const [members, setMembers] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
+
+  const matchSchema = z.object({
+    match_date: z.string().min(1, "Datum je obvezen"),
+    match_time: z.string().min(1, "Ura je obvezna"),
+    number_of_teams: z.coerce.number().min(2, "Vsaj 2 ekipi").max(10, "Največ 10 ekip")
+  });
+
+  const form = useForm<z.infer<typeof matchSchema>>({
+    resolver: zodResolver(matchSchema),
+    defaultValues: {
+      match_date: "",
+      match_time: "",
+      number_of_teams: 2
+    }
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -143,6 +166,31 @@ export default function Admin() {
     }
   };
 
+  const handleCreateMatch = async (values: z.infer<typeof matchSchema>) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .insert({
+          league_id: currentLeagueId,
+          match_date: values.match_date,
+          match_time: values.match_time,
+          number_of_teams: values.number_of_teams,
+          created_by: user?.id
+        });
+
+      if (error) throw error;
+      toast.success("Tekma uspešno ustvarjena");
+      form.reset();
+      setDialogOpen(false);
+      fetchMatches();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user || !isAdmin) return null;
 
   return (
@@ -214,9 +262,78 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="matches" className="mt-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-              <Calendar className="h-4 w-4" />
-              <span>{matches.length} tekem</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>{matches.length} tekem</span>
+              </div>
+              
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-1">
+                    <Plus className="h-4 w-4" />
+                    Nova tekma
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="text-base">Ustvari novo tekmo</DialogTitle>
+                    <DialogDescription className="text-xs">
+                      Dodaj novo tekmo v ligo
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleCreateMatch)} className="space-y-3">
+                      <FormField
+                        control={form.control}
+                        name="match_date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Datum</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} className="text-sm" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="match_time"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Ura</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...field} className="text-sm" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="number_of_teams"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Število ekip</FormLabel>
+                            <FormControl>
+                              <Input type="number" min="2" max="10" {...field} className="text-sm" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button type="submit" className="w-full" size="sm" disabled={loading}>
+                        Ustvari tekmo
+                      </Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {matches.length === 0 ? (
