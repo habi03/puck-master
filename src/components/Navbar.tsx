@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Trophy, Menu, Shield } from "lucide-react";
+import { LogOut, Trophy, Menu, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -94,6 +94,11 @@ export default function Navbar({ user }: NavbarProps) {
                 <Button onClick={() => navigate("/leagues")} variant="outline" className="w-full justify-start">
                   <Trophy className="h-4 w-4 mr-2" />
                   Izberi ligo
+                </Button>
+                
+                <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  Tekmovalci
                 </Button>
                 
                 {isAdmin && (
