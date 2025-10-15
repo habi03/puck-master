@@ -468,6 +468,36 @@ export default function MatchDetails() {
           </div>
         )}
 
+        {Object.keys(teams).length > 0 && (
+          <div className="space-y-2 mt-6">
+            <h3 className="text-sm font-semibold">Vsi prijavljeni igralci</h3>
+            <Card>
+              <CardContent className="pt-4 space-y-2">
+                {participants.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="font-medium truncate">
+                        {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
+                      </span>
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
+                        {p.position}
+                      </Badge>
+                      {p.team_number && (
+                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                          Ekipa {p.team_number}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-muted-foreground flex-shrink-0">
+                      ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {participants.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
             Ni še prijavljenih igralcev
