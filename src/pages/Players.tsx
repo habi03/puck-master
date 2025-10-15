@@ -111,7 +111,6 @@ export default function Players() {
 
       // Combine data
       const playersData: PlayerWithRating[] = profiles
-        .filter(p => p.id !== user?.id) // Don't show current user
         .map(profile => {
           const ratingData = ratings.find(r => r.player_id === profile.id);
           const myRating = myRatings.find(r => r.rated_player_id === profile.id);
