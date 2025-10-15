@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import MatchCard from "@/components/MatchCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { toast } from "sonner";
 
 export default function Index() {
@@ -143,54 +143,23 @@ export default function Index() {
           </p>
         </div>
 
-        <Tabs defaultValue="matches" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="matches">Tekme</TabsTrigger>
-            <TabsTrigger value="profile">Profil</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="matches" className="space-y-3 mt-4">
-            {matches.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">
-                Trenutno ni razpisanih tekem.
-              </p>
-            ) : (
-              matches.map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  currentUser={profile}
-                  participants={participants.filter(p => p.match_id === match.id)}
-                  onUpdate={handleUpdate}
-                />
-              ))
-            )}
-          </TabsContent>
-          
-          <TabsContent value="profile" className="mt-4">
-            <div className="bg-card rounded-lg p-4 border">
-              <h3 className="text-lg font-bold mb-3">Vaš profil</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-semibold">Email:</span>
-                  <p className="text-muted-foreground break-all">{profile.email}</p>
-                </div>
-                <div>
-                  <span className="font-semibold">Polno ime:</span>
-                  <p className="text-muted-foreground">{profile.full_name || "Ni nastavljeno"}</p>
-                </div>
-                <div>
-                  <span className="font-semibold">Vloga:</span>
-                  <p className="text-muted-foreground capitalize">{profile.role.replace('_', ' ')}</p>
-                </div>
-                <div>
-                  <span className="font-semibold">Član od:</span>
-                  <p className="text-muted-foreground">{new Date(profile.created_at).toLocaleDateString('sl-SI')}</p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-3">
+          {matches.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              Trenutno ni razpisanih tekem.
+            </p>
+          ) : (
+            matches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                currentUser={profile}
+                participants={participants.filter(p => p.match_id === match.id)}
+                onUpdate={handleUpdate}
+              />
+            ))
+          )}
+        </div>
       </main>
     </div>
   );
