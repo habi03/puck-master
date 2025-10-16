@@ -6,8 +6,12 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Users, Shield } from "lucide-react";
+import { ArrowLeft, Users, Shield, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type Match = {
@@ -42,6 +46,9 @@ export default function MatchDetails() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [algorithm, setAlgorithm] = useState<"serpentine" | "abba">("serpentine");
+  const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
+  const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
+  const [selectedScorers, setSelectedScorers] = useState<{ [key: number]: string[] }>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -252,6 +259,71 @@ export default function MatchDetails() {
     }
   };
 
+  const saveMatchResults = async () => {
+    if (!match) return;
+    
+    setLoading(true);
+    try {
+      // Delete existing results and goals
+      await supabase.from("match_results").delete().eq("match_id", matchId);
+      await supabase.from("goals").delete().eq("match_id", matchId);
+
+      // Insert match results for each team
+      const resultsToInsert = Object.entries(teamGoals).map(([teamNum, goals]) => ({
+        match_id: matchId,
+        team_number: parseInt(teamNum),
+        goals_scored: goals
+      }));
+
+      if (resultsToInsert.length > 0) {
+        const { error: resultsError } = await supabase
+          .from("match_results")
+          .insert(resultsToInsert);
+        if (resultsError) throw resultsError;
+      }
+
+      // Insert individual goals
+      const goalsToInsert = Object.entries(selectedScorers).flatMap(([teamNum, playerIds]) =>
+        playerIds.map(playerId => ({
+          match_id: matchId,
+          player_id: playerId,
+          team_number: parseInt(teamNum)
+        }))
+      );
+
+      if (goalsToInsert.length > 0) {
+        const { error: goalsError } = await supabase
+          .from("goals")
+          .insert(goalsToInsert);
+        if (goalsError) throw goalsError;
+      }
+
+      toast.success("Rezultati shranjeni");
+      setResultsDialogOpen(false);
+      setTeamGoals({});
+      setSelectedScorers({});
+    } catch (error: any) {
+      toast.error("Napaka pri shranjevanju rezultatov");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleScorer = (teamNum: number, playerId: string) => {
+    setSelectedScorers(prev => {
+      const teamScorers = prev[teamNum] || [];
+      const isSelected = teamScorers.includes(playerId);
+      
+      return {
+        ...prev,
+        [teamNum]: isSelected
+          ? teamScorers.filter(id => id !== playerId)
+          : [...teamScorers, playerId]
+      };
+    });
+  };
+
   if (!match) return null;
 
   // Group participants by team
@@ -301,6 +373,7 @@ export default function MatchDetails() {
         </div>
 
         {isAdmin && (
+          <>
           <Card className="mb-4">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -345,6 +418,90 @@ export default function MatchDetails() {
               </div>
             </CardContent>
           </Card>
+
+          <Dialog open={resultsDialogOpen} onOpenChange={setResultsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full gap-2">
+                <Target className="h-4 w-4" />
+                Vnesi rezultat tekme
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Vnos rezultata tekme</DialogTitle>
+                <DialogDescription>
+                  Vnesi število golov in strelce za vsako ekipo
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 mt-4">
+                {Object.entries(teams).map(([teamNum, teamPlayers]) => (
+                  <Card key={teamNum}>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <span>Ekipa {teamNum}</span>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
+                            Goli:
+                          </Label>
+                          <Input
+                            id={`goals-${teamNum}`}
+                            type="number"
+                            min="0"
+                            value={teamGoals[parseInt(teamNum)] || 0}
+                            onChange={(e) => setTeamGoals(prev => ({
+                              ...prev,
+                              [parseInt(teamNum)]: parseInt(e.target.value) || 0
+                            }))}
+                            className="w-20 h-8"
+                          />
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Strelci:</Label>
+                      {teamPlayers.map((player) => (
+                        <div key={player.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`scorer-${player.id}`}
+                            checked={selectedScorers[parseInt(teamNum)]?.includes(player.player_id) || false}
+                            onCheckedChange={() => toggleScorer(parseInt(teamNum), player.player_id)}
+                          />
+                          <Label
+                            htmlFor={`scorer-${player.id}`}
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              {player.position}
+                            </Badge>
+                          </Label>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={saveMatchResults}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  {loading ? "Shranjevanje..." : "Shrani rezultate"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setResultsDialogOpen(false)}
+                  disabled={loading}
+                >
+                  Prekliči
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          </>
         )}
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">

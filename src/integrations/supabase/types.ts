@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      goals: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          player_id: string
+          team_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          player_id: string
+          team_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          player_id?: string
+          team_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       league_members: {
         Row: {
           created_at: string
@@ -120,6 +152,41 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_results: {
+        Row: {
+          created_at: string
+          goals_scored: number
+          id: string
+          match_id: string
+          team_number: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          goals_scored?: number
+          id?: string
+          match_id: string
+          team_number: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          goals_scored?: number
+          id?: string
+          match_id?: string
+          team_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           },
         ]
