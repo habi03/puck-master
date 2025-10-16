@@ -166,9 +166,9 @@ export default function MatchDetails() {
       const numTeams = match.number_of_teams;
       const teams: Participant[][] = Array.from({ length: numTeams }, () => []);
       
-      // Distribute goalkeepers evenly
-      goalkeepers.forEach((gk, index) => {
-        teams[index % numTeams].push(gk);
+      // Distribute goalkeepers - only one per team
+      goalkeepers.slice(0, numTeams).forEach((gk, index) => {
+        teams[index].push(gk);
       });
       
       // Distribute players based on algorithm
@@ -265,6 +265,15 @@ export default function MatchDetails() {
     } else {
       unassigned.push(p);
     }
+  });
+
+  // Sort each team to show goalkeepers first
+  Object.keys(teams).forEach(teamNum => {
+    teams[parseInt(teamNum)].sort((a, b) => {
+      if (a.position === "vratar" && b.position !== "vratar") return -1;
+      if (a.position !== "vratar" && b.position === "vratar") return 1;
+      return 0;
+    });
   });
 
   return (
