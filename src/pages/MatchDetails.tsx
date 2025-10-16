@@ -191,19 +191,20 @@ export default function MatchDetails() {
         });
       } else if (algorithm === "abba") {
         // ABBA pattern (best for 2 teams)
-        let teamIndex = 0;
         let picks = 0;
         
         players.forEach((player) => {
-          teams[teamIndex].push(player);
-          picks++;
+          let teamIndex = 0;
           
           // ABBA pattern: 1-2-2-1-1-2-2-1...
-          if (picks % 4 === 1 || picks % 4 === 0) {
-            teamIndex = 0;
-          } else {
+          if (picks % 4 === 1 || picks % 4 === 2) {
             teamIndex = 1;
+          } else {
+            teamIndex = 0;
           }
+          
+          teams[teamIndex].push(player);
+          picks++;
         });
       }
       
