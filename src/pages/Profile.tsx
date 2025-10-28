@@ -18,6 +18,9 @@ export default function Profile() {
   // Profile data
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [location, setLocation] = useState("");
+  const [currentRole, setCurrentRole] = useState<string>("");
+  const [currentLeagueName, setCurrentLeagueName] = useState<string>("");
   
   // Password change
   const [newPassword, setNewPassword] = useState("");
@@ -55,6 +58,28 @@ export default function Profile() {
 
       if (error) throw error;
       setFullName(data.full_name || "");
+      setLocation(data.location || "");
+      
+      // Fetch current league membership
+      const currentLeagueId = localStorage.getItem("currentLeagueId");
+      if (currentLeagueId) {
+        const { data: memberData } = await supabase
+          .from("league_members")
+          .select("role, leagues(name)")
+          .eq("league_id", currentLeagueId)
+          .eq("user_id", userId)
+          .single();
+        
+        if (memberData) {
+          const roleMap: { [key: string]: string } = {
+            'admin': 'Admin',
+            'plačan_član': 'Plačan član',
+            'neplačan_član': 'Neplačan član'
+          };
+          setCurrentRole(roleMap[memberData.role] || memberData.role);
+          setCurrentLeagueName((memberData.leagues as any)?.name || "");
+        }
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -67,7 +92,10 @@ export default function Profile() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          location: location 
+        })
         .eq("id", user.id);
 
       if (error) throw error;
@@ -154,6 +182,33 @@ export default function Profile() {
                 placeholder="Vnesite svoje ime"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Kraj</Label>
+              <Input
+                id="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Vnesite svoj kraj"
+              />
+            </div>
+
+            {currentLeagueName && (
+              <div className="space-y-2">
+                <Label htmlFor="role">Vloga v ekipi ({currentLeagueName})</Label>
+                <Input
+                  id="role"
+                  type="text"
+                  value={currentRole}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Vlogo lahko spreminja samo administrator ekipe
+                </p>
+              </div>
+            )}
 
             <Button 
               onClick={handleUpdateProfile} 
