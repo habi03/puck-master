@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar, Plus } from "lucide-react";
+import { Shield, Users, Calendar, Plus, Lock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,6 +26,8 @@ export default function Admin() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [leaguePassword, setLeaguePassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
   const navigate = useNavigate();
 
   const matchSchema = z.object({
@@ -75,6 +77,7 @@ export default function Admin() {
       checkAdminStatus();
       fetchMembers();
       fetchMatches();
+      fetchLeagueSettings();
     }
   }, [user, currentLeagueId]);
 
@@ -127,6 +130,21 @@ export default function Admin() {
       setMatches(data || []);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju tekem");
+    }
+  };
+
+  const fetchLeagueSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("leagues")
+        .select("password")
+        .eq("id", currentLeagueId)
+        .single();
+
+      if (error) throw error;
+      setLeaguePassword(data?.password || "");
+    } catch (error: any) {
+      console.error("Error fetching league settings:", error);
     }
   };
 
@@ -191,6 +209,25 @@ export default function Admin() {
     }
   };
 
+  const handleUpdatePassword = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("leagues")
+        .update({ password: newPassword || null })
+        .eq("id", currentLeagueId);
+
+      if (error) throw error;
+      toast.success(newPassword ? "Geslo nastavljeno" : "Geslo odstranjeno");
+      setLeaguePassword(newPassword);
+      setNewPassword("");
+    } catch (error: any) {
+      toast.error("Napaka pri posodabljanju gesla");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user || !isAdmin) return null;
 
   return (
@@ -207,9 +244,10 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="members" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="members">Člani</TabsTrigger>
             <TabsTrigger value="matches">Tekme</TabsTrigger>
+            <TabsTrigger value="settings">Nastavitve</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-3 mt-4">
@@ -357,6 +395,55 @@ export default function Admin() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Geslo lige
+                </CardTitle>
+                <CardDescription>
+                  Zaščitite ligo z geslom. Samo uporabniki, ki poznajo geslo, se bodo lahko pridružili.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {leaguePassword && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium mb-1">Trenutno geslo:</p>
+                    <p className="text-sm text-muted-foreground font-mono">{leaguePassword}</p>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">
+                    {leaguePassword ? "Novo geslo" : "Nastavi geslo"}
+                  </Label>
+                  <Input
+                    id="newPassword"
+                    type="text"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={leaguePassword ? "Vnesite novo geslo ali pustite prazno za odstranitev" : "Vnesite geslo za ligo"}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {leaguePassword 
+                      ? "Pustite prazno, če želite odstraniti geslo"
+                      : "Liga bo po nastavitvi gesla zaščitena"
+                    }
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleUpdatePassword} 
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? "Shranjujem..." : leaguePassword ? "Posodobi geslo" : "Nastavi geslo"}
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>

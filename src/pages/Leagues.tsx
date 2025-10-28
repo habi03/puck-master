@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Users, ArrowRight } from "lucide-react";
+import { Plus, Users, ArrowRight, Lock, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function Leagues() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,6 +21,9 @@ export default function Leagues() {
   const [newLeagueName, setNewLeagueName] = useState("");
   const [newLeagueDesc, setNewLeagueDesc] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState<any>(null);
+  const [enteredPassword, setEnteredPassword] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,6 +107,32 @@ export default function Leagues() {
   };
 
   const handleJoinLeague = async (leagueId: string) => {
+    const league = leagues.find(l => l.id === leagueId);
+    
+    // Check if league is password protected
+    if (league?.password) {
+      setSelectedLeague(league);
+      setPasswordDialogOpen(true);
+      return;
+    }
+    
+    await joinLeague(leagueId);
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!selectedLeague) return;
+    
+    if (enteredPassword !== selectedLeague.password) {
+      toast.error("Napačno geslo!");
+      return;
+    }
+    
+    setPasswordDialogOpen(false);
+    setEnteredPassword("");
+    await joinLeague(selectedLeague.id);
+  };
+
+  const joinLeague = async (leagueId: string) => {
     setLoading(true);
     try {
       const { error } = await supabase
@@ -118,6 +148,25 @@ export default function Leagues() {
       fetchMyLeagues();
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLeague = async (leagueId: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("leagues")
+        .delete()
+        .eq("id", leagueId);
+
+      if (error) throw error;
+      toast.success("Liga uspešno izbrisana!");
+      fetchLeagues();
+      fetchMyLeagues();
+    } catch (error: any) {
+      toast.error("Napaka pri brisanju lige");
     } finally {
       setLoading(false);
     }
@@ -190,22 +239,63 @@ export default function Leagues() {
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground">VAŠE LIGE</h3>
             <div className="space-y-2">
               {myLeagues.map((membership) => (
-                <Card key={membership.id} className="cursor-pointer hover:shadow-md transition-all" onClick={() => handleSelectLeague(membership.league_id)}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      <span>{membership.leagues.name}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    </CardTitle>
-                    {membership.leagues.description && (
-                      <CardDescription className="text-xs">{membership.leagues.description}</CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      <span className="capitalize">Vaša vloga: {membership.role.replace('_', ' ')}</span>
+                <Card key={membership.id}>
+                  <div className="flex items-center">
+                    <div 
+                      className="flex-1 cursor-pointer hover:bg-accent/50 transition-colors rounded-l-lg"
+                      onClick={() => handleSelectLeague(membership.league_id)}
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <span>{membership.leagues.name}</span>
+                          {membership.leagues.password && <Lock className="h-4 w-4 text-muted-foreground" />}
+                          <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                        </CardTitle>
+                        {membership.leagues.description && (
+                          <CardDescription className="text-xs">{membership.leagues.description}</CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pb-3">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Users className="h-3 w-3" />
+                          <span className="capitalize">Vaša vloga: {membership.role.replace('_', ' ')}</span>
+                        </div>
+                      </CardContent>
                     </div>
-                  </CardContent>
+                    
+                    {membership.leagues.created_by === user?.id && (
+                      <div className="pr-3">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Izbriši ligo?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Ali ste prepričani, da želite izbrisati ligo "{membership.leagues.name}"? 
+                                Ta akcija je nepovratna in bodo izbrisani vsi podatki, tekme in rezultati.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Prekliči</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteLeague(membership.league_id);
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Izbriši
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
+                  </div>
                 </Card>
               ))}
             </div>
@@ -223,7 +313,10 @@ export default function Leagues() {
               leagues.map((league) => (
                 <Card key={league.id}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{league.name}</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {league.name}
+                      {league.password && <Lock className="h-4 w-4 text-muted-foreground" />}
+                    </CardTitle>
                     {league.description && (
                       <CardDescription className="text-xs">{league.description}</CardDescription>
                     )}
@@ -245,7 +338,14 @@ export default function Leagues() {
                         className="w-full"
                         size="sm"
                       >
-                        Pridruži se
+                        {league.password ? (
+                          <>
+                            <Lock className="h-4 w-4 mr-2" />
+                            Pridruži se
+                          </>
+                        ) : (
+                          "Pridruži se"
+                        )}
                       </Button>
                     )}
                   </CardFooter>
@@ -254,6 +354,38 @@ export default function Leagues() {
             )}
           </div>
         </div>
+
+        {/* Password Dialog */}
+        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Vnesi geslo</DialogTitle>
+              <DialogDescription>
+                Liga "{selectedLeague?.name}" je zaščitena z geslom.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Geslo</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={enteredPassword}
+                  onChange={(e) => setEnteredPassword(e.target.value)}
+                  placeholder="Vnesite geslo"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handlePasswordSubmit();
+                    }
+                  }}
+                />
+              </div>
+              <Button onClick={handlePasswordSubmit} className="w-full" disabled={!enteredPassword}>
+                Potrdi
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
