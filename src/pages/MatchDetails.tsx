@@ -471,13 +471,13 @@ export default function MatchDetails() {
                         </div>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Strelci golov:</Label>
+                    <CardContent className="space-y-3">
+                      <Label className="text-xs font-semibold text-muted-foreground mb-2">Strelci golov:</Label>
                       {teamPlayers.map((player) => (
-                        <div key={player.id} className="flex items-center gap-2">
+                        <div key={player.id} className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-muted/50">
                           <Label
                             htmlFor={`goals-${player.id}`}
-                            className="text-sm flex-1"
+                            className="text-sm flex-1 cursor-pointer"
                           >
                             {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
                             <Badge variant="outline" className="ml-2 text-xs">
@@ -488,15 +488,19 @@ export default function MatchDetails() {
                             id={`goals-${player.id}`}
                             type="number"
                             min="0"
+                            max="20"
                             value={playerGoals[parseInt(teamNum)]?.[player.player_id] || 0}
                             onChange={(e) => updatePlayerGoals(parseInt(teamNum), player.player_id, parseInt(e.target.value) || 0)}
-                            className="w-20 h-8"
+                            className="w-20 h-9 text-center"
                             placeholder="0"
                           />
                         </div>
                       ))}
-                      <div className="text-xs text-muted-foreground pt-2 border-t">
-                        Skupaj golov igralcev: {Object.values(playerGoals[parseInt(teamNum)] || {}).reduce((sum, goals) => sum + goals, 0)}
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <span className="text-sm font-medium">Skupaj golov igralcev:</span>
+                        <Badge variant="secondary" className="text-base">
+                          {Object.values(playerGoals[parseInt(teamNum)] || {}).reduce((sum, goals) => sum + goals, 0)}
+                        </Badge>
                       </div>
                     </CardContent>
                   </Card>
