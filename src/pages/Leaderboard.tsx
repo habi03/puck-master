@@ -190,59 +190,47 @@ export default function Leaderboard() {
     <div className="space-y-2">
       {entries.map((entry, index) => (
         <Card key={`${entry.player_id}_${entry.position}`} className={index < 3 ? "border-primary/50" : ""}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${
                   index === 0 ? "bg-yellow-500/20 text-yellow-600" :
                   index === 1 ? "bg-gray-400/20 text-gray-600" :
                   index === 2 ? "bg-orange-500/20 text-orange-600" :
                   "bg-muted"
                 }`}>
-                  <span className="text-sm font-bold">{index + 1}</span>
+                  <span className="text-xs font-bold">{index + 1}</span>
                 </div>
-                <div>
-                  <p className="font-semibold">{entry.player_name}</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{entry.player_name}</p>
                   <p className="text-xs text-muted-foreground capitalize">{entry.position}</p>
                 </div>
               </div>
-              <div className="text-center">
-                <p className="font-bold text-xl text-primary">{entry.total_points}</p>
+              <div className="text-center flex-shrink-0">
+                <p className="font-bold text-lg text-primary">{entry.total_points}</p>
                 <p className="text-xs text-muted-foreground">Točke</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 pt-3 border-t">
-              <div className="flex items-center gap-2">
-                <UserCircle className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Prisotnosti</p>
-                  <p className="text-sm font-semibold">{entry.attendance}</p>
-                </div>
+            <div className="flex items-center justify-between gap-2 pt-2 border-t text-xs">
+              <div className="text-center">
+                <p className="font-semibold">{entry.attendance}</p>
+                <p className="text-muted-foreground">Prisotnosti</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Zmage</p>
-                  <p className="text-sm font-semibold">{entry.wins}</p>
-                </div>
+              <div className="text-center">
+                <p className="font-semibold">{entry.wins}</p>
+                <p className="text-muted-foreground">Zmage</p>
               </div>
               {entry.position === "igralec" && (
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Goli</p>
-                    <p className="text-sm font-semibold">{entry.goals}</p>
-                  </div>
+                <div className="text-center">
+                  <p className="font-semibold">{entry.goals}</p>
+                  <p className="text-muted-foreground">Goli</p>
                 </div>
               )}
               {entry.position === "vratar" && (
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Obrambe</p>
-                    <p className="text-sm font-semibold">{entry.saves}</p>
-                  </div>
+                <div className="text-center">
+                  <p className="font-semibold">{entry.saves}</p>
+                  <p className="text-muted-foreground">Obrambe</p>
                 </div>
               )}
             </div>
