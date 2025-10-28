@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,18 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is coming from password reset email
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('type') === 'recovery') {
+      setIsPasswordReset(true);
+    }
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +127,42 @@ export default function Auth() {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Gesli se ne ujemata");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Geslo mora biti dolgo vsaj 6 znakov");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      
+      toast.success("Geslo uspešno posodobljeno! Sedaj se lahko prijavite.");
+      setIsPasswordReset(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsLogin(true);
+      // Clear the hash from URL
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch (error: any) {
+      toast.error(error.message || "Prišlo je do napake");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4" 
          style={{ background: "var(--gradient-hero)" }}>
@@ -125,12 +172,44 @@ export default function Auth() {
             Hokejska Liga
           </CardTitle>
           <CardDescription className="text-sm">
-            {isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
+            {isPasswordReset 
+              ? "Nastavite novo geslo" 
+              : isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-3">
-            {!isLogin && (
+          {isPasswordReset ? (
+            <form onSubmit={handleUpdatePassword} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="newPassword" className="text-sm">Novo geslo</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  placeholder="••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword" className="text-sm">Potrdite geslo</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Posodabljanje..." : "Posodobi geslo"}
+              </Button>
+            </form>
+          ) : (
+            <>
+              <form onSubmit={handleAuth} className="space-y-3">
+              {!isLogin && (
               <div className="space-y-1.5">
                 <Label htmlFor="fullName" className="text-sm">Polno ime</Label>
                 <Input
@@ -214,8 +293,10 @@ export default function Auth() {
               {isLogin
                 ? "Nimate računa? Registrirajte se"
                 : "Že imate račun? Prijavite se"}
-            </button>
-          </div>
+              </button>
+            </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
