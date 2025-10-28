@@ -272,49 +272,40 @@ export default function Auth() {
           </form>
           <div className="mt-3 text-center text-xs space-y-2">
             {isLogin && (
-              <>
-                <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                  <DialogTrigger asChild>
-                    <button
-                      type="button"
-                      className="text-primary hover:underline transition-all block w-full"
-                    >
-                      Pozabljeno geslo?
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Ponastavitev gesla</DialogTitle>
-                      <DialogDescription>
-                        Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handlePasswordReset} className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="resetEmail" className="text-sm">Email</Label>
-                        <Input
-                          id="resetEmail"
-                          type="email"
-                          placeholder="vas.email@primer.si"
-                          value={resetEmail}
-                          onChange={(e) => setResetEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Pošiljanje..." : "Pošlji povezavo"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordReset(true)}
-                  className="text-primary hover:underline transition-all block w-full text-xs"
-                >
-                  Že imate povezavo? Nastavite geslo
-                </button>
-              </>
+              <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-primary hover:underline transition-all block w-full"
+                  >
+                    Pozabljeno geslo?
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ponastavitev gesla</DialogTitle>
+                    <DialogDescription>
+                      Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handlePasswordReset} className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="resetEmail" className="text-sm">Email</Label>
+                      <Input
+                        id="resetEmail"
+                        type="email"
+                        placeholder="vas.email@primer.si"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Pošiljanje..." : "Pošlji povezavo"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             )}
             <button
               type="button"
