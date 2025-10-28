@@ -81,8 +81,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       // Check goalkeeper limit per team
       if (position === "vratar") {
         const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
-        if (goalkeepersCount >= match.number_of_teams) {
-          toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih`);
+        if (goalkeepersCount >= 2) {
+          toast.error("Obe mesti za vratarje sta že zasedeni");
           setLoading(false);
           return;
         }
