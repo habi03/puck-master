@@ -8,6 +8,7 @@ import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight } from "lucid
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
+import { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -27,11 +28,38 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const navigate = useNavigate();
   const [position, setPosition] = useState<"igralec" | "vratar">("igralec");
   const [loading, setLoading] = useState(false);
+  const [matchResults, setMatchResults] = useState<any[]>([]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
+  const isCompleted = match.is_completed || false;
+
+  useEffect(() => {
+    if (isCompleted) {
+      fetchMatchResults();
+    }
+  }, [isCompleted, match.id]);
+
+  const fetchMatchResults = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("match_results")
+        .select("*")
+        .eq("match_id", match.id)
+        .order("team_number", { ascending: true });
+
+      if (error) throw error;
+      setMatchResults(data || []);
+    } catch (error: any) {
+      console.error("Error fetching results:", error);
+    }
+  };
 
   const handleSignUp = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena - prijave so zaprte");
+      return;
+    }
     setLoading(true);
     try {
       // Check goalkeeper limit per team
@@ -63,6 +91,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   };
 
   const handleSignOut = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena - odjave niso mogoče");
+      return;
+    }
+    
     setLoading(true);
     try {
       const { error } = await supabase
@@ -88,7 +121,12 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-lg">
           <span>Tekma</span>
-          <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
+            {isCompleted && (
+              <Badge variant="default" className="text-xs">Zaključena</Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 pb-3">
@@ -104,49 +142,71 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <Users className="h-4 w-4 flex-shrink-0" />
           <span className="text-xs">{participants.length} prijavljenih</span>
         </div>
+        
+        {isCompleted && matchResults.length > 0 && (
+          <div className="pt-2 border-t mt-2">
+            <div className="text-xs font-semibold mb-1.5 text-muted-foreground">Rezultat:</div>
+            <div className="flex gap-2">
+              {matchResults.map((result) => (
+                <div key={result.team_number} className="flex items-center gap-1.5">
+                  <span className="text-xs">Ekipa {result.team_number}:</span>
+                  <Badge variant="default" className="text-sm">
+                    {result.goals_scored}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex-col gap-2 pt-3">
-        {!isSignedUp ? (
-          <>
-            <Select value={position} onValueChange={(v: any) => setPosition(v)}>
-              <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="igralec">Igralec</SelectItem>
-                <SelectItem value="vratar">Vratar</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSignUp();
-              }} 
-              disabled={loading} 
-              className="w-full"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Prijavi se
-            </Button>
-          </>
+        {!isCompleted ? (
+          !isSignedUp ? (
+            <>
+              <Select value={position} onValueChange={(v: any) => setPosition(v)}>
+                <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="igralec">Igralec</SelectItem>
+                  <SelectItem value="vratar">Vratar</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSignUp();
+                }} 
+                disabled={loading} 
+                className="w-full"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Prijavi se
+              </Button>
+            </>
+          ) : (
+            <>
+              <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
+                Prijavljeni kot: {userParticipation.position}
+              </Badge>
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSignOut();
+                }} 
+                disabled={loading} 
+                variant="destructive" 
+                className="w-full"
+              >
+                <UserMinus className="h-4 w-4 mr-2" />
+                Odjavi se
+              </Button>
+            </>
+          )
         ) : (
-          <>
-            <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-              Prijavljeni kot: {userParticipation.position}
-            </Badge>
-            <Button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSignOut();
-              }} 
-              disabled={loading} 
-              variant="destructive" 
-              className="w-full"
-            >
-              <UserMinus className="h-4 w-4 mr-2" />
-              Odjavi se
-            </Button>
-          </>
+          <Badge variant="secondary" className="w-full justify-center py-2 text-xs">
+            Prijave zaprte - tekma zaključena
+          </Badge>
         )}
         
         <Button 

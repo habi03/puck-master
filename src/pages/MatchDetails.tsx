@@ -20,6 +20,7 @@ type Match = {
   match_time: string;
   number_of_teams: number;
   league_id: string;
+  is_completed: boolean;
 };
 
 type Participant = {
@@ -49,6 +50,8 @@ export default function MatchDetails() {
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [playerGoals, setPlayerGoals] = useState<{ [key: number]: { [playerId: string]: number } }>({});
+  const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [matchGoals, setMatchGoals] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -72,6 +75,8 @@ export default function MatchDetails() {
     if (matchId && user) {
       fetchMatch();
       fetchParticipants();
+      fetchMatchResults();
+      fetchMatchGoals();
     }
   }, [matchId, user]);
 
@@ -158,6 +163,35 @@ export default function MatchDetails() {
       setParticipants(sorted as Participant[]);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju igralcev");
+    }
+  };
+
+  const fetchMatchResults = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("match_results")
+        .select("*")
+        .eq("match_id", matchId)
+        .order("team_number", { ascending: true });
+
+      if (error) throw error;
+      setMatchResults(data || []);
+    } catch (error: any) {
+      console.error("Error fetching match results:", error);
+    }
+  };
+
+  const fetchMatchGoals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("goals")
+        .select("*, profiles!goals_player_id_fkey(full_name, email)")
+        .eq("match_id", matchId);
+
+      if (error) throw error;
+      setMatchGoals(data || []);
+    } catch (error: any) {
+      console.error("Error fetching goals:", error);
     }
   };
 
@@ -311,10 +345,21 @@ export default function MatchDetails() {
         if (goalsError) throw goalsError;
       }
 
-      toast.success("Rezultati shranjeni");
+      // Mark match as completed
+      const { error: matchError } = await supabase
+        .from("matches")
+        .update({ is_completed: true })
+        .eq("id", matchId);
+      
+      if (matchError) throw matchError;
+
+      toast.success("Rezultati shranjeni - tekma zaključena");
       setResultsDialogOpen(false);
       setTeamGoals({});
       setPlayerGoals({});
+      fetchMatch();
+      fetchMatchResults();
+      fetchMatchGoals();
     } catch (error: any) {
       toast.error("Napaka pri shranjevanju rezultatov");
       console.error(error);
@@ -377,13 +422,69 @@ export default function MatchDetails() {
         </Button>
 
         <div className="mb-4">
-          <h2 className="text-lg font-bold">
+          <h2 className="text-lg font-bold flex items-center gap-2">
             Tekma {new Date(match.match_date).toLocaleDateString('sl-SI')}
+            {match.is_completed && (
+              <Badge variant="secondary" className="text-xs">Zaključena</Badge>
+            )}
           </h2>
           <p className="text-sm text-muted-foreground">
             Ura: {match.match_time} • {match.number_of_teams} ekipe
           </p>
         </div>
+
+        {match.is_completed && matchResults.length > 0 && (
+          <Card className="mb-4 border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                Rezultat tekme
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {matchResults.map((result) => {
+                  const teamGoalsData = matchGoals.filter(g => g.team_number === result.team_number);
+                  const goalsByPlayer: { [playerId: string]: { count: number, name: string } } = {};
+                  
+                  teamGoalsData.forEach(goal => {
+                    if (!goalsByPlayer[goal.player_id]) {
+                      goalsByPlayer[goal.player_id] = {
+                        count: 0,
+                        name: goal.profiles?.full_name || goal.profiles?.email.split('@')[0] || 'Neznano'
+                      };
+                    }
+                    goalsByPlayer[goal.player_id].count++;
+                  });
+
+                  return (
+                    <div key={result.team_number} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">Ekipa {result.team_number}</span>
+                        <Badge variant="default" className="text-lg px-3">
+                          {result.goals_scored}
+                        </Badge>
+                      </div>
+                      {Object.keys(goalsByPlayer).length > 0 && (
+                        <div className="pl-4 space-y-1">
+                          {Object.entries(goalsByPlayer).map(([playerId, data]) => (
+                            <div key={playerId} className="text-xs text-muted-foreground flex items-center gap-2">
+                              <Target className="h-3 w-3" />
+                              <span>{data.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {data.count} {data.count === 1 ? 'gol' : data.count === 2 ? 'gola' : 'golov'}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {isAdmin && (
           <>
@@ -434,9 +535,9 @@ export default function MatchDetails() {
 
           <Dialog open={resultsDialogOpen} onOpenChange={setResultsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full gap-2">
+              <Button variant="outline" className="w-full gap-2" disabled={match.is_completed}>
                 <Target className="h-4 w-4" />
-                Vnesi rezultat tekme
+                {match.is_completed ? "Rezultati že shranjeni" : "Vnesi rezultat tekme"}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

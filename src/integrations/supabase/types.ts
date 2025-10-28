@@ -206,6 +206,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          is_completed: boolean
           league_id: string
           match_date: string
           match_time: string
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          is_completed?: boolean
           league_id: string
           match_date: string
           match_time: string
@@ -226,6 +228,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          is_completed?: boolean
           league_id?: string
           match_date?: string
           match_time?: string
