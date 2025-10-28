@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -23,6 +31,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -68,6 +78,36 @@ export default function Auth() {
         });
       } else if (error.message?.includes("already registered")) {
         toast.error("Ta email je že registriran. Prosim prijavite se.");
+      } else {
+        toast.error(error.message || "Prišlo je do napake");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const emailSchema = z.string().email({ message: "Neveljaven email naslov" });
+      emailSchema.parse(resetEmail);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+      
+      toast.success("Poslali smo vam povezavo za ponastavitev gesla na email!");
+      setShowResetDialog(false);
+      setResetEmail("");
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          toast.error(err.message);
+        });
       } else {
         toast.error(error.message || "Prišlo je do napake");
       }
@@ -129,7 +169,43 @@ export default function Auth() {
               {loading ? "Nalaganje..." : isLogin ? "Prijava" : "Registracija"}
             </Button>
           </form>
-          <div className="mt-3 text-center text-xs">
+          <div className="mt-3 text-center text-xs space-y-2">
+            {isLogin && (
+              <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-primary hover:underline transition-all block w-full"
+                  >
+                    Pozabljeno geslo?
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ponastavitev gesla</DialogTitle>
+                    <DialogDescription>
+                      Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handlePasswordReset} className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="resetEmail" className="text-sm">Email</Label>
+                      <Input
+                        id="resetEmail"
+                        type="email"
+                        placeholder="vas.email@primer.si"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Pošiljanje..." : "Pošlji povezavo"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
