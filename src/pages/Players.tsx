@@ -113,9 +113,8 @@ export default function Players() {
 
       if (myRatingsError) throw myRatingsError;
 
-      // Combine data and filter out current user
+      // Combine data
       const playersData: PlayerWithRating[] = profiles
-        .filter(profile => profile.id !== user?.id) // Don't include yourself
         .map(profile => {
           const ratingData = ratings.find(r => r.player_id === profile.id);
           const myRating = myRatings.find(r => r.rated_player_id === profile.id);
@@ -240,45 +239,51 @@ export default function Players() {
                         Vaša ocena: {player.myRating}/10
                       </span>
                     )}
-                    <Dialog open={dialogOpen && selectedPlayer?.id === player.id} onOpenChange={setDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={() => handleRatePlayer(player)}
-                          size="sm"
-                          variant={player.myRating ? "outline" : "default"}
-                          className="ml-auto"
-                        >
-                          {player.myRating ? "Uredi oceno" : "Oceni"}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>
-                            Oceni igralca: {selectedPlayer?.full_name}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>Ocena: {rating}/10</Label>
-                            <Slider
-                              value={[rating]}
-                              onValueChange={(value) => setRating(value[0])}
-                              min={1}
-                              max={10}
-                              step={1}
-                              className="w-full"
-                            />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>1 - Najslabše</span>
-                              <span>10 - Najboljše</span>
-                            </div>
-                          </div>
-                          <Button onClick={submitRating} className="w-full">
-                            Shrani oceno
+                    {player.id === user.id ? (
+                      <span className="text-xs text-muted-foreground ml-auto italic">
+                        To ste vi
+                      </span>
+                    ) : (
+                      <Dialog open={dialogOpen && selectedPlayer?.id === player.id} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={() => handleRatePlayer(player)}
+                            size="sm"
+                            variant={player.myRating ? "outline" : "default"}
+                            className="ml-auto"
+                          >
+                            {player.myRating ? "Uredi oceno" : "Oceni"}
                           </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Oceni igralca: {selectedPlayer?.full_name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label>Ocena: {rating}/10</Label>
+                              <Slider
+                                value={[rating]}
+                                onValueChange={(value) => setRating(value[0])}
+                                min={1}
+                                max={10}
+                                step={1}
+                                className="w-full"
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>1 - Najslabše</span>
+                                <span>10 - Najboljše</span>
+                              </div>
+                            </div>
+                            <Button onClick={submitRating} className="w-full">
+                              Shrani oceno
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                 </CardContent>
               </Card>
