@@ -887,7 +887,63 @@ export default function MatchDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {teamPlayers.map((p) => (
+                  {/* Vratarji */}
+                  {teamPlayers.filter(p => p.position === "vratar").map((p) => (
+                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium truncate">
+                          {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
+                        </span>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {p.position}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-muted-foreground">
+                          {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                        </span>
+                        {isAdmin && (
+                          <Select
+                            value={p.team_number?.toString()}
+                            onValueChange={async (value: string) => {
+                              try {
+                                const { error } = await supabase
+                                  .from("match_participants")
+                                  .update({ team_number: value === "unassigned" ? null : parseInt(value) })
+                                  .eq("id", p.id);
+                                if (error) throw error;
+                                toast.success("Ekipa posodobljena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri spreminjanju ekipe");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-16 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: match.number_of_teams }, (_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  E{i + 1}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="unassigned">-</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Separator if there are goalkeepers */}
+                  {teamPlayers.filter(p => p.position === "vratar").length > 0 && 
+                   teamPlayers.filter(p => p.position === "igralec").length > 0 && (
+                    <div className="border-t my-2" />
+                  )}
+                  
+                  {/* Igralci */}
+                  {teamPlayers.filter(p => p.position === "igralec").map((p) => (
                     <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="font-medium truncate">
