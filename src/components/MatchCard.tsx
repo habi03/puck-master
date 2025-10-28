@@ -283,25 +283,6 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
               }, [] as React.ReactNode[])}
             </div>
-            
-            {matchSaves.length > 0 && (
-              <div className="pt-2 border-t text-xs space-y-1">
-                <div className="font-semibold text-muted-foreground">Obrambe:</div>
-                {matchSaves.map((save) => {
-                  const teamColor = save.team_number === 1 ? "text-green-700 bg-green-50" : 
-                                   save.team_number === 2 ? "text-red-700 bg-red-50" : 
-                                   "text-blue-700 bg-blue-50";
-                  return (
-                    <div key={save.id} className="flex items-center justify-between">
-                      <span className={`font-semibold ${teamColor} px-2 py-0.5 rounded`}>Ekipa {save.team_number}</span>
-                      <Badge variant="outline" className="text-xs bg-green-50">
-                        {save.saves_count}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
       </CardContent>
