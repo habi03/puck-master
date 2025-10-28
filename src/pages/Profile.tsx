@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Upload } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [currentRole, setCurrentRole] = useState<string>("");
   const [currentLeagueName, setCurrentLeagueName] = useState<string>("");
   const [currentLeagueId, setCurrentLeagueId] = useState<string>("");
@@ -62,6 +65,7 @@ export default function Profile() {
       if (error) throw error;
       setFullName(data.full_name || "");
       setLocation(data.location || "");
+      setAvatarUrl(data.avatar_url || "");
       
       // Fetch current league membership
       const currentLeagueId = localStorage.getItem("currentLeagueId");
@@ -110,7 +114,8 @@ export default function Profile() {
         .from("profiles")
         .update({ 
           full_name: fullName,
-          location: location 
+          location: location,
+          avatar_url: avatarUrl
         })
         .eq("id", user.id);
 
@@ -121,6 +126,57 @@ export default function Profile() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error("Izbrati morate sliko");
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split("/").pop();
+        if (oldPath) {
+          await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      setAvatarUrl(data.publicUrl);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Profilna slika uspešno naložena");
+    } catch (error: any) {
+      toast.error(error.message || "Napaka pri nalaganju slike");
+      console.error(error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -198,6 +254,43 @@ export default function Profile() {
             <CardDescription>Posodobite svoje podatke</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Avatar Upload */}
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={avatarUrl} alt={fullName || "Uporabnik"} />
+                <AvatarFallback className="text-2xl">
+                  {fullName ? fullName[0].toUpperCase() : email[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-center gap-2">
+                <Label htmlFor="avatar-upload" className="cursor-pointer">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => document.getElementById("avatar-upload")?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploading ? "Nalagam..." : "Naloži profilno sliko"}
+                  </Button>
+                </Label>
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground text-center">
+                  PNG, JPG ali WEBP (max. 5MB)
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
