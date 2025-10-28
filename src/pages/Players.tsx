@@ -35,6 +35,8 @@ export default function Players() {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithRating | null>(null);
   const [rating, setRating] = useState<number>(5);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -142,6 +144,13 @@ export default function Players() {
     setDialogOpen(true);
   };
 
+  const handleAvatarClick = (player: PlayerWithRating) => {
+    if (player.avatar_url) {
+      setSelectedAvatar({ url: player.avatar_url, name: player.full_name });
+      setAvatarDialogOpen(true);
+    }
+  };
+
   const submitRating = async () => {
     if (!selectedPlayer || !user) return;
 
@@ -194,7 +203,10 @@ export default function Players() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Avatar className="h-10 w-10 flex-shrink-0">
+                      <Avatar 
+                        className={`h-10 w-10 flex-shrink-0 ${player.avatar_url ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''}`}
+                        onClick={() => handleAvatarClick(player)}
+                      >
                         <AvatarImage src={player.avatar_url} alt={player.full_name} />
                         <AvatarFallback>
                           {player.full_name ? player.full_name[0].toUpperCase() : player.email[0].toUpperCase()}
@@ -272,6 +284,22 @@ export default function Players() {
             ))
           )}
         </div>
+
+        {/* Avatar Preview Dialog */}
+        <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{selectedAvatar?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="flex items-center justify-center p-4">
+              <img 
+                src={selectedAvatar?.url} 
+                alt={selectedAvatar?.name}
+                className="max-w-full max-h-[60vh] rounded-lg object-contain"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
