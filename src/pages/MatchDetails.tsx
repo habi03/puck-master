@@ -728,12 +728,12 @@ export default function MatchDetails() {
                   const fieldPlayers = teamPlayers.filter(p => p.position === "igralec");
                   
                   return (
-                    <Card key={teamNum}>
-                      <CardHeader className={`pb-3 ${
-                        parseInt(teamNum) === 1 ? "bg-green-50" : 
-                        parseInt(teamNum) === 2 ? "bg-red-50" : 
-                        "bg-blue-50"
-                      }`}>
+                    <Card key={teamNum} className={`${
+                      parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
+                      parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
+                      "bg-blue-50 border-blue-200"
+                    }`}>
+                      <CardHeader className="pb-3">
                         <CardTitle className={`text-sm flex items-center justify-between ${
                           parseInt(teamNum) === 1 ? "text-green-700" : 
                           parseInt(teamNum) === 2 ? "text-red-700" : 
@@ -869,12 +869,12 @@ export default function MatchDetails() {
           <div className="space-y-3 mb-4">
             <h3 className="text-sm font-semibold">Ekipe</h3>
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => (
-              <Card key={teamNum}>
-                <CardHeader className={`pb-2 ${
-                  parseInt(teamNum) === 1 ? "bg-green-50" : 
-                  parseInt(teamNum) === 2 ? "bg-red-50" : 
-                  "bg-blue-50"
-                }`}>
+              <Card key={teamNum} className={`${
+                parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
+                parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
+                "bg-blue-50 border-blue-200"
+              }`}>
+                <CardHeader className="pb-2">
                   <CardTitle className={`text-sm ${
                     parseInt(teamNum) === 1 ? "text-green-700" : 
                     parseInt(teamNum) === 2 ? "text-red-700" : 
