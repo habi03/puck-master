@@ -120,6 +120,7 @@ export type Database = {
       }
       match_participants: {
         Row: {
+          combined_rating: number | null
           created_at: string
           id: string
           is_present: boolean | null
@@ -130,6 +131,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          combined_rating?: number | null
           created_at?: string
           id?: string
           is_present?: boolean | null
@@ -140,6 +142,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          combined_rating?: number | null
           created_at?: string
           id?: string
           is_present?: boolean | null

@@ -88,12 +88,113 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         }
       }
 
+      // Calculate combined rating at time of signup
+      let combinedRating = 3.0; // Default middle value
+
+      // Get peer rating
+      const { data: ratingData } = await supabase
+        .from("rating_aggregates")
+        .select("average_rating")
+        .eq("player_id", currentUser.id)
+        .single();
+
+      const peerRating = ratingData?.average_rating || 3.0;
+
+      // Get leaderboard data for current league
+      const { data: leagueData } = await supabase
+        .from("matches")
+        .select("league_id")
+        .eq("id", match.id)
+        .single();
+
+      if (leagueData) {
+        // Fetch all completed matches in this league
+        const { data: completedMatches } = await supabase
+          .from("matches")
+          .select("id")
+          .eq("league_id", leagueData.league_id)
+          .eq("is_completed", true);
+
+        const matchIds = completedMatches?.map(m => m.id) || [];
+
+        if (matchIds.length > 0) {
+          // Get participant data for leaderboard calculation
+          const { data: allParticipants } = await supabase
+            .from("match_participants")
+            .select("player_id, position, team_number, match_id, is_present")
+            .in("match_id", matchIds)
+            .eq("is_present", true);
+
+          const { data: allResults } = await supabase
+            .from("match_results")
+            .select("match_id, team_number, goals_scored");
+
+          const { data: allGoals } = await supabase
+            .from("goals")
+            .select("player_id, match_id");
+
+          const { data: allSaves } = await supabase
+            .from("saves")
+            .select("player_id, match_id, saves_count");
+
+          // Calculate leaderboard scores
+          const scores = new Map<string, number>();
+
+          allParticipants?.forEach(p => {
+            const key = `${p.player_id}_${p.position}`;
+            if (!scores.has(key)) {
+              scores.set(key, 0);
+            }
+            // Attendance: 1 point
+            scores.set(key, scores.get(key)! + 1);
+
+            // Team win: 3 points
+            const matchResults = allResults?.filter(r => r.match_id === p.match_id) || [];
+            const teamResult = matchResults.find(r => r.team_number === p.team_number);
+            const otherResults = matchResults.filter(r => r.team_number !== p.team_number);
+            if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
+              scores.set(key, scores.get(key)! + 3);
+            }
+          });
+
+          // Goals for players
+          allGoals?.forEach(g => {
+            const p = allParticipants?.find(ap => ap.player_id === g.player_id && ap.match_id === g.match_id && ap.position === "igralec");
+            if (p) {
+              const key = `${g.player_id}_igralec`;
+              scores.set(key, (scores.get(key) || 0) + 1);
+            }
+          });
+
+          // Saves for goalkeepers
+          allSaves?.forEach(s => {
+            const p = allParticipants?.find(ap => ap.player_id === s.player_id && ap.match_id === s.match_id && ap.position === "vratar");
+            if (p) {
+              const key = `${s.player_id}_vratar`;
+              scores.set(key, (scores.get(key) || 0) + s.saves_count);
+            }
+          });
+
+          // Get player's leaderboard score
+          const playerKey = `${currentUser.id}_${position}`;
+          const playerScore = scores.get(playerKey) || 0;
+          const maxScore = Math.max(...Array.from(scores.values()), 1);
+
+          // Normalize leaderboard score to 1-5 scale
+          const normalizedLeaderboardScore = (playerScore / maxScore) * 4 + 1; // Scale to 1-5
+
+          // Calculate combined rating: 0.6 * peer + 0.4 * leaderboard
+          combinedRating = 0.6 * peerRating + 0.4 * normalizedLeaderboardScore;
+        }
+      }
+
       const { error } = await supabase
         .from("match_participants")
         .insert({
           match_id: match.id,
           player_id: currentUser.id,
           position: position,
+          combined_rating: combinedRating,
         });
 
       if (error) throw error;

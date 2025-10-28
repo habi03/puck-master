@@ -29,6 +29,7 @@ type Participant = {
   position: string;
   team_number: number | null;
   is_present: boolean;
+  combined_rating?: number;
   profiles: {
     full_name: string | null;
     email: string;
@@ -163,10 +164,10 @@ export default function MatchDetails() {
         })
       );
       
-      // Sort by rating (highest to lowest)
+      // Sort by combined rating (highest to lowest), with fallback to peer rating
       const sorted = playersWithRatings.sort((a, b) => {
-        const ratingA = a.rating_aggregates?.average_rating || 0;
-        const ratingB = b.rating_aggregates?.average_rating || 0;
+        const ratingA = a.combined_rating || a.rating_aggregates?.average_rating || 0;
+        const ratingB = b.combined_rating || b.rating_aggregates?.average_rating || 0;
         return ratingB - ratingA;
       });
       
@@ -878,7 +879,7 @@ export default function MatchDetails() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-muted-foreground">
-                          {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                          {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
                         </span>
                         {isAdmin && (
                           <Select
@@ -938,7 +939,7 @@ export default function MatchDetails() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-muted-foreground">
-                        {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                        {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
                       </span>
                       {isAdmin && (
                         <Select
@@ -999,7 +1000,7 @@ export default function MatchDetails() {
                       )}
                     </div>
                     <span className="text-muted-foreground flex-shrink-0">
-                      ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                      ⭐ {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
                     </span>
                   </div>
                 ))}
