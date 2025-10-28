@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import MatchCard from "@/components/MatchCard";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function Index() {
@@ -143,23 +143,48 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="space-y-3">
-          {matches.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8 text-sm">
-              Trenutno ni razpisanih tekem.
-            </p>
-          ) : (
-            matches.map((match) => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                currentUser={profile}
-                participants={participants.filter(p => p.match_id === match.id)}
-                onUpdate={handleUpdate}
-              />
-            ))
-          )}
-        </div>
+        <Tabs defaultValue="upcoming" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="upcoming">Prihajajoče tekme</TabsTrigger>
+            <TabsTrigger value="completed">Zaključene tekme</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming" className="space-y-3">
+            {matches.filter(m => !m.is_completed).length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                Trenutno ni razpisanih prihajajučih tekem.
+              </p>
+            ) : (
+              matches.filter(m => !m.is_completed).map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  currentUser={profile}
+                  participants={participants.filter(p => p.match_id === match.id)}
+                  onUpdate={handleUpdate}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-3">
+            {matches.filter(m => m.is_completed).length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                Ni še zaključenih tekem.
+              </p>
+            ) : (
+              matches.filter(m => m.is_completed).map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  currentUser={profile}
+                  participants={participants.filter(p => p.match_id === match.id)}
+                  onUpdate={handleUpdate}
+                />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
