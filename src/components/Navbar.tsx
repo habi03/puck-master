@@ -101,11 +101,6 @@ export default function Navbar({ user }: NavbarProps) {
                   Moj profil
                 </Button>
                 
-                <Button onClick={() => navigate("/leagues")} variant="outline" className="w-full justify-start">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  Izberi ligo
-                </Button>
-                
                 <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
                   <Users className="h-4 w-4 mr-2" />
                   Tekmovalci
@@ -117,6 +112,11 @@ export default function Navbar({ user }: NavbarProps) {
                     Admin panel
                   </Button>
                 )}
+                
+                <Button onClick={() => navigate("/leagues")} variant="default" className="w-full justify-start">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Izberi ligo
+                </Button>
                 
                 <Button onClick={handleSignOut} variant="destructive" className="w-full justify-start">
                   <LogOut className="h-4 w-4 mr-2" />
