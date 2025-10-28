@@ -981,10 +981,9 @@ export default function MatchDetails() {
 
         {Object.keys(teams).length > 0 && (
           <div className="space-y-2 mt-6">
-            <h3 className="text-sm font-semibold">Vsi prijavljeni igralci</h3>
-            <p className="text-xs text-muted-foreground mb-2">
-              Ocena = 0,6 × ocena sotekmovalcev + 0,4 × leaderboard pozicija
-            </p>
+            <h3 className="text-sm font-semibold">
+              Vsi prijavljeni igralci (Ocena = 0,6 × sotekmovalci + 0,4 × leaderboard)
+            </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
                 {participants.map((p) => (
