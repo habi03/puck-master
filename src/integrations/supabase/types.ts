@@ -120,6 +120,7 @@ export type Database = {
       }
       match_participants: {
         Row: {
+          brings_beer: boolean
           combined_rating: number | null
           created_at: string
           id: string
@@ -131,6 +132,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          brings_beer?: boolean
           combined_rating?: number | null
           created_at?: string
           id?: string
@@ -142,6 +144,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          brings_beer?: boolean
           combined_rating?: number | null
           created_at?: string
           id?: string
@@ -330,6 +333,7 @@ export type Database = {
       rating_aggregates: {
         Row: {
           average_rating: number | null
+          beers_brought: number
           player_id: string
           sum_ratings: number | null
           total_ratings: number | null
@@ -337,6 +341,7 @@ export type Database = {
         }
         Insert: {
           average_rating?: number | null
+          beers_brought?: number
           player_id: string
           sum_ratings?: number | null
           total_ratings?: number | null
@@ -344,6 +349,7 @@ export type Database = {
         }
         Update: {
           average_rating?: number | null
+          beers_brought?: number
           player_id?: string
           sum_ratings?: number | null
           total_ratings?: number | null

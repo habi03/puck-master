@@ -15,6 +15,7 @@ interface LeaderboardEntry {
   goals: number;
   saves: number;
   total_points: number;
+  beers_brought: number;
 }
 
 export default function Leaderboard() {
@@ -94,12 +95,21 @@ export default function Leaderboard() {
 
       if (profilesError) throw profilesError;
 
+      // Get beer counts from rating_aggregates
+      const { data: beerData, error: beerError } = await supabase
+        .from("rating_aggregates")
+        .select("player_id, beers_brought")
+        .in("player_id", playerIds);
+
+      if (beerError) throw beerError;
+
       // Build leaderboard by player and position
       const leaderboardMap = new Map<string, LeaderboardEntry>();
 
       participants?.forEach(participant => {
         const key = `${participant.player_id}_${participant.position}`;
         const profile = profiles?.find(p => p.id === participant.player_id);
+        const beerCount = beerData?.find(b => b.player_id === participant.player_id)?.beers_brought || 0;
         
         if (!leaderboardMap.has(key)) {
           leaderboardMap.set(key, {
@@ -111,6 +121,7 @@ export default function Leaderboard() {
             goals: 0,
             saves: 0,
             total_points: 0,
+            beers_brought: beerCount,
           });
         }
 
@@ -233,6 +244,10 @@ export default function Leaderboard() {
                   <p className="text-muted-foreground">Obrambe</p>
                 </div>
               )}
+              <div className="text-center">
+                <p className="font-semibold">🍺 {entry.beers_brought}</p>
+                <p className="text-muted-foreground">Pivo</p>
+              </div>
             </div>
           </CardContent>
         </Card>

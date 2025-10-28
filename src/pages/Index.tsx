@@ -110,7 +110,13 @@ export default function Index() {
     try {
       const { data, error } = await supabase
         .from("match_participants")
-        .select("*");
+        .select(`
+          *,
+          profiles:player_id (
+            id,
+            full_name
+          )
+        `);
 
       if (error) throw error;
       setParticipants(data || []);

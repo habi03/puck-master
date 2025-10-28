@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -230,6 +230,31 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
+  const handleBringBeer = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("match_participants")
+        .update({ brings_beer: true })
+        .eq("id", userParticipation.id);
+
+      if (error) throw error;
+      toast.success("Hvala! 🍺");
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const beerBringer = participants.find(p => p.brings_beer);
+
   const matchDate = new Date(match.match_date);
   const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: sl });
 
@@ -259,6 +284,15 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <Users className="h-4 w-4 flex-shrink-0" />
           <span className="text-xs">{participants.length} prijavljenih</span>
         </div>
+        
+        {beerBringer && (
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <Beer className="h-4 w-4 flex-shrink-0" />
+            <span className="text-xs font-semibold">
+              Pivo: {currentUser.id === beerBringer.player_id ? 'Vi' : (beerBringer.profiles?.full_name || 'Nekdo')}
+            </span>
+          </div>
+        )}
         
         {isCompleted && (
           <div className="pt-2 border-t mt-2 space-y-2">
@@ -316,6 +350,29 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
                 Prijavljeni kot: {userParticipation.position}
               </Badge>
+              
+              {!userParticipation.brings_beer && !beerBringer && (
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBringBeer();
+                  }} 
+                  disabled={loading} 
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <Beer className="h-4 w-4 mr-2" />
+                  JAZ PRINESEM PIVO
+                </Button>
+              )}
+              
+              {userParticipation.brings_beer && (
+                <Badge variant="default" className="w-full justify-center py-1.5 text-xs">
+                  <Beer className="h-4 w-4 mr-2" />
+                  Vi prinašate pivo! 🍺
+                </Badge>
+              )}
+              
               <Button 
                 onClick={(e) => {
                   e.stopPropagation();
