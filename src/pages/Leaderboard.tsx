@@ -42,6 +42,20 @@ export default function Leaderboard() {
       return;
     }
 
+    // Verify membership
+    const { data, error } = await supabase
+      .from("league_members")
+      .select("id")
+      .eq("league_id", leagueId)
+      .eq("user_id", user.id)
+      .single();
+    
+    if (error || !data) {
+      localStorage.removeItem("currentLeagueId");
+      navigate("/leagues");
+      return;
+    }
+
     fetchLeaderboard(leagueId);
   };
 

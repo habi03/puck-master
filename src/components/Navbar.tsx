@@ -16,12 +16,35 @@ export default function Navbar({ user }: NavbarProps) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const leagueId = localStorage.getItem("currentLeagueId");
-    if (leagueId) {
+    const validateAndFetchLeague = async () => {
+      const leagueId = localStorage.getItem("currentLeagueId");
+      if (!leagueId) return;
+      
+      // Verify membership before fetching league details
+      const { data: memberData, error: memberError } = await supabase
+        .from("league_members")
+        .select("id")
+        .eq("league_id", leagueId)
+        .eq("user_id", user.id)
+        .single();
+      
+      if (memberError || !memberData) {
+        // User is no longer a member, clear the stored league
+        localStorage.removeItem("currentLeagueId");
+        setCurrentLeague(null);
+        setIsAdmin(false);
+        return;
+      }
+      
+      // User is a valid member, fetch league details
       fetchCurrentLeague(leagueId);
       checkAdminStatus(leagueId);
+    };
+    
+    if (user) {
+      validateAndFetchLeague();
     }
-  }, []);
+  }, [user]);
 
   const fetchCurrentLeague = async (leagueId: string) => {
     try {

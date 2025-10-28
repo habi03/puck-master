@@ -70,16 +70,19 @@ export default function Profile() {
       // Fetch current league membership
       const currentLeagueId = localStorage.getItem("currentLeagueId");
       if (currentLeagueId) {
-        setCurrentLeagueId(currentLeagueId);
-        
-        const { data: memberData } = await supabase
+        // Verify membership
+        const { data: memberData, error: memberError } = await supabase
           .from("league_members")
           .select("role, leagues(name)")
           .eq("league_id", currentLeagueId)
           .eq("user_id", userId)
           .single();
         
-        if (memberData) {
+        if (memberError || !memberData) {
+          // User is no longer a member, clear the stored league
+          localStorage.removeItem("currentLeagueId");
+        } else {
+          setCurrentLeagueId(currentLeagueId);
           const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
             'plačan_član': 'Plačan član',

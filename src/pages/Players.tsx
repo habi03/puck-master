@@ -62,13 +62,37 @@ export default function Players() {
   }, [navigate]);
 
   useEffect(() => {
-    const leagueId = localStorage.getItem("currentLeagueId");
-    if (!leagueId) {
-      navigate("/leagues");
-    } else {
+    const validateLeagueMembership = async () => {
+      const leagueId = localStorage.getItem("currentLeagueId");
+      if (!leagueId) {
+        navigate("/leagues");
+        return;
+      }
+      
+      if (!user) return;
+      
+      // Verify membership
+      const { data, error } = await supabase
+        .from("league_members")
+        .select("id")
+        .eq("league_id", leagueId)
+        .eq("user_id", user.id)
+        .single();
+      
+      if (error || !data) {
+        localStorage.removeItem("currentLeagueId");
+        toast.error("Nimate več dostopa do te lige");
+        navigate("/leagues");
+        return;
+      }
+      
       setCurrentLeagueId(leagueId);
+    };
+    
+    if (user) {
+      validateLeagueMembership();
     }
-  }, [navigate]);
+  }, [navigate, user]);
 
   useEffect(() => {
     if (user && currentLeagueId) {
