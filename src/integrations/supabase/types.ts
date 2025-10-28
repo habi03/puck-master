@@ -86,13 +86,6 @@ export type Database = {
             referencedRelation: "public_leagues"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "league_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       leagues: {
@@ -168,13 +161,6 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "match_participants_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -297,22 +283,7 @@ export type Database = {
           rating?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "player_ratings_rated_player_id_fkey"
-            columns: ["rated_player_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "player_ratings_rater_id_fkey"
-            columns: ["rater_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -369,15 +340,7 @@ export type Database = {
           total_ratings?: number | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "rating_aggregates_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       saves: {
         Row: {
