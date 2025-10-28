@@ -509,6 +509,44 @@ export default function MatchDetails() {
     });
   };
 
+  const cancelMatchResults = async () => {
+    if (!match || !match.is_completed) return;
+    
+    setLoading(true);
+    try {
+      // Delete all match results, goals, and saves
+      await supabase.from("match_results").delete().eq("match_id", matchId);
+      await supabase.from("goals").delete().eq("match_id", matchId);
+      await supabase.from("saves").delete().eq("match_id", matchId);
+
+      // Mark match as not completed (reopen it)
+      const { error: matchError } = await supabase
+        .from("matches")
+        .update({ is_completed: false })
+        .eq("id", matchId);
+      
+      if (matchError) throw matchError;
+
+      toast.success("Rezultati preklicani - tekma ponovno odprta");
+      
+      // Clear state
+      setTeamGoals({});
+      setPlayerGoals({});
+      setGoalkeeperSaves({});
+      
+      // Refresh data
+      fetchMatch();
+      fetchMatchResults();
+      fetchMatchGoals();
+      fetchMatchSaves();
+    } catch (error: any) {
+      toast.error("Napaka pri preklicu rezultatov");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!match) return null;
 
   // Group participants by team
@@ -709,7 +747,7 @@ export default function MatchDetails() {
 
           <Dialog open={resultsDialogOpen} onOpenChange={setResultsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full gap-2">
+              <Button variant="outline" className="w-full gap-2 mb-2">
                 <Target className="h-4 w-4" />
                 {match.is_completed ? "Uredi rezultate" : "Vnesi rezultat tekme"}
               </Button>
@@ -857,6 +895,17 @@ export default function MatchDetails() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {match.is_completed && (
+            <Button 
+              variant="destructive" 
+              className="w-full gap-2"
+              onClick={cancelMatchResults}
+              disabled={loading}
+            >
+              Prekliči rezultate in odpri tekmo
+            </Button>
+          )}
           </>
         )}
 
