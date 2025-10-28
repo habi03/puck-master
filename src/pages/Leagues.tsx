@@ -12,6 +12,25 @@ import { toast } from "sonner";
 import { Plus, Users, ArrowRight, Lock, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { z } from "zod";
+
+const leagueSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(3, "Ime mora biti dolgo vsaj 3 znake")
+    .max(100, "Ime je predolgo (max 100 znakov)")
+    .regex(/^[a-zA-Z0-9čćžšđČĆŽŠĐ\s-]+$/, "Neveljavni znaki v imenu"),
+  description: z.string()
+    .trim()
+    .max(500, "Opis je predolg (max 500 znakov)")
+    .optional(),
+  password: z.string()
+    .trim()
+    .min(4, "Geslo mora biti dolgo vsaj 4 znake")
+    .max(50, "Geslo je predolgo (max 50 znakov)")
+    .optional()
+    .or(z.literal(''))
+});
 
 export default function Leagues() {
   const [user, setUser] = useState<User | null>(null);
@@ -84,11 +103,17 @@ export default function Leagues() {
     setLoading(true);
 
     try {
+      // Validate input
+      const validatedData = leagueSchema.parse({
+        name: newLeagueName,
+        description: newLeagueDesc || "",
+      });
+
       const { error } = await supabase
         .from("leagues")
         .insert({
-          name: newLeagueName,
-          description: newLeagueDesc,
+          name: validatedData.name,
+          description: validatedData.description || null,
           created_by: user?.id,
         });
 
@@ -100,7 +125,13 @@ export default function Leagues() {
       fetchLeagues();
       fetchMyLeagues();
     } catch (error: any) {
-      toast.error(error.message);
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          toast.error(err.message);
+        });
+      } else {
+        toast.error(error.message || "Napaka pri ustvarjanju lige");
+      }
     } finally {
       setLoading(false);
     }

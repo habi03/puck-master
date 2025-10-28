@@ -11,7 +11,10 @@ import { z } from "zod";
 const authSchema = z.object({
   email: z.string().email({ message: "Neveljaven email naslov" }),
   password: z.string().min(6, { message: "Geslo mora biti dolgo vsaj 6 znakov" }),
-  fullName: z.string().min(2, { message: "Ime mora biti dolgo vsaj 2 znaka" }).optional(),
+  fullName: z.string()
+    .min(2, { message: "Ime mora biti dolgo vsaj 2 znaka" })
+    .max(100, { message: "Ime je predolgo (max 100 znakov)" })
+    .optional(),
 });
 
 export default function Auth() {
