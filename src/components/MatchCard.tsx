@@ -369,7 +369,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               {userParticipation.brings_beer && (
                 <Badge variant="default" className="w-full justify-center py-1.5 text-xs">
                   <Beer className="h-4 w-4 mr-2" />
-                  Vi prinašate pivo! 🍺
+                  Ti prineseš pivo! 🍺
                 </Badge>
               )}
               
