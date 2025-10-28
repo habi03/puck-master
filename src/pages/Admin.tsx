@@ -228,6 +228,28 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!confirm("Ali ste prepričani, da želite izbrisati to tekmo? Izbrisani bodo tudi vsi prijavljeni igralci in rezultati.")) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("id", matchId);
+
+      if (error) throw error;
+      toast.success("Tekma uspešno izbrisana");
+      fetchMatches();
+    } catch (error: any) {
+      toast.error("Napaka pri brisanju tekme");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user || !isAdmin) return null;
 
   return (
@@ -388,8 +410,19 @@ export default function Admin() {
                         {new Date(match.match_date).toLocaleDateString('sl-SI')} ob {match.match_time}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="text-xs text-muted-foreground">
-                      Število ekip: {match.number_of_teams}
+                    <CardContent className="space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        Število ekip: {match.number_of_teams}
+                      </p>
+                      <Button
+                        onClick={() => handleDeleteMatch(match.id)}
+                        disabled={loading}
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                      >
+                        Izbriši tekmo
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
