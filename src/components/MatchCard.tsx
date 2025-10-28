@@ -143,18 +143,25 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <span className="text-xs">{participants.length} prijavljenih</span>
         </div>
         
-        {isCompleted && matchResults.length > 0 && (
+        {isCompleted && (
           <div className="pt-2 border-t mt-2">
-            <div className="text-xs font-semibold mb-1.5 text-muted-foreground">Rezultat:</div>
-            <div className="flex gap-2">
-              {matchResults.map((result) => (
-                <div key={result.team_number} className="flex items-center gap-1.5">
-                  <span className="text-xs">Ekipa {result.team_number}:</span>
-                  <Badge variant="default" className="text-sm">
-                    {result.goals_scored}
-                  </Badge>
-                </div>
-              ))}
+            <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
+            <div className="flex gap-3 justify-center">
+              {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
+                const result = matchResults.find(r => r.team_number === teamNum);
+                const goals = result?.goals_scored || 0;
+                return (
+                  <div key={teamNum} className="flex flex-col items-center gap-1">
+                    <span className="text-xs text-muted-foreground">Ekipa {teamNum}</span>
+                    <div className="text-2xl font-bold text-primary">
+                      {goals}
+                    </div>
+                  </div>
+                );
+              }).reduce((prev, curr, idx) => {
+                if (idx === 0) return [curr];
+                return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
+              }, [] as React.ReactNode[])}
             </div>
           </div>
         )}

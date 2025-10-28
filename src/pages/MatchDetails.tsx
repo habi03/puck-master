@@ -433,7 +433,7 @@ export default function MatchDetails() {
           </p>
         </div>
 
-        {match.is_completed && matchResults.length > 0 && (
+        {match.is_completed && (
           <Card className="mb-4 border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -442,9 +442,30 @@ export default function MatchDetails() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {matchResults.map((result) => {
-                  const teamGoalsData = matchGoals.filter(g => g.team_number === result.team_number);
+              <div className="flex items-center justify-center gap-4 mb-6 py-4">
+                {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
+                  const result = matchResults.find(r => r.team_number === teamNum);
+                  const goals = result?.goals_scored || 0;
+                  return (
+                    <div key={teamNum} className="flex flex-col items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Ekipa {teamNum}</span>
+                      <div className="text-5xl font-bold text-primary">
+                        {goals}
+                      </div>
+                    </div>
+                  );
+                }).reduce((prev, curr, idx) => {
+                  if (idx === 0) return [curr];
+                  return [...prev, <span key={`sep-${idx}`} className="text-5xl font-bold text-muted-foreground px-2">:</span>, curr];
+                }, [] as React.ReactNode[])}
+              </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="text-sm font-semibold text-muted-foreground">Strelci golov:</h4>
+                {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
+                  const result = matchResults.find(r => r.team_number === teamNum);
+                  const goals = result?.goals_scored || 0;
+                  const teamGoalsData = matchGoals.filter(g => g.team_number === teamNum);
                   const goalsByPlayer: { [playerId: string]: { count: number, name: string } } = {};
                   
                   teamGoalsData.forEach(goal => {
@@ -458,24 +479,28 @@ export default function MatchDetails() {
                   });
 
                   return (
-                    <div key={result.team_number} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold">Ekipa {result.team_number}</span>
-                        <Badge variant="default" className="text-lg px-3">
-                          {result.goals_scored}
+                    <div key={teamNum} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">Ekipa {teamNum}</span>
+                        <Badge variant="secondary" className="text-sm">
+                          {goals} {goals === 1 ? 'gol' : goals === 2 ? 'gola' : 'golov'}
                         </Badge>
                       </div>
-                      {Object.keys(goalsByPlayer).length > 0 && (
-                        <div className="pl-4 space-y-1">
+                      {Object.keys(goalsByPlayer).length > 0 ? (
+                        <div className="pl-4 space-y-1.5">
                           {Object.entries(goalsByPlayer).map(([playerId, data]) => (
-                            <div key={playerId} className="text-xs text-muted-foreground flex items-center gap-2">
-                              <Target className="h-3 w-3" />
+                            <div key={playerId} className="text-sm flex items-center gap-2">
+                              <Target className="h-3.5 w-3.5 text-primary" />
                               <span>{data.name}</span>
                               <Badge variant="outline" className="text-xs">
-                                {data.count} {data.count === 1 ? 'gol' : data.count === 2 ? 'gola' : 'golov'}
+                                {data.count}
                               </Badge>
                             </div>
                           ))}
+                        </div>
+                      ) : (
+                        <div className="pl-4 text-xs text-muted-foreground italic">
+                          Brez zadetkov
                         </div>
                       )}
                     </div>
