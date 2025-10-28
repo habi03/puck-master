@@ -86,6 +86,13 @@ export default function MatchDetails() {
     }
   }, [match, user]);
 
+  // Load existing results when dialog opens for completed matches
+  useEffect(() => {
+    if (resultsDialogOpen && match?.is_completed) {
+      loadExistingResults();
+    }
+  }, [resultsDialogOpen, match?.is_completed]);
+
   const checkAdminStatus = async () => {
     if (!match) return;
     
@@ -210,6 +217,28 @@ export default function MatchDetails() {
     } catch (error: any) {
       console.error("Error fetching goals:", error);
     }
+  };
+
+  const loadExistingResults = () => {
+    // Load team goals
+    const existingTeamGoals: { [key: number]: number } = {};
+    matchResults.forEach(result => {
+      existingTeamGoals[result.team_number] = result.goals_scored;
+    });
+    setTeamGoals(existingTeamGoals);
+
+    // Load player goals
+    const existingPlayerGoals: { [key: number]: { [playerId: string]: number } } = {};
+    matchGoals.forEach(goal => {
+      if (!existingPlayerGoals[goal.team_number]) {
+        existingPlayerGoals[goal.team_number] = {};
+      }
+      if (!existingPlayerGoals[goal.team_number][goal.player_id]) {
+        existingPlayerGoals[goal.team_number][goal.player_id] = 0;
+      }
+      existingPlayerGoals[goal.team_number][goal.player_id]++;
+    });
+    setPlayerGoals(existingPlayerGoals);
   };
 
   const distributeTeams = async () => {
@@ -577,16 +606,16 @@ export default function MatchDetails() {
 
           <Dialog open={resultsDialogOpen} onOpenChange={setResultsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full gap-2" disabled={match.is_completed}>
+              <Button variant="outline" className="w-full gap-2">
                 <Target className="h-4 w-4" />
-                {match.is_completed ? "Rezultati že shranjeni" : "Vnesi rezultat tekme"}
+                {match.is_completed ? "Uredi rezultate" : "Vnesi rezultat tekme"}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Vnos rezultata tekme</DialogTitle>
+                <DialogTitle>{match.is_completed ? "Uredi rezultate tekme" : "Vnos rezultata tekme"}</DialogTitle>
                 <DialogDescription>
-                  Vnesi število golov in strelce za vsako ekipo
+                  {match.is_completed ? "Posodobi število golov in strelce za vsako ekipo" : "Vnesi število golov in strelce za vsako ekipo"}
                 </DialogDescription>
               </DialogHeader>
 
@@ -656,11 +685,18 @@ export default function MatchDetails() {
                   disabled={loading}
                   className="flex-1"
                 >
-                  {loading ? "Shranjevanje..." : "Shrani rezultate"}
+                  {loading ? "Shranjevanje..." : match.is_completed ? "Posodobi rezultate" : "Shrani rezultate"}
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setResultsDialogOpen(false)}
+                  onClick={() => {
+                    setResultsDialogOpen(false);
+                    // Clear form if not completed
+                    if (!match.is_completed) {
+                      setTeamGoals({});
+                      setPlayerGoals({});
+                    }
+                  }}
                   disabled={loading}
                 >
                   Prekliči
