@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -21,6 +22,7 @@ interface PlayerWithRating {
   id: string;
   full_name: string;
   email: string;
+  avatar_url?: string;
   average_rating: number;
   total_ratings: number;
   myRating?: number;
@@ -87,7 +89,7 @@ export default function Players() {
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email")
+        .select("id, full_name, email, avatar_url")
         .in("id", userIds);
 
       if (profilesError) throw profilesError;
@@ -119,6 +121,7 @@ export default function Players() {
             id: profile.id,
             full_name: profile.full_name || "Brez imena",
             email: profile.email,
+            avatar_url: profile.avatar_url || undefined,
             average_rating: ratingData?.average_rating || 0,
             total_ratings: ratingData?.total_ratings || 0,
             myRating: myRating?.rating,
@@ -189,14 +192,22 @@ export default function Players() {
             players.map((player) => (
               <Card key={player.id}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">
-                        {player.full_name}
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {player.email}
-                      </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        <AvatarImage src={player.avatar_url} alt={player.full_name} />
+                        <AvatarFallback>
+                          {player.full_name ? player.full_name[0].toUpperCase() : player.email[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base truncate">
+                          {player.full_name}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {player.email}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <Star className="h-4 w-4 fill-primary text-primary" />
