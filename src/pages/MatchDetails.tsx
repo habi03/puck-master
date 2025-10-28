@@ -262,6 +262,15 @@ export default function MatchDetails() {
   const saveMatchResults = async () => {
     if (!match) return;
     
+    // Validate that goals match scorers for each team
+    for (const [teamNum, goalCount] of Object.entries(teamGoals)) {
+      const scorerCount = selectedScorers[parseInt(teamNum)]?.length || 0;
+      if (scorerCount !== goalCount) {
+        toast.error(`Ekipa ${teamNum}: Število strelcev (${scorerCount}) se ne ujema s številom golov (${goalCount})`);
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       // Delete existing results and goals
