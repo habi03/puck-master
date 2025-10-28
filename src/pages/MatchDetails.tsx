@@ -611,7 +611,11 @@ export default function MatchDetails() {
                   return (
                     <div key={teamNum} className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">Ekipa {teamNum}</span>
+                        <span className={`font-semibold text-sm px-2 py-1 rounded ${
+                          teamNum === 1 ? "bg-green-100 text-green-700" : 
+                          teamNum === 2 ? "bg-red-100 text-red-700" : 
+                          "bg-blue-100 text-blue-700"
+                        }`}>Ekipa {teamNum}</span>
                         <Badge variant="secondary" className="text-sm">
                           {goals} {goals === 1 ? 'gol' : goals === 2 ? 'gola' : 'golov'}
                         </Badge>
@@ -725,9 +729,17 @@ export default function MatchDetails() {
                   
                   return (
                     <Card key={teamNum}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center justify-between">
-                          <span>Ekipa {teamNum}</span>
+                      <CardHeader className={`pb-3 ${
+                        parseInt(teamNum) === 1 ? "bg-green-50" : 
+                        parseInt(teamNum) === 2 ? "bg-red-50" : 
+                        "bg-blue-50"
+                      }`}>
+                        <CardTitle className={`text-sm flex items-center justify-between ${
+                          parseInt(teamNum) === 1 ? "text-green-700" : 
+                          parseInt(teamNum) === 2 ? "text-red-700" : 
+                          "text-blue-700"
+                        }`}>
+                          <span className="font-bold">Ekipa {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
                               Goli:
@@ -858,9 +870,17 @@ export default function MatchDetails() {
             <h3 className="text-sm font-semibold">Ekipe</h3>
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => (
               <Card key={teamNum}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">
-                    Ekipa {teamNum}
+                <CardHeader className={`pb-2 ${
+                  parseInt(teamNum) === 1 ? "bg-green-50" : 
+                  parseInt(teamNum) === 2 ? "bg-red-50" : 
+                  "bg-blue-50"
+                }`}>
+                  <CardTitle className={`text-sm ${
+                    parseInt(teamNum) === 1 ? "text-green-700" : 
+                    parseInt(teamNum) === 2 ? "text-red-700" : 
+                    "text-blue-700"
+                  }`}>
+                    <span className="font-bold">Ekipa {teamNum}</span>
                     <Badge variant="secondary" className="ml-2 text-xs">
                       {teamPlayers.length} igralcev
                     </Badge>
@@ -997,7 +1017,11 @@ export default function MatchDetails() {
                         {p.position}
                       </Badge>
                       {p.team_number && (
-                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                        <Badge className={`text-xs flex-shrink-0 ${
+                          p.team_number === 1 ? "bg-green-100 text-green-700 border-green-300" : 
+                          p.team_number === 2 ? "bg-red-100 text-red-700 border-red-300" : 
+                          "bg-blue-100 text-blue-700 border-blue-300"
+                        }`}>
                           Ekipa {p.team_number}
                         </Badge>
                       )}
@@ -1024,7 +1048,11 @@ export default function MatchDetails() {
                         {p.position}
                       </Badge>
                       {p.team_number && (
-                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                        <Badge className={`text-xs flex-shrink-0 ${
+                          p.team_number === 1 ? "bg-green-100 text-green-700 border-green-300" : 
+                          p.team_number === 2 ? "bg-red-100 text-red-700 border-red-300" : 
+                          "bg-blue-100 text-blue-700 border-blue-300"
+                        }`}>
                           Ekipa {p.team_number}
                         </Badge>
                       )}
