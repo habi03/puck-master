@@ -185,11 +185,28 @@ export default function MatchDetails() {
     try {
       const { data, error } = await supabase
         .from("goals")
-        .select("*, profiles!goals_player_id_fkey(full_name, email)")
+        .select("*")
         .eq("match_id", matchId);
 
       if (error) throw error;
-      setMatchGoals(data || []);
+      
+      // Fetch profiles for each goal
+      const goalsWithProfiles = await Promise.all(
+        (data || []).map(async (goal) => {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("full_name, email")
+            .eq("id", goal.player_id)
+            .single();
+          
+          return {
+            ...goal,
+            profiles: profileData
+          };
+        })
+      );
+      
+      setMatchGoals(goalsWithProfiles);
     } catch (error: any) {
       console.error("Error fetching goals:", error);
     }
