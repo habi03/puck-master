@@ -353,6 +353,41 @@ export type Database = {
           },
         ]
       }
+      saves: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          player_id: string
+          saves_count: number
+          team_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          player_id: string
+          saves_count?: number
+          team_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          player_id?: string
+          saves_count?: number
+          team_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saves_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

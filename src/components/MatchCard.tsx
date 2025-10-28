@@ -29,6 +29,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [position, setPosition] = useState<"igralec" | "vratar">("igralec");
   const [loading, setLoading] = useState(false);
   const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [matchSaves, setMatchSaves] = useState<any[]>([]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -37,6 +38,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   useEffect(() => {
     if (isCompleted) {
       fetchMatchResults();
+      fetchMatchSaves();
     }
   }, [isCompleted, match.id]);
 
@@ -52,6 +54,20 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       setMatchResults(data || []);
     } catch (error: any) {
       console.error("Error fetching results:", error);
+    }
+  };
+
+  const fetchMatchSaves = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("saves")
+        .select("*")
+        .eq("match_id", match.id);
+
+      if (error) throw error;
+      setMatchSaves(data || []);
+    } catch (error: any) {
+      console.error("Error fetching saves:", error);
     }
   };
 
@@ -144,7 +160,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         </div>
         
         {isCompleted && (
-          <div className="pt-2 border-t mt-2">
+          <div className="pt-2 border-t mt-2 space-y-2">
             <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
             <div className="flex gap-3 justify-center">
               {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
@@ -163,6 +179,20 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
               }, [] as React.ReactNode[])}
             </div>
+            
+            {matchSaves.length > 0 && (
+              <div className="pt-2 border-t text-xs space-y-1">
+                <div className="font-semibold text-muted-foreground">Obrambe:</div>
+                {matchSaves.map((save) => (
+                  <div key={save.id} className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Ekipa {save.team_number}</span>
+                    <Badge variant="outline" className="text-xs bg-green-50">
+                      {save.saves_count}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

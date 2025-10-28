@@ -52,6 +52,8 @@ export default function MatchDetails() {
   const [playerGoals, setPlayerGoals] = useState<{ [key: number]: { [playerId: string]: number } }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
   const [matchGoals, setMatchGoals] = useState<any[]>([]);
+  const [matchSaves, setMatchSaves] = useState<any[]>([]);
+  const [goalkeeperSaves, setGoalkeeperSaves] = useState<{ [key: number]: { [playerId: string]: number } }>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -77,6 +79,7 @@ export default function MatchDetails() {
       fetchParticipants();
       fetchMatchResults();
       fetchMatchGoals();
+      fetchMatchSaves();
     }
   }, [matchId, user]);
 
@@ -219,6 +222,37 @@ export default function MatchDetails() {
     }
   };
 
+  const fetchMatchSaves = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("saves")
+        .select("*")
+        .eq("match_id", matchId);
+
+      if (error) throw error;
+      
+      // Fetch profiles for each save
+      const savesWithProfiles = await Promise.all(
+        (data || []).map(async (save) => {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("full_name, email")
+            .eq("id", save.player_id)
+            .single();
+          
+          return {
+            ...save,
+            profiles: profileData
+          };
+        })
+      );
+      
+      setMatchSaves(savesWithProfiles);
+    } catch (error: any) {
+      console.error("Error fetching saves:", error);
+    }
+  };
+
   const loadExistingResults = () => {
     // Load team goals
     const existingTeamGoals: { [key: number]: number } = {};
@@ -239,6 +273,16 @@ export default function MatchDetails() {
       existingPlayerGoals[goal.team_number][goal.player_id]++;
     });
     setPlayerGoals(existingPlayerGoals);
+
+    // Load goalkeeper saves
+    const existingSaves: { [key: number]: { [playerId: string]: number } } = {};
+    matchSaves.forEach(save => {
+      if (!existingSaves[save.team_number]) {
+        existingSaves[save.team_number] = {};
+      }
+      existingSaves[save.team_number][save.player_id] = save.saves_count;
+    });
+    setGoalkeeperSaves(existingSaves);
   };
 
   const distributeTeams = async () => {
@@ -358,6 +402,7 @@ export default function MatchDetails() {
       // Delete existing results and goals
       await supabase.from("match_results").delete().eq("match_id", matchId);
       await supabase.from("goals").delete().eq("match_id", matchId);
+      await supabase.from("saves").delete().eq("match_id", matchId);
 
       // Insert match results for each team
       const resultsToInsert = Object.entries(teamGoals).map(([teamNum, goals]) => ({
@@ -391,6 +436,25 @@ export default function MatchDetails() {
         if (goalsError) throw goalsError;
       }
 
+      // Insert goalkeeper saves
+      const savesToInsert = Object.entries(goalkeeperSaves).flatMap(([teamNum, goalkeepers]) =>
+        Object.entries(goalkeepers)
+          .filter(([_, saves]) => saves > 0)
+          .map(([playerId, saves]) => ({
+            match_id: matchId,
+            player_id: playerId,
+            team_number: parseInt(teamNum),
+            saves_count: saves
+          }))
+      );
+
+      if (savesToInsert.length > 0) {
+        const { error: savesError } = await supabase
+          .from("saves")
+          .insert(savesToInsert);
+        if (savesError) throw savesError;
+      }
+
       // Mark match as completed
       const { error: matchError } = await supabase
         .from("matches")
@@ -403,9 +467,11 @@ export default function MatchDetails() {
       setResultsDialogOpen(false);
       setTeamGoals({});
       setPlayerGoals({});
+      setGoalkeeperSaves({});
       fetchMatch();
       fetchMatchResults();
       fetchMatchGoals();
+      fetchMatchSaves();
     } catch (error: any) {
       toast.error("Napaka pri shranjevanju rezultatov");
       console.error(error);
@@ -423,6 +489,20 @@ export default function MatchDetails() {
         [teamNum]: {
           ...teamPlayers,
           [playerId]: goals
+        }
+      };
+    });
+  };
+
+  const updateGoalkeeperSaves = (teamNum: number, playerId: string, saves: number) => {
+    setGoalkeeperSaves(prev => {
+      const teamGoalkeepers = prev[teamNum] || {};
+      
+      return {
+        ...prev,
+        [teamNum]: {
+          ...teamGoalkeepers,
+          [playerId]: saves
         }
       };
     });
@@ -524,6 +604,9 @@ export default function MatchDetails() {
                     goalsByPlayer[goal.player_id].count++;
                   });
 
+                  // Get goalkeeper saves
+                  const teamSaves = matchSaves.filter(s => s.team_number === teamNum);
+
                   return (
                     <div key={teamNum} className="space-y-2">
                       <div className="flex items-center gap-2">
@@ -547,6 +630,21 @@ export default function MatchDetails() {
                       ) : (
                         <div className="pl-4 text-xs text-muted-foreground italic">
                           Brez zadetkov
+                        </div>
+                      )}
+                      
+                      {teamSaves.length > 0 && (
+                        <div className="pl-4 pt-2 space-y-1.5 border-t mt-2">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1">Obrambe vratarjev:</div>
+                          {teamSaves.map((save) => (
+                            <div key={save.id} className="text-sm flex items-center gap-2">
+                              <Shield className="h-3.5 w-3.5 text-green-600" />
+                              <span>{save.profiles?.full_name || save.profiles?.email.split('@')[0] || 'Neznano'}</span>
+                              <Badge variant="outline" className="text-xs bg-green-50">
+                                {save.saves_count}
+                              </Badge>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -620,63 +718,104 @@ export default function MatchDetails() {
               </DialogHeader>
 
               <div className="space-y-6 mt-4">
-                {Object.entries(teams).map(([teamNum, teamPlayers]) => (
-                  <Card key={teamNum}>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center justify-between">
-                        <span>Ekipa {teamNum}</span>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
-                            Goli:
-                          </Label>
-                          <Input
-                            id={`goals-${teamNum}`}
-                            type="number"
-                            min="0"
-                            value={teamGoals[parseInt(teamNum)] || 0}
-                            onChange={(e) => setTeamGoals(prev => ({
-                              ...prev,
-                              [parseInt(teamNum)]: parseInt(e.target.value) || 0
-                            }))}
-                            className="w-20 h-8"
-                          />
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Label className="text-xs font-semibold text-muted-foreground mb-2">Strelci golov:</Label>
-                      {teamPlayers.map((player) => (
-                        <div key={player.id} className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-muted/50">
-                          <Label
-                            htmlFor={`goals-${player.id}`}
-                            className="text-sm flex-1 cursor-pointer"
-                          >
-                            {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
-                            <Badge variant="outline" className="ml-2 text-xs">
-                              {player.position}
-                            </Badge>
-                          </Label>
-                          <Input
-                            id={`goals-${player.id}`}
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={playerGoals[parseInt(teamNum)]?.[player.player_id] || 0}
-                            onChange={(e) => updatePlayerGoals(parseInt(teamNum), player.player_id, parseInt(e.target.value) || 0)}
-                            className="w-20 h-9 text-center"
-                            placeholder="0"
-                          />
-                        </div>
-                      ))}
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <span className="text-sm font-medium">Skupaj golov igralcev:</span>
-                        <Badge variant="secondary" className="text-base">
-                          {Object.values(playerGoals[parseInt(teamNum)] || {}).reduce((sum, goals) => sum + goals, 0)}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {Object.entries(teams).map(([teamNum, teamPlayers]) => {
+                  const goalkeepers = teamPlayers.filter(p => p.position === "vratar");
+                  const fieldPlayers = teamPlayers.filter(p => p.position === "igralec");
+                  
+                  return (
+                    <Card key={teamNum}>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center justify-between">
+                          <span>Ekipa {teamNum}</span>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
+                              Goli:
+                            </Label>
+                            <Input
+                              id={`goals-${teamNum}`}
+                              type="number"
+                              min="0"
+                              value={teamGoals[parseInt(teamNum)] || 0}
+                              onChange={(e) => setTeamGoals(prev => ({
+                                ...prev,
+                                [parseInt(teamNum)]: parseInt(e.target.value) || 0
+                              }))}
+                              className="w-20 h-8"
+                            />
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {fieldPlayers.length > 0 && (
+                          <div className="space-y-3">
+                            <Label className="text-xs font-semibold text-muted-foreground">Strelci golov:</Label>
+                            {fieldPlayers.map((player) => (
+                              <div key={player.id} className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-muted/50">
+                                <Label
+                                  htmlFor={`goals-${player.id}`}
+                                  className="text-sm flex-1 cursor-pointer"
+                                >
+                                  {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
+                                  <Badge variant="outline" className="ml-2 text-xs">
+                                    {player.position}
+                                  </Badge>
+                                </Label>
+                                <Input
+                                  id={`goals-${player.id}`}
+                                  type="number"
+                                  min="0"
+                                  max="20"
+                                  value={playerGoals[parseInt(teamNum)]?.[player.player_id] || 0}
+                                  onChange={(e) => updatePlayerGoals(parseInt(teamNum), player.player_id, parseInt(e.target.value) || 0)}
+                                  className="w-20 h-9 text-center"
+                                  placeholder="0"
+                                />
+                              </div>
+                            ))}
+                            <div className="flex items-center justify-between pt-3 border-t">
+                              <span className="text-sm font-medium">Skupaj golov igralcev:</span>
+                              <Badge variant="secondary" className="text-base">
+                                {Object.values(playerGoals[parseInt(teamNum)] || {}).reduce((sum, goals) => sum + goals, 0)}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+
+                        {goalkeepers.length > 0 && (
+                          <div className="space-y-3 pt-3 border-t">
+                            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                              <Shield className="h-4 w-4 text-green-600" />
+                              Obrambe vratarjev:
+                            </Label>
+                            {goalkeepers.map((player) => (
+                              <div key={player.id} className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-muted/50 bg-green-50/50">
+                                <Label
+                                  htmlFor={`saves-${player.id}`}
+                                  className="text-sm flex-1 cursor-pointer"
+                                >
+                                  {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
+                                  <Badge variant="outline" className="ml-2 text-xs">
+                                    {player.position}
+                                  </Badge>
+                                </Label>
+                                <Input
+                                  id={`saves-${player.id}`}
+                                  type="number"
+                                  min="0"
+                                  max="50"
+                                  value={goalkeeperSaves[parseInt(teamNum)]?.[player.player_id] || 0}
+                                  onChange={(e) => updateGoalkeeperSaves(parseInt(teamNum), player.player_id, parseInt(e.target.value) || 0)}
+                                  className="w-20 h-9 text-center"
+                                  placeholder="0"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               <div className="flex gap-2 mt-4">
@@ -695,6 +834,7 @@ export default function MatchDetails() {
                     if (!match.is_completed) {
                       setTeamGoals({});
                       setPlayerGoals({});
+                      setGoalkeeperSaves({});
                     }
                   }}
                   disabled={loading}
