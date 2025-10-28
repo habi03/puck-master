@@ -191,7 +191,7 @@ export default function Leaderboard() {
       {entries.map((entry, index) => (
         <Card key={`${entry.player_id}_${entry.position}`} className={index < 3 ? "border-primary/50" : ""}>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                   index === 0 ? "bg-yellow-500/20 text-yellow-600" :
@@ -206,32 +206,45 @@ export default function Leaderboard() {
                   <p className="text-xs text-muted-foreground capitalize">{entry.position}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="text-center">
-                  <p className="font-bold text-primary">{entry.total_points}</p>
-                  <p className="text-xs text-muted-foreground">Točke</p>
-                </div>
-                <div className="text-center hidden sm:block">
-                  <p className="font-semibold">{entry.attendance}</p>
-                  <p className="text-xs text-muted-foreground">Prisotnosti</p>
-                </div>
-                <div className="text-center hidden sm:block">
-                  <p className="font-semibold">{entry.wins}</p>
-                  <p className="text-xs text-muted-foreground">Zmage</p>
-                </div>
-                {entry.position === "igralec" && (
-                  <div className="text-center hidden sm:block">
-                    <p className="font-semibold">{entry.goals}</p>
-                    <p className="text-xs text-muted-foreground">Goli</p>
-                  </div>
-                )}
-                {entry.position === "vratar" && (
-                  <div className="text-center hidden sm:block">
-                    <p className="font-semibold">{entry.saves}</p>
-                    <p className="text-xs text-muted-foreground">Obrambe</p>
-                  </div>
-                )}
+              <div className="text-center">
+                <p className="font-bold text-xl text-primary">{entry.total_points}</p>
+                <p className="text-xs text-muted-foreground">Točke</p>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 pt-3 border-t">
+              <div className="flex items-center gap-2">
+                <UserCircle className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Prisotnosti</p>
+                  <p className="text-sm font-semibold">{entry.attendance}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Zmage</p>
+                  <p className="text-sm font-semibold">{entry.wins}</p>
+                </div>
+              </div>
+              {entry.position === "igralec" && (
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Goli</p>
+                    <p className="text-sm font-semibold">{entry.goals}</p>
+                  </div>
+                </div>
+              )}
+              {entry.position === "vratar" && (
+                <div className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Obrambe</p>
+                    <p className="text-sm font-semibold">{entry.saves}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
