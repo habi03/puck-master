@@ -39,21 +39,34 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for auth state changes to detect password recovery
+    // Check if we're coming from a password recovery link
+    const checkPasswordRecovery = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'recovery') {
+        console.log('Password recovery detected');
+        setIsPasswordReset(true);
+      }
+    };
+
+    // Check immediately on mount
+    checkPasswordRecovery();
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordReset(true);
       }
     });
 
-    // Also check hash params on initial load
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('type') === 'recovery' || hashParams.get('access_token')) {
-      setIsPasswordReset(true);
-    }
+    // Also listen for hash changes
+    window.addEventListener('hashchange', checkPasswordRecovery);
 
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener('hashchange', checkPasswordRecovery);
     };
   }, []);
 
