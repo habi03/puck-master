@@ -96,6 +96,11 @@ export default function Navbar({ user }: NavbarProps) {
                   Domov
                 </Button>
                 
+                <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Moj profil
+                </Button>
+                
                 <Button onClick={() => navigate("/leagues")} variant="outline" className="w-full justify-start">
                   <Trophy className="h-4 w-4 mr-2" />
                   Izberi ligo
@@ -104,11 +109,6 @@ export default function Navbar({ user }: NavbarProps) {
                 <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
                   <Users className="h-4 w-4 mr-2" />
                   Tekmovalci
-                </Button>
-                
-                <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
-                  <UserCircle className="h-4 w-4 mr-2" />
-                  Moj profil
                 </Button>
                 
                 {isAdmin && (
