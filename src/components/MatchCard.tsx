@@ -289,7 +289,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <div className="flex items-center gap-2 text-sm text-primary">
             <Beer className="h-4 w-4 flex-shrink-0" />
             <span className="text-xs font-semibold">
-              Pivo: {currentUser.id === beerBringer.player_id ? 'Vi' : (beerBringer.profiles?.full_name || 'Nekdo')}
+              Pivo: {currentUser.id === beerBringer.player_id ? 'Ti' : (beerBringer.profiles?.full_name || 'Nekdo')}
             </span>
           </div>
         )}
