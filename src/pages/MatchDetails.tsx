@@ -48,7 +48,7 @@ export default function MatchDetails() {
   const [algorithm, setAlgorithm] = useState<"serpentine" | "abba">("serpentine");
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
-  const [selectedScorers, setSelectedScorers] = useState<{ [key: number]: string[] }>({});
+  const [playerGoals, setPlayerGoals] = useState<{ [key: number]: { [playerId: string]: number } }>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -262,11 +262,13 @@ export default function MatchDetails() {
   const saveMatchResults = async () => {
     if (!match) return;
     
-    // Validate that goals match scorers for each team
+    // Validate that total player goals match team goals for each team
     for (const [teamNum, goalCount] of Object.entries(teamGoals)) {
-      const scorerCount = selectedScorers[parseInt(teamNum)]?.length || 0;
-      if (scorerCount !== goalCount) {
-        toast.error(`Ekipa ${teamNum}: Število strelcev (${scorerCount}) se ne ujema s številom golov (${goalCount})`);
+      const teamPlayerGoals = playerGoals[parseInt(teamNum)] || {};
+      const totalPlayerGoals = Object.values(teamPlayerGoals).reduce((sum, goals) => sum + goals, 0);
+      
+      if (totalPlayerGoals !== goalCount) {
+        toast.error(`Ekipa ${teamNum}: Vsota golov igralcev (${totalPlayerGoals}) se ne ujema s skupnimi goli ekipe (${goalCount})`);
         return;
       }
     }
@@ -291,13 +293,15 @@ export default function MatchDetails() {
         if (resultsError) throw resultsError;
       }
 
-      // Insert individual goals
-      const goalsToInsert = Object.entries(selectedScorers).flatMap(([teamNum, playerIds]) =>
-        playerIds.map(playerId => ({
-          match_id: matchId,
-          player_id: playerId,
-          team_number: parseInt(teamNum)
-        }))
+      // Insert individual goals (one row per goal)
+      const goalsToInsert = Object.entries(playerGoals).flatMap(([teamNum, players]) =>
+        Object.entries(players).flatMap(([playerId, goalCount]) =>
+          Array(goalCount).fill(null).map(() => ({
+            match_id: matchId,
+            player_id: playerId,
+            team_number: parseInt(teamNum)
+          }))
+        )
       );
 
       if (goalsToInsert.length > 0) {
@@ -310,7 +314,7 @@ export default function MatchDetails() {
       toast.success("Rezultati shranjeni");
       setResultsDialogOpen(false);
       setTeamGoals({});
-      setSelectedScorers({});
+      setPlayerGoals({});
     } catch (error: any) {
       toast.error("Napaka pri shranjevanju rezultatov");
       console.error(error);
@@ -319,16 +323,16 @@ export default function MatchDetails() {
     }
   };
 
-  const toggleScorer = (teamNum: number, playerId: string) => {
-    setSelectedScorers(prev => {
-      const teamScorers = prev[teamNum] || [];
-      const isSelected = teamScorers.includes(playerId);
+  const updatePlayerGoals = (teamNum: number, playerId: string, goals: number) => {
+    setPlayerGoals(prev => {
+      const teamPlayers = prev[teamNum] || {};
       
       return {
         ...prev,
-        [teamNum]: isSelected
-          ? teamScorers.filter(id => id !== playerId)
-          : [...teamScorers, playerId]
+        [teamNum]: {
+          ...teamPlayers,
+          [playerId]: goals
+        }
       };
     });
   };
@@ -468,25 +472,32 @@ export default function MatchDetails() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Strelci:</Label>
+                      <Label className="text-xs text-muted-foreground">Strelci golov:</Label>
                       {teamPlayers.map((player) => (
                         <div key={player.id} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`scorer-${player.id}`}
-                            checked={selectedScorers[parseInt(teamNum)]?.includes(player.player_id) || false}
-                            onCheckedChange={() => toggleScorer(parseInt(teamNum), player.player_id)}
-                          />
                           <Label
-                            htmlFor={`scorer-${player.id}`}
-                            className="text-sm cursor-pointer flex-1"
+                            htmlFor={`goals-${player.id}`}
+                            className="text-sm flex-1"
                           >
                             {player.profiles?.full_name || player.profiles?.email.split('@')[0]}
                             <Badge variant="outline" className="ml-2 text-xs">
                               {player.position}
                             </Badge>
                           </Label>
+                          <Input
+                            id={`goals-${player.id}`}
+                            type="number"
+                            min="0"
+                            value={playerGoals[parseInt(teamNum)]?.[player.player_id] || 0}
+                            onChange={(e) => updatePlayerGoals(parseInt(teamNum), player.player_id, parseInt(e.target.value) || 0)}
+                            className="w-20 h-8"
+                            placeholder="0"
+                          />
                         </div>
                       ))}
+                      <div className="text-xs text-muted-foreground pt-2 border-t">
+                        Skupaj golov igralcev: {Object.values(playerGoals[parseInt(teamNum)] || {}).reduce((sum, goals) => sum + goals, 0)}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
