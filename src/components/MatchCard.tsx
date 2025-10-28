@@ -253,6 +253,29 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
+  const handleCancelBeer = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("match_participants")
+        .update({ brings_beer: false })
+        .eq("id", userParticipation.id);
+
+      if (error) throw error;
+      toast.success("Preklic piva");
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const beerBringer = participants.find(p => p.brings_beer);
 
   const matchDate = new Date(match.match_date);
@@ -367,10 +390,18 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               )}
               
               {userParticipation.brings_beer && (
-                <Badge variant="default" className="w-full justify-center py-1.5 text-xs">
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancelBeer();
+                  }} 
+                  disabled={loading} 
+                  variant="outline"
+                  className="w-full"
+                >
                   <Beer className="h-4 w-4 mr-2" />
-                  Ti prineseš pivo! 🍺
-                </Badge>
+                  PREKLIČI PIVO
+                </Button>
               )}
               
               <Button 
