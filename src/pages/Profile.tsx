@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export default function Profile() {
   const [location, setLocation] = useState("");
   const [currentRole, setCurrentRole] = useState<string>("");
   const [currentLeagueName, setCurrentLeagueName] = useState<string>("");
+  const [currentLeagueId, setCurrentLeagueId] = useState<string>("");
+  const [isLeagueCreator, setIsLeagueCreator] = useState(false);
   
   // Password change
   const [newPassword, setNewPassword] = useState("");
@@ -63,6 +66,8 @@ export default function Profile() {
       // Fetch current league membership
       const currentLeagueId = localStorage.getItem("currentLeagueId");
       if (currentLeagueId) {
+        setCurrentLeagueId(currentLeagueId);
+        
         const { data: memberData } = await supabase
           .from("league_members")
           .select("role, leagues(name)")
@@ -78,6 +83,17 @@ export default function Profile() {
           };
           setCurrentRole(roleMap[memberData.role] || memberData.role);
           setCurrentLeagueName((memberData.leagues as any)?.name || "");
+        }
+        
+        // Check if user is league creator
+        const { data: leagueData } = await supabase
+          .from("leagues")
+          .select("created_by")
+          .eq("id", currentLeagueId)
+          .single();
+        
+        if (leagueData) {
+          setIsLeagueCreator(leagueData.created_by === userId);
         }
       }
     } catch (error) {
@@ -102,6 +118,30 @@ export default function Profile() {
       toast.success("Profil uspešno posodobljen");
     } catch (error: any) {
       toast.error("Napaka pri posodabljanju profila");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLeaveLeague = async () => {
+    if (!user || !currentLeagueId) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("league_members")
+        .delete()
+        .eq("league_id", currentLeagueId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      
+      localStorage.removeItem("currentLeagueId");
+      toast.success("Uspešno ste se izpisali iz lige");
+      navigate("/leagues");
+    } catch (error: any) {
+      toast.error("Napaka pri izpisu iz lige");
       console.error(error);
     } finally {
       setLoading(false);
@@ -219,6 +259,65 @@ export default function Profile() {
             </Button>
           </CardContent>
         </Card>
+
+        <Separator />
+
+        {/* Leave League */}
+        {currentLeagueName && !isLeagueCreator && (
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">Izpis iz lige</CardTitle>
+              <CardDescription>
+                Zapustite ligo {currentLeagueName}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Izpiši se iz lige
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Ste prepričani?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Ali ste prepričani, da se želite izpisati iz lige "{currentLeagueName}"? 
+                      Ta akcija je nepovratna in boste izgubili dostop do vseh podatkov v tej ligi.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Prekliči</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleLeaveLeague}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Izpiši se
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        )}
+
+        {isLeagueCreator && currentLeagueName && (
+          <Card className="border-muted">
+            <CardHeader>
+              <CardTitle>Ustanovitelj lige</CardTitle>
+              <CardDescription>
+                Ste ustanovitelj lige {currentLeagueName}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Kot ustanovitelj lige se ne morete izpisati. Če želite prenehati upravljati ligo, 
+                najprej dodelite administratorske pravice drugemu članu ali izbrišite ligo.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <Separator />
 
