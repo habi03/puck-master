@@ -73,7 +73,7 @@ export default function Leagues() {
   const fetchLeagues = async () => {
     try {
       const { data, error } = await supabase
-        .from("leagues")
+        .from("public_leagues")
         .select("*")
         .order("created_at", { ascending: false });
 
@@ -141,7 +141,7 @@ export default function Leagues() {
     const league = leagues.find(l => l.id === leagueId);
     
     // Check if league is password protected
-    if (league?.password) {
+    if (league?.has_password) {
       setSelectedLeague(league);
       setPasswordDialogOpen(true);
       return;
@@ -153,32 +153,88 @@ export default function Leagues() {
   const handlePasswordSubmit = async () => {
     if (!selectedLeague) return;
     
-    if (enteredPassword !== selectedLeague.password) {
-      toast.error("Napačno geslo!");
-      return;
-    }
+    setLoading(true);
     
-    setPasswordDialogOpen(false);
-    setEnteredPassword("");
-    await joinLeague(selectedLeague.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Prosim, prijavite se");
+        navigate("/auth");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('join-league', {
+        body: { 
+          leagueId: selectedLeague.id, 
+          password: enteredPassword 
+        }
+      });
+
+      if (error) {
+        console.error("Error joining league:", error);
+        toast.error("Napaka pri pridružitvi v ligo");
+        return;
+      }
+
+      if (data.error) {
+        if (data.error === 'Invalid password') {
+          toast.error("Napačno geslo!");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
+      toast.success("Uspešno ste se pridružili ligi!");
+      setPasswordDialogOpen(false);
+      setEnteredPassword("");
+      
+      await fetchMyLeagues();
+      await fetchLeagues();
+    } catch (error) {
+      console.error("Error joining league:", error);
+      toast.error("Napaka pri pridružitvi v ligo");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const joinLeague = async (leagueId: string) => {
     setLoading(true);
+    
     try {
-      const { error } = await supabase
-        .from("league_members")
-        .insert({
-          league_id: leagueId,
-          user_id: user?.id,
-          role: "neplačan_član",
-        });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Prosim, prijavite se");
+        navigate("/auth");
+        return;
+      }
 
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke('join-league', {
+        body: { 
+          leagueId, 
+          password: null 
+        }
+      });
+
+      if (error) {
+        console.error("Error joining league:", error);
+        toast.error("Napaka pri pridružitvi v ligo");
+        return;
+      }
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
       toast.success("Uspešno ste se pridružili ligi!");
-      fetchMyLeagues();
+      await fetchMyLeagues();
+      await fetchLeagues();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || "Napaka pri pridružitvi v ligo");
     } finally {
       setLoading(false);
     }
@@ -279,7 +335,7 @@ export default function Leagues() {
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <span>{membership.leagues.name}</span>
-                          {membership.leagues.password && <Lock className="h-4 w-4 text-muted-foreground" />}
+                          {membership.leagues.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
                         </CardTitle>
                         {membership.leagues.description && (
@@ -346,7 +402,7 @@ export default function Leagues() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       {league.name}
-                      {league.password && <Lock className="h-4 w-4 text-muted-foreground" />}
+                      {league.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                     </CardTitle>
                     {league.description && (
                       <CardDescription className="text-xs">{league.description}</CardDescription>
@@ -369,7 +425,7 @@ export default function Leagues() {
                         className="w-full"
                         size="sm"
                       >
-                        {league.password ? (
+                        {league.has_password ? (
                           <>
                             <Lock className="h-4 w-4 mr-2" />
                             Pridruži se

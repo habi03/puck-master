@@ -80,6 +80,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "league_members_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "public_leagues"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "league_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -256,6 +263,13 @@ export type Database = {
             referencedRelation: "leagues"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "matches_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "public_leagues"
+            referencedColumns: ["id"]
+          },
         ]
       }
       player_ratings: {
@@ -426,7 +440,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_leagues: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          has_password: boolean | null
+          id: string | null
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          has_password?: never
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          has_password?: never
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_league_role: {
