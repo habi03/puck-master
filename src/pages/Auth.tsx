@@ -39,12 +39,22 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is coming from password reset email
+    // Listen for auth state changes to detect password recovery
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordReset(true);
+      }
+    });
+
+    // Also check hash params on initial load
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const recoveryToken = hashParams.get('type');
-    if (recoveryToken === 'recovery' || hashParams.get('access_token')) {
+    if (hashParams.get('type') === 'recovery' || hashParams.get('access_token')) {
       setIsPasswordReset(true);
     }
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
