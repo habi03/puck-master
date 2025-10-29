@@ -132,20 +132,39 @@ export default function Index() {
 
   const fetchParticipants = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch all match participants
+      const { data: participantsData, error: participantsError } = await supabase
         .from("match_participants")
-        .select(`
-          *,
-          profiles:player_id (
-            id,
-            full_name
-          )
-        `);
+        .select("*");
 
-      if (error) throw error;
-      setParticipants(data || []);
+      if (participantsError) throw participantsError;
+
+      if (!participantsData || participantsData.length === 0) {
+        setParticipants([]);
+        return;
+      }
+
+      // Get unique player IDs
+      const playerIds = [...new Set(participantsData.map(p => p.player_id))];
+
+      // Fetch profiles for all participants
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", playerIds);
+
+      if (profilesError) throw profilesError;
+
+      // Merge profiles into participants
+      const participantsWithProfiles = participantsData.map(participant => ({
+        ...participant,
+        profiles: profiles?.find(p => p.id === participant.player_id)
+      }));
+
+      setParticipants(participantsWithProfiles);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju udeležencev");
+      console.error("Error fetching participants:", error);
     }
   };
 
