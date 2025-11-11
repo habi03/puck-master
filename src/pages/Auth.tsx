@@ -129,7 +129,7 @@ export default function Auth() {
       emailSchema.parse(resetEmail);
 
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/auth?reset=${Date.now()}`,
       });
 
       if (error) throw error;
