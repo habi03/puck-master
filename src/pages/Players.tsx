@@ -226,11 +226,11 @@ export default function Players() {
               <Card key={player.id}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Avatar 
-                        className={`h-10 w-10 flex-shrink-0 ${player.avatar_url ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''}`}
-                        onClick={() => handleAvatarClick(player)}
-                      >
+                    <div 
+                      className={`flex items-center gap-3 flex-1 min-w-0 ${player.avatar_url ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                      onClick={() => handleAvatarClick(player)}
+                    >
+                      <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage src={player.avatar_url} alt={player.full_name} />
                         <AvatarFallback>
                           {player.full_name ? player.full_name[0].toUpperCase() : player.email[0].toUpperCase()}
