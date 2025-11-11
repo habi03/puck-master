@@ -24,6 +24,8 @@ interface PlayerWithRating {
   email: string;
   avatar_url?: string;
   location?: string;
+  birth_date?: string;
+  role?: string;
   average_rating: number;
   total_ratings: number;
   myRating?: number;
@@ -116,7 +118,7 @@ export default function Players() {
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, avatar_url, location")
+        .select("id, full_name, email, avatar_url, location, birth_date")
         .in("id", userIds);
 
       if (profilesError) throw profilesError;
@@ -128,6 +130,15 @@ export default function Players() {
         .in("player_id", userIds);
 
       if (ratingsError) throw ratingsError;
+
+      // Fetch league member roles
+      const { data: memberRoles, error: rolesError } = await supabase
+        .from("league_members")
+        .select("user_id, role")
+        .eq("league_id", currentLeagueId)
+        .in("user_id", userIds);
+
+      if (rolesError) throw rolesError;
 
       // Fetch my ratings
       const { data: myRatings, error: myRatingsError } = await supabase
@@ -143,6 +154,13 @@ export default function Players() {
         .map(profile => {
           const ratingData = ratings.find(r => r.player_id === profile.id);
           const myRating = myRatings.find(r => r.rated_player_id === profile.id);
+          const memberRole = memberRoles.find(m => m.user_id === profile.id);
+          
+          const roleMap: { [key: string]: string } = {
+            'admin': 'Admin',
+            'plačan_član': 'Plačan član',
+            'neplačan_član': 'Neplačan član'
+          };
           
           return {
             id: profile.id,
@@ -150,6 +168,8 @@ export default function Players() {
             email: profile.email,
             avatar_url: profile.avatar_url || undefined,
             location: profile.location || undefined,
+            birth_date: profile.birth_date || undefined,
+            role: memberRole ? roleMap[memberRole.role] || memberRole.role : undefined,
             average_rating: ratingData?.average_rating || 0,
             total_ratings: ratingData?.total_ratings || 0,
             myRating: myRating?.rating,
@@ -249,6 +269,16 @@ export default function Players() {
                         <p className="text-xs text-muted-foreground truncate">
                           {player.email}
                         </p>
+                        {player.birth_date && (
+                          <p className="text-xs text-muted-foreground">
+                            Rojstvo: {new Date(player.birth_date).toLocaleDateString('sl-SI')}
+                          </p>
+                        )}
+                        {player.role && (
+                          <p className="text-xs text-muted-foreground">
+                            Vloga: {player.role}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
