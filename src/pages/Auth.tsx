@@ -37,6 +37,8 @@ export default function Auth() {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [lastResetTime, setLastResetTime] = useState<number>(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,6 +124,18 @@ export default function Auth() {
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check cooldown (60 seconds)
+    const now = Date.now();
+    const timeSinceLastReset = now - lastResetTime;
+    const cooldownTime = 60000; // 60 seconds
+    
+    if (timeSinceLastReset < cooldownTime) {
+      const remainingSeconds = Math.ceil((cooldownTime - timeSinceLastReset) / 1000);
+      toast.error(`Prosim počakajte ${remainingSeconds} sekund pred novo zahtevo`);
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -129,12 +143,15 @@ export default function Auth() {
       emailSchema.parse(resetEmail);
 
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=${Date.now()}`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) throw error;
       
-      toast.success("Poslali smo vam povezavo za ponastavitev gesla na email!");
+      setLastResetTime(now);
+      toast.success("Povezava poslana! Prosim uporabite NAJNOVEJŠI email. Prejšnje povezave ne bodo delovale.", {
+        duration: 6000,
+      });
       setShowResetDialog(false);
       setResetEmail("");
     } catch (error: any) {
@@ -298,6 +315,8 @@ export default function Auth() {
                     <DialogTitle>Ponastavitev gesla</DialogTitle>
                     <DialogDescription>
                       Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
+                      <br /><br />
+                      <strong>Pomembno:</strong> Uporabite vedno NAJNOVEJŠI email. Prejšnje povezave ne bodo več delovale.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handlePasswordReset} className="space-y-3">
