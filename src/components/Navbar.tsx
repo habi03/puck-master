@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Trophy, Menu, Shield, Users, Home, UserCircle, Award } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 interface NavbarProps {
   user: any;
@@ -146,10 +146,12 @@ export default function Navbar({ user }: NavbarProps) {
                   Izberi ligo
                 </Button>
                 
-                <Button onClick={handleSignOut} variant="destructive" className="w-full justify-start">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Odjava
-                </Button>
+                <SheetClose asChild>
+                  <Button onClick={handleSignOut} variant="destructive" className="w-full justify-start">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Odjava
+                  </Button>
+                </SheetClose>
               </div>
             </SheetContent>
           </Sheet>
