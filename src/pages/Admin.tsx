@@ -168,7 +168,7 @@ export default function Admin() {
       if (error) throw error;
       setLeaguePassword(data?.password || "");
     } catch (error: any) {
-      console.error("Error fetching league settings:", error);
+      // Error fetching settings - continue silently
     }
   };
 
@@ -236,24 +236,39 @@ export default function Admin() {
   const handleUpdatePassword = async () => {
     setLoading(true);
     try {
-      // Hash password if provided
-      let hashedPassword = null;
+      // Validate password strength if provided
       if (newPassword && newPassword.trim() !== '') {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(newPassword);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        if (newPassword.length < 8) {
+          toast.error("Geslo mora biti dolgo vsaj 8 znakov");
+          setLoading(false);
+          return;
+        }
+        if (!/[A-Z]/.test(newPassword)) {
+          toast.error("Geslo mora vsebovati vsaj eno veliko črko");
+          setLoading(false);
+          return;
+        }
+        if (!/[a-z]/.test(newPassword)) {
+          toast.error("Geslo mora vsebovati vsaj eno malo črko");
+          setLoading(false);
+          return;
+        }
+        if (!/[0-9]/.test(newPassword)) {
+          toast.error("Geslo mora vsebovati vsaj eno številko");
+          setLoading(false);
+          return;
+        }
       }
 
+      // Note: Password hashing now happens server-side
       const { error } = await supabase
         .from("leagues")
-        .update({ password: hashedPassword })
+        .update({ password: newPassword && newPassword.trim() !== '' ? newPassword : null })
         .eq("id", currentLeagueId);
 
       if (error) throw error;
       toast.success(newPassword ? "Geslo nastavljeno" : "Geslo odstranjeno");
-      setLeaguePassword(hashedPassword || "");
+      setLeaguePassword(newPassword || "");
       setNewPassword("");
     } catch (error: any) {
       toast.error("Napaka pri posodabljanju gesla");

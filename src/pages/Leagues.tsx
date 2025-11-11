@@ -26,8 +26,11 @@ const leagueSchema = z.object({
     .optional(),
   password: z.string()
     .trim()
-    .min(4, "Geslo mora biti dolgo vsaj 4 znake")
-    .max(50, "Geslo je predolgo (max 50 znakov)")
+    .min(8, "Geslo mora biti dolgo vsaj 8 znakov")
+    .max(100, "Geslo je predolgo (max 100 znakov)")
+    .regex(/[A-Z]/, "Geslo mora vsebovati vsaj eno veliko črko")
+    .regex(/[a-z]/, "Geslo mora vsebovati vsaj eno malo črko")
+    .regex(/[0-9]/, "Geslo mora vsebovati vsaj eno številko")
     .optional()
     .or(z.literal(''))
 });
@@ -111,22 +114,13 @@ export default function Leagues() {
         password: newLeaguePassword || ""
       });
 
-      // Hash password if provided
-      let hashedPassword = null;
-      if (newLeaguePassword && newLeaguePassword.trim() !== '') {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(newLeaguePassword);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
+      // Note: Password hashing now happens server-side in a database function/trigger
       const { error } = await supabase
         .from("leagues")
         .insert({
           name: validatedData.name,
           description: validatedData.description || null,
-          password: hashedPassword,
+          password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
         });
 
@@ -178,32 +172,20 @@ export default function Leagues() {
         return;
       }
 
-      // Hash password before sending
-      const encoder = new TextEncoder();
-      const data = encoder.encode(enteredPassword);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
       const { data: result, error } = await supabase.functions.invoke('join-league', {
         body: { 
           leagueId: selectedLeague.id, 
-          password: hashedPassword 
+          password: enteredPassword 
         }
       });
 
       if (error) {
-        console.error("Error joining league:", error);
         toast.error("Napaka pri pridružitvi v ligo");
         return;
       }
 
       if (result.error) {
-        if (result.error === 'Invalid password') {
-          toast.error("Napačno geslo!");
-        } else {
-          toast.error(result.error);
-        }
+        toast.error("Napačno geslo ali liga ni dostopna");
         return;
       }
 
@@ -214,7 +196,6 @@ export default function Leagues() {
       await fetchMyLeagues();
       await fetchLeagues();
     } catch (error) {
-      console.error("Error joining league:", error);
       toast.error("Napaka pri pridružitvi v ligo");
     } finally {
       setLoading(false);
@@ -241,7 +222,6 @@ export default function Leagues() {
       });
 
       if (error) {
-        console.error("Error joining league:", error);
         toast.error("Napaka pri pridružitvi v ligo");
         return;
       }
@@ -341,10 +321,10 @@ export default function Leagues() {
                     type="password"
                     value={newLeaguePassword}
                     onChange={(e) => setNewLeaguePassword(e.target.value)}
-                    placeholder="Zaščitite ligo z geslom..."
+                    placeholder="Min. 8 znakov, vsaj 1 velika črka, 1 številka"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Pustite prazno za javno ligo
+                    Pustite prazno za javno ligo. Mora vsebovati vsaj 8 znakov, veliko črko in številko.
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

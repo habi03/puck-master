@@ -1,10 +1,38 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Input validation schema
+const joinLeagueSchema = z.object({
+  leagueId: z.string().uuid('Invalid league ID format'),
+  password: z.string().max(100, 'Password too long').optional().nullable()
+});
+
+// Simple in-memory rate limiting (production should use Redis/DB)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+const checkRateLimit = (key: string, maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000): boolean => {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+  
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  
+  if (record.count >= maxAttempts) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
 };
 
 serve(async (req) => {
@@ -14,23 +42,24 @@ serve(async (req) => {
   }
 
   try {
-    const { leagueId, password } = await req.json();
+    const body = await req.json();
     
-    // Validate input
-    if (!leagueId) {
-      console.error('Missing leagueId');
+    // Validate input with Zod
+    const validationResult = joinLeagueSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ error: 'League ID is required' }),
+        JSON.stringify({ error: 'Invalid request parameters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const { leagueId, password } = validationResult.data;
 
     // Get authenticated user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -44,14 +73,20 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
     if (userError || !user) {
-      console.error('User authentication failed:', userError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`User ${user.id} attempting to join league ${leagueId}`);
+    // Rate limiting check
+    const rateLimitKey = `${user.id}:${leagueId}`;
+    if (!checkRateLimit(rateLimitKey)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many attempts. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Check if user is already a member
     const { data: existingMembership } = await supabaseClient
@@ -62,7 +97,6 @@ serve(async (req) => {
       .single();
 
     if (existingMembership) {
-      console.log(`User ${user.id} is already a member of league ${leagueId}`);
       return new Response(
         JSON.stringify({ success: true, message: 'Already a member' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -82,9 +116,8 @@ serve(async (req) => {
       .single();
 
     if (leagueError || !league) {
-      console.error('League not found:', leagueError);
       return new Response(
-        JSON.stringify({ error: 'League not found' }),
+        JSON.stringify({ error: 'Authentication failed' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -92,18 +125,17 @@ serve(async (req) => {
     // Verify password if league is password-protected
     if (league.password && league.password !== '') {
       if (!password) {
-        console.log(`Missing password for protected league ${leagueId}`);
         return new Response(
-          JSON.stringify({ error: 'Password required' }),
+          JSON.stringify({ error: 'Authentication failed' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      // Password is already hashed from client, compare directly
-      if (password !== league.password) {
-        console.log(`Invalid password attempt for league ${leagueId}`);
+      // Verify password using bcrypt
+      const isValidPassword = await bcrypt.compare(password, league.password);
+      if (!isValidPassword) {
         return new Response(
-          JSON.stringify({ error: 'Invalid password' }),
+          JSON.stringify({ error: 'Authentication failed' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -119,14 +151,11 @@ serve(async (req) => {
       });
 
     if (joinError) {
-      console.error('Failed to join league:', joinError);
       return new Response(
-        JSON.stringify({ error: 'Failed to join league', details: joinError.message }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log(`User ${user.id} successfully joined league ${leagueId}`);
     
     return new Response(
       JSON.stringify({ success: true, message: 'Successfully joined league' }),
@@ -134,10 +163,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in join-league function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      JSON.stringify({ error: 'An error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

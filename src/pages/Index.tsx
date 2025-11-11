@@ -164,7 +164,6 @@ export default function Index() {
       setParticipants(participantsWithProfiles);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju udeležencev");
-      console.error("Error fetching participants:", error);
     }
   };
 

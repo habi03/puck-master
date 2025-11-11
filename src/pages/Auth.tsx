@@ -18,7 +18,11 @@ import { z } from "zod";
 
 const authSchema = z.object({
   email: z.string().email({ message: "Neveljaven email naslov" }),
-  password: z.string().min(6, { message: "Geslo mora biti dolgo vsaj 6 znakov" }),
+  password: z.string()
+    .min(12, { message: "Geslo mora biti dolgo vsaj 12 znakov" })
+    .regex(/[A-Z]/, { message: "Geslo mora vsebovati vsaj eno veliko črko" })
+    .regex(/[a-z]/, { message: "Geslo mora vsebovati vsaj eno malo črko" })
+    .regex(/[0-9]/, { message: "Geslo mora vsebovati vsaj eno številko" }),
   fullName: z.string()
     .min(2, { message: "Ime mora biti dolgo vsaj 2 znaka" })
     .max(100, { message: "Ime je predolgo (max 100 znakov)" })
@@ -45,7 +49,6 @@ export default function Auth() {
       const type = hashParams.get('type');
       
       if (type === 'recovery') {
-        console.log('Password recovery detected');
         setIsPasswordReset(true);
       }
     };
@@ -55,7 +58,6 @@ export default function Auth() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordReset(true);
       }
@@ -159,8 +161,23 @@ export default function Auth() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast.error("Geslo mora biti dolgo vsaj 6 znakov");
+    if (newPassword.length < 12) {
+      toast.error("Geslo mora biti dolgo vsaj 12 znakov");
+      return;
+    }
+    
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.error("Geslo mora vsebovati vsaj eno veliko črko");
+      return;
+    }
+    
+    if (!/[a-z]/.test(newPassword)) {
+      toast.error("Geslo mora vsebovati vsaj eno malo črko");
+      return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+      toast.error("Geslo mora vsebovati vsaj eno številko");
       return;
     }
 
@@ -270,14 +287,14 @@ export default function Auth() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password" className="text-sm">Geslo</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Min. 12 znakov, 1 velika črka, 1 številka"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Nalaganje..." : isLogin ? "Prijava" : "Registracija"}

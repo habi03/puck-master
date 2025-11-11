@@ -111,7 +111,7 @@ export default function MatchDetails() {
       if (error) throw error;
       setIsAdmin(data?.role === "admin");
     } catch (error: any) {
-      console.error("Error checking admin status:", error);
+      // Error checking status - continue
     }
   };
 
@@ -188,7 +188,7 @@ export default function MatchDetails() {
       if (error) throw error;
       setMatchResults(data || []);
     } catch (error: any) {
-      console.error("Error fetching match results:", error);
+      // Error fetching results - continue
     }
   };
 
@@ -219,7 +219,7 @@ export default function MatchDetails() {
       
       setMatchGoals(goalsWithProfiles);
     } catch (error: any) {
-      console.error("Error fetching goals:", error);
+      // Error fetching goals - continue
     }
   };
 
@@ -250,7 +250,7 @@ export default function MatchDetails() {
       
       setMatchSaves(savesWithProfiles);
     } catch (error: any) {
-      console.error("Error fetching saves:", error);
+      // Error fetching saves - continue
     }
   };
 
@@ -475,7 +475,6 @@ export default function MatchDetails() {
       fetchMatchSaves();
     } catch (error: any) {
       toast.error("Napaka pri shranjevanju rezultatov");
-      console.error(error);
     } finally {
       setLoading(false);
     }
