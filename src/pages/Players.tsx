@@ -23,6 +23,7 @@ interface PlayerWithRating {
   full_name: string;
   email: string;
   avatar_url?: string;
+  location?: string;
   average_rating: number;
   total_ratings: number;
   myRating?: number;
@@ -36,7 +37,7 @@ export default function Players() {
   const [rating, setRating] = useState<number>(5);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string } | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function Players() {
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, avatar_url")
+        .select("id, full_name, email, avatar_url, location")
         .in("id", userIds);
 
       if (profilesError) throw profilesError;
@@ -148,6 +149,7 @@ export default function Players() {
             full_name: profile.full_name || "Brez imena",
             email: profile.email,
             avatar_url: profile.avatar_url || undefined,
+            location: profile.location || undefined,
             average_rating: ratingData?.average_rating || 0,
             total_ratings: ratingData?.total_ratings || 0,
             myRating: myRating?.rating,
@@ -170,7 +172,11 @@ export default function Players() {
 
   const handleAvatarClick = (player: PlayerWithRating) => {
     if (player.avatar_url) {
-      setSelectedAvatar({ url: player.avatar_url, name: player.full_name });
+      setSelectedAvatar({ 
+        url: player.avatar_url, 
+        name: player.full_name,
+        location: player.location 
+      });
       setAvatarDialogOpen(true);
     }
   };
@@ -321,12 +327,18 @@ export default function Players() {
             <DialogHeader>
               <DialogTitle>{selectedAvatar?.name}</DialogTitle>
             </DialogHeader>
-            <div className="flex items-center justify-center p-4">
+            <div className="flex flex-col items-center justify-center p-4">
               <img 
                 src={selectedAvatar?.url} 
                 alt={selectedAvatar?.name}
                 className="max-w-full max-h-[60vh] rounded-lg object-contain"
               />
+              <div className="mt-4 text-center space-y-1">
+                <p className="font-semibold text-lg">{selectedAvatar?.name}</p>
+                {selectedAvatar?.location && (
+                  <p className="text-sm text-muted-foreground">{selectedAvatar.location}</p>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
