@@ -158,23 +158,8 @@ export default function Auth() {
       return;
     }
 
-    if (newPassword.length < 12) {
-      toast.error("Geslo mora biti dolgo vsaj 12 znakov");
-      return;
-    }
-    
-    if (!/[A-Z]/.test(newPassword)) {
-      toast.error("Geslo mora vsebovati vsaj eno veliko črko");
-      return;
-    }
-    
-    if (!/[a-z]/.test(newPassword)) {
-      toast.error("Geslo mora vsebovati vsaj eno malo črko");
-      return;
-    }
-    
-    if (!/[0-9]/.test(newPassword)) {
-      toast.error("Geslo mora vsebovati vsaj eno številko");
+    if (newPassword.length < 8) {
+      toast.error("Geslo mora biti dolgo vsaj 8 znakov");
       return;
     }
 
