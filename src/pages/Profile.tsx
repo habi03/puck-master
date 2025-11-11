@@ -21,6 +21,7 @@ export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [currentRole, setCurrentRole] = useState<string>("");
@@ -65,6 +66,7 @@ export default function Profile() {
       if (error) throw error;
       setFullName(data.full_name || "");
       setLocation(data.location || "");
+      setBirthDate(data.birth_date || "");
       setAvatarUrl(data.avatar_url || "");
       
       // Fetch current league membership
@@ -118,6 +120,7 @@ export default function Profile() {
         .update({ 
           full_name: fullName,
           location: location,
+          birth_date: birthDate || null,
           avatar_url: avatarUrl
         })
         .eq("id", user.id);
@@ -327,6 +330,16 @@ export default function Profile() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Vnesite svoj kraj"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">Datum rojstva</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
               />
             </div>
 
