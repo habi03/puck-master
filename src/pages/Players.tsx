@@ -39,7 +39,7 @@ export default function Players() {
   const [rating, setRating] = useState<number>(5);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string } | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -195,7 +195,8 @@ export default function Players() {
       setSelectedAvatar({ 
         url: player.avatar_url, 
         name: player.full_name,
-        location: player.location 
+        location: player.location,
+        birth_date: player.birth_date
       });
       setAvatarDialogOpen(true);
     }
@@ -266,17 +267,9 @@ export default function Players() {
                         <CardTitle className="text-base truncate">
                           {player.full_name}
                         </CardTitle>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {player.email}
-                        </p>
-                        {player.birth_date && (
-                          <p className="text-xs text-muted-foreground">
-                            Rojstvo: {new Date(player.birth_date).toLocaleDateString('sl-SI')}
-                          </p>
-                        )}
                         {player.role && (
                           <p className="text-xs text-muted-foreground">
-                            Vloga: {player.role}
+                            {player.role}
                           </p>
                         )}
                       </div>
@@ -367,6 +360,11 @@ export default function Players() {
                 <p className="font-semibold text-lg">{selectedAvatar?.name}</p>
                 {selectedAvatar?.location && (
                   <p className="text-sm text-muted-foreground">{selectedAvatar.location}</p>
+                )}
+                {selectedAvatar?.birth_date && (
+                  <p className="text-sm text-muted-foreground">
+                    Rojstvo: {new Date(selectedAvatar.birth_date).toLocaleDateString('sl-SI')}
+                  </p>
                 )}
               </div>
             </div>
