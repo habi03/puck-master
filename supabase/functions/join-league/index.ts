@@ -91,7 +91,16 @@ serve(async (req) => {
 
     // Verify password if league is password-protected
     if (league.password && league.password !== '') {
-      if (!password || password !== league.password) {
+      if (!password) {
+        console.log(`Missing password for protected league ${leagueId}`);
+        return new Response(
+          JSON.stringify({ error: 'Password required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Password is already hashed from client, compare directly
+      if (password !== league.password) {
         console.log(`Invalid password attempt for league ${leagueId}`);
         return new Response(
           JSON.stringify({ error: 'Invalid password' }),

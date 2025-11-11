@@ -39,6 +39,7 @@ export default function Leagues() {
   const [loading, setLoading] = useState(false);
   const [newLeagueName, setNewLeagueName] = useState("");
   const [newLeagueDesc, setNewLeagueDesc] = useState("");
+  const [newLeaguePassword, setNewLeaguePassword] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
@@ -107,13 +108,25 @@ export default function Leagues() {
       const validatedData = leagueSchema.parse({
         name: newLeagueName,
         description: newLeagueDesc || "",
+        password: newLeaguePassword || ""
       });
+
+      // Hash password if provided
+      let hashedPassword = null;
+      if (newLeaguePassword && newLeaguePassword.trim() !== '') {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(newLeaguePassword);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
 
       const { error } = await supabase
         .from("leagues")
         .insert({
           name: validatedData.name,
           description: validatedData.description || null,
+          password: hashedPassword,
           created_by: user?.id,
         });
 
@@ -121,6 +134,7 @@ export default function Leagues() {
       toast.success("Liga uspešno ustvarjena!");
       setNewLeagueName("");
       setNewLeagueDesc("");
+      setNewLeaguePassword("");
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
@@ -164,10 +178,17 @@ export default function Leagues() {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('join-league', {
+      // Hash password before sending
+      const encoder = new TextEncoder();
+      const data = encoder.encode(enteredPassword);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const { data: result, error } = await supabase.functions.invoke('join-league', {
         body: { 
           leagueId: selectedLeague.id, 
-          password: enteredPassword 
+          password: hashedPassword 
         }
       });
 
@@ -177,11 +198,11 @@ export default function Leagues() {
         return;
       }
 
-      if (data.error) {
-        if (data.error === 'Invalid password') {
+      if (result.error) {
+        if (result.error === 'Invalid password') {
           toast.error("Napačno geslo!");
         } else {
-          toast.error(data.error);
+          toast.error(result.error);
         }
         return;
       }
@@ -312,6 +333,19 @@ export default function Leagues() {
                     placeholder="Kratek opis lige..."
                     rows={3}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="league-password">Geslo (neobvezno)</Label>
+                  <Input
+                    id="league-password"
+                    type="password"
+                    value={newLeaguePassword}
+                    onChange={(e) => setNewLeaguePassword(e.target.value)}
+                    placeholder="Zaščitite ligo z geslom..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Pustite prazno za javno ligo
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Ustvarjam..." : "Ustvari ligo"}

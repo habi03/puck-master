@@ -236,14 +236,24 @@ export default function Admin() {
   const handleUpdatePassword = async () => {
     setLoading(true);
     try {
+      // Hash password if provided
+      let hashedPassword = null;
+      if (newPassword && newPassword.trim() !== '') {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(newPassword);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
       const { error } = await supabase
         .from("leagues")
-        .update({ password: newPassword || null })
+        .update({ password: hashedPassword })
         .eq("id", currentLeagueId);
 
       if (error) throw error;
       toast.success(newPassword ? "Geslo nastavljeno" : "Geslo odstranjeno");
-      setLeaguePassword(newPassword);
+      setLeaguePassword(hashedPassword || "");
       setNewPassword("");
     } catch (error: any) {
       toast.error("Napaka pri posodabljanju gesla");
