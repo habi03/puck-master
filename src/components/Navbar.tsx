@@ -126,7 +126,7 @@ export default function Navbar({ user }: NavbarProps) {
                 
                 <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
                   <Users className="h-4 w-4 mr-2" />
-                  Ocena tekmovalcev
+                  Tekmovalci
                 </Button>
                 
                 <Button onClick={() => navigate("/leaderboard")} variant="outline" className="w-full justify-start">
