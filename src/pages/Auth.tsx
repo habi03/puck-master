@@ -287,7 +287,7 @@ export default function Auth() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Min. 12 znakov, 1 velika črka, 1 številka"
+                    placeholder="Minimalno 8 znakov"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

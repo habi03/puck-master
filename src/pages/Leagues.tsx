@@ -318,10 +318,10 @@ export default function Leagues() {
                     type="password"
                     value={newLeaguePassword}
                     onChange={(e) => setNewLeaguePassword(e.target.value)}
-                    placeholder="Min. 8 znakov, vsaj 1 velika črka, 1 številka"
+                    placeholder="Minimalno 8 znakov"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Pustite prazno za javno ligo. Mora vsebovati vsaj 8 znakov, veliko črko in številko.
+                    Pustite prazno za javno ligo. Mora vsebovati vsaj 8 znakov.
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
