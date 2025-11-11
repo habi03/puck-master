@@ -28,9 +28,6 @@ const leagueSchema = z.object({
     .trim()
     .min(8, "Geslo mora biti dolgo vsaj 8 znakov")
     .max(100, "Geslo je predolgo (max 100 znakov)")
-    .regex(/[A-Z]/, "Geslo mora vsebovati vsaj eno veliko črko")
-    .regex(/[a-z]/, "Geslo mora vsebovati vsaj eno malo črko")
-    .regex(/[0-9]/, "Geslo mora vsebovati vsaj eno številko")
     .optional()
     .or(z.literal(''))
 });
