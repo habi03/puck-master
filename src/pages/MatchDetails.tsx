@@ -1061,53 +1061,114 @@ export default function MatchDetails() {
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
-                {unassigned.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="font-medium truncate">
-                        {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
-                      </span>
-                      <Badge variant="outline" className="text-xs flex-shrink-0">
-                        {p.position}
-                      </Badge>
+                {/* Vratarji */}
+                {unassigned
+                  .filter(p => p.position === "vratar")
+                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .map((p) => (
+                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium truncate">
+                          {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
+                        </span>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {p.position}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-muted-foreground">
+                          ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
+                        </span>
+                        {isAdmin && (
+                          <Select
+                            value="unassigned"
+                            onValueChange={async (value: string) => {
+                              try {
+                                const { error } = await supabase
+                                  .from("match_participants")
+                                  .update({ team_number: value === "unassigned" ? null : parseInt(value) })
+                                  .eq("id", p.id);
+                                if (error) throw error;
+                                toast.success("Ekipa posodobljena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri spreminjanju ekipe");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-16 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: match.number_of_teams }, (_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  E{i + 1}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="unassigned">-</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-muted-foreground">
-                        ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
-                      </span>
-                      {isAdmin && (
-                        <Select
-                          value="unassigned"
-                          onValueChange={async (value: string) => {
-                            try {
-                              const { error } = await supabase
-                                .from("match_participants")
-                                .update({ team_number: value === "unassigned" ? null : parseInt(value) })
-                                .eq("id", p.id);
-                              if (error) throw error;
-                              toast.success("Ekipa posodobljena");
-                              fetchParticipants();
-                            } catch (error: any) {
-                              toast.error("Napaka pri spreminjanju ekipe");
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="h-6 w-16 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: match.number_of_teams }, (_, i) => (
-                              <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                E{i + 1}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="unassigned">-</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
+                  ))}
+                
+                {/* Separator if there are goalkeepers */}
+                {unassigned.filter(p => p.position === "vratar").length > 0 && (
+                  <Separator className="my-3" />
+                )}
+                
+                {/* Igralci */}
+                {unassigned
+                  .filter(p => p.position === "igralec")
+                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .map((p) => (
+                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium truncate">
+                          {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
+                        </span>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {p.position}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-muted-foreground">
+                          ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
+                        </span>
+                        {isAdmin && (
+                          <Select
+                            value="unassigned"
+                            onValueChange={async (value: string) => {
+                              try {
+                                const { error } = await supabase
+                                  .from("match_participants")
+                                  .update({ team_number: value === "unassigned" ? null : parseInt(value) })
+                                  .eq("id", p.id);
+                                if (error) throw error;
+                                toast.success("Ekipa posodobljena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri spreminjanju ekipe");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-16 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: match.number_of_teams }, (_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  E{i + 1}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="unassigned">-</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </CardContent>
             </Card>
           </div>
