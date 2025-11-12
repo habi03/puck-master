@@ -141,7 +141,72 @@ export default function MatchDetails() {
 
       if (error) throw error;
       
-      // Enrich with profile and rating data only
+      if (!match) return;
+      
+      // Fetch leaderboard data in parallel
+      const [
+        { data: allParticipants },
+        { data: allResults },
+        { data: allGoals },
+        { data: allSaves }
+      ] = await Promise.all([
+        supabase
+          .from("match_participants")
+          .select("player_id, position, team_number, match_id, matches!inner(league_id, is_completed)")
+          .eq("matches.league_id", match.league_id)
+          .eq("matches.is_completed", true)
+          .eq("is_present", true),
+        supabase
+          .from("match_results")
+          .select("match_id, team_number, goals_scored"),
+        supabase
+          .from("goals")
+          .select("player_id, match_id"),
+        supabase
+          .from("saves")
+          .select("player_id, match_id, saves_count")
+      ]);
+
+      // Calculate leaderboard scores
+      const scores = new Map<string, number>();
+      
+      // Attendance + wins
+      allParticipants?.forEach(p => {
+        const key = `${p.player_id}_${p.position}`;
+        scores.set(key, (scores.get(key) || 0) + 1);
+        
+        const matchResults = allResults?.filter(r => r.match_id === p.match_id) || [];
+        if (matchResults.length > 0) {
+          const teamResult = matchResults.find(r => r.team_number === p.team_number);
+          const otherResults = matchResults.filter(r => r.team_number !== p.team_number);
+          if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
+            scores.set(key, (scores.get(key) || 0) + 3);
+          }
+        }
+      });
+
+      // Goals
+      allGoals?.forEach(g => {
+        const p = allParticipants?.find(ap => ap.player_id === g.player_id && ap.match_id === g.match_id && ap.position === "igralec");
+        if (p) {
+          const key = `${g.player_id}_igralec`;
+          scores.set(key, (scores.get(key) || 0) + 1);
+        }
+      });
+
+      // Saves
+      allSaves?.forEach(s => {
+        const p = allParticipants?.find(ap => ap.player_id === s.player_id && ap.match_id === s.match_id && ap.position === "vratar");
+        if (p) {
+          const key = `${s.player_id}_vratar`;
+          scores.set(key, (scores.get(key) || 0) + s.saves_count);
+        }
+      });
+
+      // Sort to get positions
+      const sortedScores = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
+      
+      // Enrich with profile, rating, and combined rating
       const enrichedParticipants = await Promise.all(
         (participantsData || []).map(async (p) => {
           const { data: profileData } = await supabase
@@ -155,19 +220,35 @@ export default function MatchDetails() {
             .select("average_rating")
             .eq("player_id", p.player_id)
             .single();
+          
+          // Calculate position bonus
+          const key = `${p.player_id}_${p.position}`;
+          const playerPosition = sortedScores.findIndex(([k]) => k === key) + 1;
+          const totalPlayers = sortedScores.length;
+          
+          let positionBonus = 0;
+          if (playerPosition > 0 && totalPlayers > 1) {
+            positionBonus = 4 - (4 * (playerPosition - 1) / (totalPlayers - 1));
+          } else if (playerPosition === 1 && totalPlayers === 1) {
+            positionBonus = 4;
+          }
+          
+          const peerRating = ratingData?.average_rating || 0;
+          const combinedRating = 0.6 * peerRating + positionBonus;
             
           return {
             ...p,
             profiles: profileData,
-            rating_aggregates: ratingData
+            rating_aggregates: ratingData,
+            combined_rating: combinedRating
           };
         })
       );
       
-      // Sort by average rating
+      // Sort by combined rating
       const sorted = enrichedParticipants.sort((a, b) => {
-        const ratingA = a.rating_aggregates?.average_rating || 0;
-        const ratingB = b.rating_aggregates?.average_rating || 0;
+        const ratingA = a.combined_rating || 0;
+        const ratingB = b.combined_rating || 0;
         return ratingB - ratingA;
       });
       
@@ -948,7 +1029,7 @@ export default function MatchDetails() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-muted-foreground">
-                          ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                          ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                         </span>
                         {isAdmin && (
                           <Select
@@ -1003,7 +1084,7 @@ export default function MatchDetails() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-muted-foreground">
-                          ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                          ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                         </span>
                         {isAdmin && (
                           <Select
@@ -1063,7 +1144,7 @@ export default function MatchDetails() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-muted-foreground">
-                        ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                        ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                       </span>
                       {isAdmin && (
                         <Select
@@ -1106,7 +1187,7 @@ export default function MatchDetails() {
         {Object.keys(teams).length > 0 && (
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold">
-              Vsi prijavljeni igralci
+              Vsi prijavljeni igralci (Ocena = 0,6 × tekmovalci + bonus lestvica)
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
@@ -1131,7 +1212,7 @@ export default function MatchDetails() {
                       )}
                     </div>
                     <span className="text-muted-foreground flex-shrink-0">
-                      ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                      ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                     </span>
                   </div>
                 ))}
@@ -1162,7 +1243,7 @@ export default function MatchDetails() {
                       )}
                     </div>
                     <span className="text-muted-foreground flex-shrink-0">
-                      ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                      ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                     </span>
                   </div>
                 ))}
