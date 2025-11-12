@@ -133,10 +133,6 @@ export default function MatchDetails() {
 
   const fetchParticipants = async () => {
     try {
-      if (!match?.league_id) return;
-      
-      const leagueId = match.league_id;
-
       // Fetch current match participants
       const { data: participantsData, error } = await supabase
         .from("match_participants")
@@ -149,15 +145,8 @@ export default function MatchDetails() {
       // Get player IDs for this match
       const playerIds = participantsData?.map(p => p.player_id) || [];
       
-      // Fetch only essential data in parallel
-      const [leagueParticipants, profilesResult, ratingsResult] = await Promise.all([
-        // Get minimal data for leaderboard calculation - only completed matches
-        supabase
-          .from("match_participants")
-          .select("player_id, position, team_number, match_id, matches!inner(id, league_id, is_completed)")
-          .eq("matches.league_id", leagueId)
-          .eq("matches.is_completed", true)
-          .eq("is_present", true),
+      // Fetch profiles and ratings in parallel
+      const [profilesResult, ratingsResult] = await Promise.all([
         supabase
           .from("profiles")
           .select("id, full_name, email")
@@ -168,57 +157,14 @@ export default function MatchDetails() {
           .in("player_id", playerIds)
       ]);
 
-      // Build simple leaderboard with pre-calculated match stats
-      const statsMap = new Map<string, { attendance: number; wins: number; goals: number; saves: number }>();
-      
-      // Process in memory - group by match first for efficiency
-      const matchesMap = new Map();
-      leagueParticipants.data?.forEach(p => {
-        if (!matchesMap.has(p.match_id)) {
-          matchesMap.set(p.match_id, []);
-        }
-        matchesMap.get(p.match_id).push(p);
-      });
-
-      // Quick stats calculation
-      leagueParticipants.data?.forEach(p => {
-        const key = `${p.player_id}_${p.position}`;
-        if (!statsMap.has(key)) {
-          statsMap.set(key, { attendance: 0, wins: 0, goals: 0, saves: 0 });
-        }
-        statsMap.get(key)!.attendance += 1;
-      });
-
-      // Build sorted leaderboard by total points
-      const leaderboardData = Array.from(statsMap.entries()).map(([key, stats]) => {
-        const [player_id, position] = key.split('_');
-        return {
-          player_id,
-          position,
-          total_points: stats.attendance + (stats.wins * 3) + stats.goals + stats.saves
-        };
-      }).sort((a, b) => b.total_points - a.total_points);
-
-      // Enrich participants with calculated data
+      // Enrich participants with profile and rating data
       const enrichedParticipants = participantsData?.map((p) => {
         const profileData = profilesResult.data?.find(prof => prof.id === p.player_id);
         const ratingData = ratingsResult.data?.find(r => r.player_id === p.player_id);
         const average_rating = ratingData?.average_rating || 0;
         
-        // Find position in leaderboard
-        const leaderboardPosition = leaderboardData.findIndex(
-          lb => lb.player_id === p.player_id && lb.position === p.position
-        ) + 1;
-        
-        // Calculate bonus: 4 points for first, -0.2 per position
-        const leaderboardBonus = leaderboardPosition > 0 
-          ? Math.max(0, 4 - (leaderboardPosition - 1) * 0.2)
-          : 0;
-        
-        // Combined rating = 0.6 * average_rating + leaderboard_bonus
-        const combined_rating = average_rating > 0 
-          ? 0.6 * average_rating + leaderboardBonus 
-          : 0;
+        // Combined rating is simply the average rating from Tekmovalci tab
+        const combined_rating = average_rating;
           
         return {
           ...p,
@@ -1169,7 +1115,7 @@ export default function MatchDetails() {
         {Object.keys(teams).length > 0 && (
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold">
-              Vsi prijavljeni igralci (Ocena = 0,6 × tekmovalci + bonus lestvica)
+              Vsi prijavljeni igralci (Ocena iz Tekmovalcev)
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
