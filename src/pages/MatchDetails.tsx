@@ -165,13 +165,14 @@ export default function MatchDetails() {
         })
       );
       
-      // Sort by average rating to assign position bonuses
-      const sortedByRating = [...enrichedParticipants].sort((a, b) => b.average_rating - a.average_rating);
+      // Only include players WITH ratings for position bonus calculation
+      const playersWithRatings = enrichedParticipants.filter(p => p.average_rating && p.average_rating > 0);
+      const sortedByRating = [...playersWithRatings].sort((a, b) => b.average_rating - a.average_rating);
       const totalPlayers = sortedByRating.length;
       
       // Calculate combined rating with linear bonus
       const withCombinedRating = enrichedParticipants.map((p) => {
-        // If player has no rating yet, combined rating is 0
+        // If player has no rating yet, combined rating is 0 (no bonus)
         if (!p.average_rating || p.average_rating === 0) {
           return {
             ...p,
