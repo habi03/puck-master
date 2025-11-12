@@ -171,6 +171,14 @@ export default function MatchDetails() {
       
       // Calculate combined rating with linear bonus
       const withCombinedRating = enrichedParticipants.map((p) => {
+        // If player has no rating yet, combined rating is 0
+        if (!p.average_rating || p.average_rating === 0) {
+          return {
+            ...p,
+            combined_rating: 0
+          };
+        }
+        
         const position = sortedByRating.findIndex(sp => sp.player_id === p.player_id) + 1;
         let positionBonus = 0;
         
