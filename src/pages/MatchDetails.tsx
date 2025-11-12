@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ArrowLeft, Users, Shield, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 type Match = {
   id: string;
@@ -1120,7 +1121,10 @@ export default function MatchDetails() {
             <Card>
               <CardContent className="pt-4 space-y-2">
                 {/* Vratarji */}
-                {participants.filter(p => p.position === "vratar").map((p) => (
+                {participants
+                  .filter(p => p.position === "vratar")
+                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .map((p) => (
                   <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="font-medium truncate">
@@ -1147,11 +1151,14 @@ export default function MatchDetails() {
                 
                 {/* Separator if there are goalkeepers */}
                 {participants.filter(p => p.position === "vratar").length > 0 && (
-                  <div className="border-t my-3" />
+                  <Separator className="my-3" />
                 )}
                 
                 {/* Igralci */}
-                {participants.filter(p => p.position === "igralec").map((p) => (
+                {participants
+                  .filter(p => p.position === "igralec")
+                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .map((p) => (
                   <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="font-medium truncate">
