@@ -37,6 +37,7 @@ type Participant = {
   rating_aggregates: {
     average_rating: number;
   } | null;
+  my_rating?: number | null;
 };
 
 export default function MatchDetails() {
@@ -141,7 +142,7 @@ export default function MatchDetails() {
 
       if (error) throw error;
       
-      // Fetch rating aggregates separately
+      // Fetch rating aggregates and my ratings separately
       const playersWithRatings = await Promise.all(
         (participantsData || []).map(async (p) => {
           const { data: profileData } = await supabase
@@ -155,11 +156,20 @@ export default function MatchDetails() {
             .select("average_rating")
             .eq("player_id", p.player_id)
             .single();
+          
+          // Fetch my rating for this player
+          const { data: myRatingData } = await supabase
+            .from("player_ratings")
+            .select("rating")
+            .eq("rated_player_id", p.player_id)
+            .eq("rater_id", user?.id)
+            .maybeSingle();
             
           return {
             ...p,
             profiles: profileData,
-            rating_aggregates: ratingData
+            rating_aggregates: ratingData,
+            my_rating: myRatingData?.rating || null
           };
         })
       );
@@ -947,9 +957,58 @@ export default function MatchDetails() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-muted-foreground">
-                          {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
-                        </span>
+                        {p.player_id !== user?.id && (
+                          <Select
+                            value={p.my_rating?.toString() || "0"}
+                            onValueChange={async (value: string) => {
+                              const rating = parseInt(value);
+                              try {
+                                const { data: existing } = await supabase
+                                  .from("player_ratings")
+                                  .select("id")
+                                  .eq("rated_player_id", p.player_id)
+                                  .eq("rater_id", user?.id)
+                                  .maybeSingle();
+
+                                if (existing) {
+                                  const { error } = await supabase
+                                    .from("player_ratings")
+                                    .update({ rating, updated_at: new Date().toISOString() })
+                                    .eq("id", existing.id);
+                                  if (error) throw error;
+                                } else {
+                                  const { error } = await supabase
+                                    .from("player_ratings")
+                                    .insert({
+                                      rated_player_id: p.player_id,
+                                      rater_id: user?.id,
+                                      rating
+                                    });
+                                  if (error) throw error;
+                                }
+                                toast.success("Ocena shranjena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri shranjevanju ocene");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-12 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">-</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {p.player_id === user?.id && (
+                          <span className="text-muted-foreground text-xs">Ti</span>
+                        )}
                         {isAdmin && (
                           <Select
                             value={p.team_number?.toString()}
@@ -1002,9 +1061,58 @@ export default function MatchDetails() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-muted-foreground">
-                          {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
-                        </span>
+                        {p.player_id !== user?.id && (
+                          <Select
+                            value={p.my_rating?.toString() || "0"}
+                            onValueChange={async (value: string) => {
+                              const rating = parseInt(value);
+                              try {
+                                const { data: existing } = await supabase
+                                  .from("player_ratings")
+                                  .select("id")
+                                  .eq("rated_player_id", p.player_id)
+                                  .eq("rater_id", user?.id)
+                                  .maybeSingle();
+
+                                if (existing) {
+                                  const { error } = await supabase
+                                    .from("player_ratings")
+                                    .update({ rating, updated_at: new Date().toISOString() })
+                                    .eq("id", existing.id);
+                                  if (error) throw error;
+                                } else {
+                                  const { error } = await supabase
+                                    .from("player_ratings")
+                                    .insert({
+                                      rated_player_id: p.player_id,
+                                      rater_id: user?.id,
+                                      rating
+                                    });
+                                  if (error) throw error;
+                                }
+                                toast.success("Ocena shranjena");
+                                fetchParticipants();
+                              } catch (error: any) {
+                                toast.error("Napaka pri shranjevanju ocene");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-6 w-12 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">-</SelectItem>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="4">4</SelectItem>
+                              <SelectItem value="5">5</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {p.player_id === user?.id && (
+                          <span className="text-muted-foreground text-xs">Ti</span>
+                        )}
                         {isAdmin && (
                           <Select
                             value={p.team_number?.toString()}
@@ -1062,9 +1170,58 @@ export default function MatchDetails() {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-muted-foreground">
-                        {p.combined_rating?.toFixed(1) || p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
-                      </span>
+                      {p.player_id !== user?.id && (
+                        <Select
+                          value={p.my_rating?.toString() || "0"}
+                          onValueChange={async (value: string) => {
+                            const rating = parseInt(value);
+                            try {
+                              const { data: existing } = await supabase
+                                .from("player_ratings")
+                                .select("id")
+                                .eq("rated_player_id", p.player_id)
+                                .eq("rater_id", user?.id)
+                                .maybeSingle();
+
+                              if (existing) {
+                                const { error } = await supabase
+                                  .from("player_ratings")
+                                  .update({ rating, updated_at: new Date().toISOString() })
+                                  .eq("id", existing.id);
+                                if (error) throw error;
+                              } else {
+                                const { error } = await supabase
+                                  .from("player_ratings")
+                                  .insert({
+                                    rated_player_id: p.player_id,
+                                    rater_id: user?.id,
+                                    rating
+                                  });
+                                if (error) throw error;
+                              }
+                              toast.success("Ocena shranjena");
+                              fetchParticipants();
+                            } catch (error: any) {
+                              toast.error("Napaka pri shranjevanju ocene");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-6 w-12 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">-</SelectItem>
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {p.player_id === user?.id && (
+                        <span className="text-muted-foreground text-xs">Ti</span>
+                      )}
                       {isAdmin && (
                         <Select
                           value="unassigned"
