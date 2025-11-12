@@ -308,34 +308,56 @@ export default function MatchDetails() {
       const numTeams = match.number_of_teams;
       const teams: Participant[][] = Array.from({ length: numTeams }, () => []);
       
-      // Distribute goalkeepers - only one per team
-      goalkeepers.slice(0, numTeams).forEach((gk, index) => {
+      // Sort goalkeepers by combined_rating (highest first)
+      const sortedGoalkeepers = [...goalkeepers].sort((a, b) => 
+        (b.combined_rating || 0) - (a.combined_rating || 0)
+      );
+      
+      // Distribute goalkeepers - best to team 1, second best to team 2, etc.
+      sortedGoalkeepers.slice(0, numTeams).forEach((gk, index) => {
         teams[index].push(gk);
       });
       
+      // Sort players by combined_rating (highest first)
+      const sortedPlayers = [...players].sort((a, b) => 
+        (b.combined_rating || 0) - (a.combined_rating || 0)
+      );
+      
       // Distribute players based on algorithm
       if (algorithm === "serpentine") {
-        // Serpentine/Snake draft
+        // Serpentine/Snake draft - proper implementation
         let teamIndex = 0;
         let direction = 1;
         
-        players.forEach((player) => {
+        sortedPlayers.forEach((player, playerIndex) => {
           teams[teamIndex].push(player);
-          teamIndex += direction;
           
-          if (teamIndex >= numTeams) {
-            teamIndex = numTeams - 1;
-            direction = -1;
-          } else if (teamIndex < 0) {
-            teamIndex = 0;
-            direction = 1;
+          // Determine next team index for next player
+          if (playerIndex < sortedPlayers.length - 1) {
+            if (direction === 1) {
+              if (teamIndex < numTeams - 1) {
+                teamIndex++;
+              } else {
+                // Reached the end, reverse direction
+                direction = -1;
+                teamIndex--;
+              }
+            } else {
+              if (teamIndex > 0) {
+                teamIndex--;
+              } else {
+                // Reached the beginning, reverse direction
+                direction = 1;
+                teamIndex++;
+              }
+            }
           }
         });
       } else if (algorithm === "abba") {
         // ABBA pattern (best for 2 teams)
         let picks = 0;
         
-        players.forEach((player) => {
+        sortedPlayers.forEach((player) => {
           let teamIndex = 0;
           
           // ABBA pattern: 1-2-2-1-1-2-2-1...
