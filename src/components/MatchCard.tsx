@@ -343,15 +343,23 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col gap-2 pt-3">
+      <CardFooter className="flex-col gap-4 pt-3">
         {!isCompleted ? (
           !isSignedUp ? (
-            <>
+            <div className="w-full space-y-4">
               <Select value={position} onValueChange={(v: any) => setPosition(v)}>
-                <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
+                <SelectTrigger 
+                  className="w-full touch-manipulation" 
+                  onClick={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent 
+                  className="touch-manipulation"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <SelectItem value="igralec">Igralec</SelectItem>
                   <SelectItem value="vratar">Vratar</SelectItem>
                 </SelectContent>
@@ -367,7 +375,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 <UserPlus className="h-4 w-4 mr-2" />
                 Prijavi se
               </Button>
-            </>
+            </div>
           ) : (
             <>
               <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
