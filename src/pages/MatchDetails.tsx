@@ -1140,7 +1140,7 @@ export default function MatchDetails() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-muted-foreground">
-                        ⭐ {p.rating_aggregates?.average_rating?.toFixed(1) || "N/A"}
+                        ⭐ {p.combined_rating?.toFixed(1) || "N/A"}
                       </span>
                       {isAdmin && (
                         <Select
@@ -1183,7 +1183,7 @@ export default function MatchDetails() {
         {Object.keys(teams).length > 0 && (
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold">
-              Vsi prijavljeni igralci (Ocena = 0,6 × sotekmovalci + 0,4 × leaderboard)
+              Vsi prijavljeni igralci (Ocena = 0,6 × tekmovalci + bonus lestvica)
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
