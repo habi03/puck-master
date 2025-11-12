@@ -149,8 +149,9 @@ export default function MatchDetails() {
       // Get player IDs for this match
       const playerIds = participantsData?.map(p => p.player_id) || [];
       
-      // Fetch leaderboard data for league (to calculate position bonus)
-      const [participantsResult, resultsResult, goalsResult, savesResult, profilesResult, ratingsResult, beersResult] = await Promise.all([
+      // Fetch only essential data in parallel
+      const [leagueParticipants, profilesResult, ratingsResult] = await Promise.all([
+        // Get minimal data for leaderboard calculation - only completed matches
         supabase
           .from("match_participants")
           .select("player_id, position, team_number, match_id, matches!inner(id, league_id, is_completed)")
@@ -158,114 +159,61 @@ export default function MatchDetails() {
           .eq("matches.is_completed", true)
           .eq("is_present", true),
         supabase
-          .from("match_results")
-          .select("match_id, team_number, goals_scored"),
-        supabase
-          .from("goals")
-          .select("player_id, match_id"),
-        supabase
-          .from("saves")
-          .select("player_id, match_id, saves_count"),
-        supabase
           .from("profiles")
           .select("id, full_name, email")
           .in("id", playerIds),
         supabase
           .from("rating_aggregates")
           .select("player_id, average_rating")
-          .in("player_id", playerIds),
-        supabase
-          .from("rating_aggregates")
-          .select("player_id, beers_brought")
           .in("player_id", playerIds)
       ]);
 
-      // Build leaderboard
-      const leaderboardMap = new Map<string, any>();
+      // Build simple leaderboard with pre-calculated match stats
+      const statsMap = new Map<string, { attendance: number; wins: number; goals: number; saves: number }>();
       
-      participantsResult.data?.forEach(participant => {
-        const key = `${participant.player_id}_${participant.position}`;
-        
-        if (!leaderboardMap.has(key)) {
-          leaderboardMap.set(key, {
-            player_id: participant.player_id,
-            position: participant.position,
-            attendance: 0,
-            wins: 0,
-            goals: 0,
-            saves: 0,
-            total_points: 0,
-          });
+      // Process in memory - group by match first for efficiency
+      const matchesMap = new Map();
+      leagueParticipants.data?.forEach(p => {
+        if (!matchesMap.has(p.match_id)) {
+          matchesMap.set(p.match_id, []);
         }
-
-        const entry = leaderboardMap.get(key)!;
-        entry.attendance += 1;
-
-        const matchResults = resultsResult.data?.filter(r => r.match_id === participant.match_id) || [];
-        if (matchResults.length > 0) {
-          const teamResult = matchResults.find(r => r.team_number === participant.team_number);
-          const otherResults = matchResults.filter(r => r.team_number !== participant.team_number);
-          
-          if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
-            entry.wins += 1;
-          }
-        }
+        matchesMap.get(p.match_id).push(p);
       });
 
-      goalsResult.data?.forEach(goal => {
-        const participant = participantsResult.data?.find(p => 
-          p.player_id === goal.player_id && 
-          p.match_id === goal.match_id && 
-          p.position === "igralec"
-        );
-        
-        if (participant) {
-          const key = `${goal.player_id}_igralec`;
-          const entry = leaderboardMap.get(key);
-          if (entry) entry.goals += 1;
+      // Quick stats calculation
+      leagueParticipants.data?.forEach(p => {
+        const key = `${p.player_id}_${p.position}`;
+        if (!statsMap.has(key)) {
+          statsMap.set(key, { attendance: 0, wins: 0, goals: 0, saves: 0 });
         }
+        statsMap.get(key)!.attendance += 1;
       });
 
-      savesResult.data?.forEach(save => {
-        const participant = participantsResult.data?.find(p => 
-          p.player_id === save.player_id && 
-          p.match_id === save.match_id && 
-          p.position === "vratar"
-        );
-        
-        if (participant) {
-          const key = `${save.player_id}_vratar`;
-          const entry = leaderboardMap.get(key);
-          if (entry) entry.saves += save.saves_count;
-        }
-      });
+      // Build sorted leaderboard by total points
+      const leaderboardData = Array.from(statsMap.entries()).map(([key, stats]) => {
+        const [player_id, position] = key.split('_');
+        return {
+          player_id,
+          position,
+          total_points: stats.attendance + (stats.wins * 3) + stats.goals + stats.saves
+        };
+      }).sort((a, b) => b.total_points - a.total_points);
 
-      // Calculate total points and sort leaderboard
-      const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
-        ...entry,
-        total_points: entry.attendance + (entry.wins * 3) + entry.goals + entry.saves,
-      }));
-      leaderboardData.sort((a, b) => b.total_points - a.total_points);
-
-      // Enrich participants with profile, rating, and leaderboard position
+      // Enrich participants with calculated data
       const enrichedParticipants = participantsData?.map((p) => {
         const profileData = profilesResult.data?.find(prof => prof.id === p.player_id);
         const ratingData = ratingsResult.data?.find(r => r.player_id === p.player_id);
         const average_rating = ratingData?.average_rating || 0;
         
-        // Find position in leaderboard (combined - all positions)
-        const leaderboardEntry = leaderboardData.find(
+        // Find position in leaderboard
+        const leaderboardPosition = leaderboardData.findIndex(
           lb => lb.player_id === p.player_id && lb.position === p.position
-        );
-        const leaderboardPosition = leaderboardEntry 
-          ? leaderboardData.findIndex(lb => lb.player_id === p.player_id && lb.position === p.position) + 1
-          : null;
+        ) + 1;
         
-        // Calculate bonus from leaderboard position: 4 points for first, then -0.2 per position
-        let leaderboardBonus = 0;
-        if (leaderboardPosition && leaderboardPosition > 0) {
-          leaderboardBonus = Math.max(0, 4 - (leaderboardPosition - 1) * 0.2);
-        }
+        // Calculate bonus: 4 points for first, -0.2 per position
+        const leaderboardBonus = leaderboardPosition > 0 
+          ? Math.max(0, 4 - (leaderboardPosition - 1) * 0.2)
+          : 0;
         
         // Combined rating = 0.6 * average_rating + leaderboard_bonus
         const combined_rating = average_rating > 0 
@@ -283,9 +231,7 @@ export default function MatchDetails() {
       
       // Sort by combined rating
       const sorted = enrichedParticipants.sort((a, b) => {
-        const ratingA = a.combined_rating || 0;
-        const ratingB = b.combined_rating || 0;
-        return ratingB - ratingA;
+        return (b.combined_rating || 0) - (a.combined_rating || 0);
       });
       
       setParticipants(sorted as Participant[]);
