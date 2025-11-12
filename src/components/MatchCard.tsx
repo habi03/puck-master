@@ -175,16 +175,25 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             }
           });
 
-          // Get player's leaderboard score
+          // Sort players by their scores to get leaderboard positions
+          const sortedPlayers = Array.from(scores.entries())
+            .sort((a, b) => b[1] - a[1]);
+          
+          // Find player's position in leaderboard (1-indexed)
           const playerKey = `${currentUser.id}_${position}`;
-          const playerScore = scores.get(playerKey) || 0;
-          const maxScore = Math.max(...Array.from(scores.values()), 1);
+          const playerPosition = sortedPlayers.findIndex(([key]) => key === playerKey) + 1;
+          const totalPlayers = sortedPlayers.length;
 
-          // Normalize leaderboard score to 1-5 scale
-          const normalizedLeaderboardScore = (playerScore / maxScore) * 4 + 1; // Scale to 1-5
+          // Calculate position bonus: 4 points for 1st, linearly decreasing to 0 for last
+          let positionBonus = 0;
+          if (playerPosition > 0 && totalPlayers > 1) {
+            positionBonus = 4 - (4 * (playerPosition - 1) / (totalPlayers - 1));
+          } else if (playerPosition === 1 && totalPlayers === 1) {
+            positionBonus = 4; // Only player gets full bonus
+          }
 
-          // Calculate combined rating: 0.6 * peer + 0.4 * leaderboard
-          combinedRating = 0.6 * peerRating + 0.4 * normalizedLeaderboardScore;
+          // Calculate combined rating: 0.6 * peer rating + position bonus
+          combinedRating = 0.6 * peerRating + positionBonus;
         }
       }
 
