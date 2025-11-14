@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Award, Target, UserCircle } from "lucide-react";
+import { Trophy, Award, Target, UserCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LeaderboardEntry {
@@ -23,6 +23,7 @@ export default function Leaderboard() {
   const [user, setUser] = useState<any>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showScoring, setShowScoring] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -287,13 +288,27 @@ export default function Leaderboard() {
       <div className="container mx-auto px-4 py-6">
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-6 w-6 text-primary" />
-              Lestvica
+            <CardTitle 
+              className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors"
+              onClick={() => setShowScoring(!showScoring)}
+            >
+              <div className="flex items-center gap-2">
+                <Trophy className="h-6 w-6 text-primary" />
+                Lestvica
+              </div>
+              {showScoring ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              Točke: Prisotnost (1) + Zmaga v rednem delu (3) + Zmaga po kazenskih (2) + Poraz po kazenskih (1) + Gol/Obramba (1)
-            </p>
+            {showScoring && (
+              <p className="text-sm text-muted-foreground mt-2 pt-2 border-t">
+                <strong>Točkovanje:</strong><br />
+                • Prisotnost: 1 točka<br />
+                • Zmaga v rednem delu: 3 točke<br />
+                • Zmaga po kazenskih strelih: 2 točki<br />
+                • Poraz po kazenskih strelih: 1 točka<br />
+                • Gol (igralec): 1 točka<br />
+                • Obramba (vratar): 1 točka
+              </p>
+            )}
           </CardHeader>
         </Card>
 
