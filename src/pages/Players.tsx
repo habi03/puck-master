@@ -36,7 +36,7 @@ export default function Players() {
   const [players, setPlayers] = useState<PlayerWithRating[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithRating | null>(null);
-  const [rating, setRating] = useState<number>(50);
+  const [rating, setRating] = useState<number>(5.0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
@@ -186,7 +186,7 @@ export default function Players() {
 
   const handleRatePlayer = (player: PlayerWithRating) => {
     setSelectedPlayer(player);
-    setRating(player.myRating || 50);
+    setRating(player.myRating || 5.0);
     setDialogOpen(true);
   };
 
@@ -316,18 +316,18 @@ export default function Players() {
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label>Ocena: {rating}/100</Label>
+                              <Label>Ocena: {rating.toFixed(1)}/10</Label>
                               <Slider
                                 value={[rating]}
-                                onValueChange={(value) => setRating(value[0])}
+                                onValueChange={(value) => setRating(Math.round(value[0] * 10) / 10)}
                                 min={1}
-                                max={100}
-                                step={1}
+                                max={10}
+                                step={0.1}
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>1 - Najslabše</span>
-                                <span>100 - Najboljše</span>
+                                <span>1.0 - Najslabše</span>
+                                <span>10.0 - Najboljše</span>
                               </div>
                             </div>
                             <Button onClick={submitRating} className="w-full">
