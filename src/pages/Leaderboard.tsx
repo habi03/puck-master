@@ -82,7 +82,7 @@ export default function Leaderboard() {
       // Get all match results
       const { data: results, error: resultsError } = await supabase
         .from("match_results")
-        .select("match_id, team_number, goals_scored");
+        .select("match_id, team_number, goals_scored, win_type");
 
       if (resultsError) throw resultsError;
 
@@ -144,14 +144,21 @@ export default function Leaderboard() {
         // Count attendance (1 point per match)
         entry.attendance += 1;
 
-        // Check if team won (3 points per win)
+        // Check if team won and calculate points based on win type
         const matchResults = results?.filter(r => r.match_id === participant.match_id) || [];
         if (matchResults.length > 0) {
           const teamResult = matchResults.find(r => r.team_number === participant.team_number);
           const otherResults = matchResults.filter(r => r.team_number !== participant.team_number);
+          const winType = teamResult?.win_type || 'regulation';
           
           if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
+            // Team won
             entry.wins += 1;
+            // Add win points to total: 3 for regulation, 2 for penalty shootout
+            entry.total_points += winType === 'regulation' ? 3 : 2;
+          } else if (teamResult && winType === 'penalty_shootout' && otherResults.some(r => teamResult.goals_scored < r.goals_scored)) {
+            // Team lost after penalty shootout: 1 point
+            entry.total_points += 1;
           }
         }
       });
@@ -190,10 +197,10 @@ export default function Leaderboard() {
         }
       });
 
-      // Calculate total points
+      // Calculate total points (win points already added in the loop above)
       const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
         ...entry,
-        total_points: entry.attendance + (entry.wins * 3) + entry.goals + entry.saves,
+        total_points: entry.total_points + entry.attendance + entry.goals + entry.saves,
       }));
 
       // Sort by total points
@@ -285,7 +292,7 @@ export default function Leaderboard() {
               Lestvica
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              Točke: Prisotnost (1) + Zmaga ekipe (3) + Gol/Obramba (1)
+              Točke: Prisotnost (1) + Zmaga v rednem delu (3) + Zmaga po kazenskih (2) + Poraz po kazenskih (1) + Gol/Obramba (1)
             </p>
           </CardHeader>
         </Card>

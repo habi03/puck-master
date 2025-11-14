@@ -56,6 +56,7 @@ export default function MatchDetails() {
   const [matchGoals, setMatchGoals] = useState<any[]>([]);
   const [matchSaves, setMatchSaves] = useState<any[]>([]);
   const [goalkeeperSaves, setGoalkeeperSaves] = useState<{ [key: number]: { [playerId: string]: number } }>({});
+  const [winType, setWinType] = useState<"regulation" | "penalty_shootout">("regulation");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -441,7 +442,8 @@ export default function MatchDetails() {
       const resultsToInsert = Object.entries(teamGoals).map(([teamNum, goals]) => ({
         match_id: matchId,
         team_number: parseInt(teamNum),
-        goals_scored: goals
+        goals_scored: goals,
+        win_type: winType
       }));
 
       if (resultsToInsert.length > 0) {
@@ -790,6 +792,34 @@ export default function MatchDetails() {
                   {match.is_completed ? "Posodobi število golov in strelce za vsako ekipo" : "Vnesi število golov in strelce za vsako ekipo"}
                 </DialogDescription>
               </DialogHeader>
+
+              <div className="mb-4 p-4 border rounded-lg bg-muted/50">
+                <Label className="text-sm font-semibold mb-3 block">Način zmage:</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="winType"
+                      value="regulation"
+                      checked={winType === "regulation"}
+                      onChange={(e) => setWinType(e.target.value as "regulation")}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Končano v rednem delu</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="winType"
+                      value="penalty_shootout"
+                      checked={winType === "penalty_shootout"}
+                      onChange={(e) => setWinType(e.target.value as "penalty_shootout")}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Končano po kazenskih strelih</span>
+                  </label>
+                </div>
+              </div>
 
               <div className="space-y-6 mt-4">
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => {

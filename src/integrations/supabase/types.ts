@@ -180,6 +180,7 @@ export type Database = {
           match_id: string
           team_number: number
           updated_at: string
+          win_type: string | null
         }
         Insert: {
           created_at?: string
@@ -188,6 +189,7 @@ export type Database = {
           match_id: string
           team_number: number
           updated_at?: string
+          win_type?: string | null
         }
         Update: {
           created_at?: string
@@ -196,6 +198,7 @@ export type Database = {
           match_id?: string
           team_number?: number
           updated_at?: string
+          win_type?: string | null
         }
         Relationships: [
           {
