@@ -12,7 +12,6 @@ interface LeaderboardEntry {
   position: string;
   attendance: number;
   wins: number;
-  goals: number;
   saves: number;
   total_points: number;
   beers_brought: number;
@@ -87,13 +86,6 @@ export default function Leaderboard() {
 
       if (resultsError) throw resultsError;
 
-      // Get all goals
-      const { data: goals, error: goalsError } = await supabase
-        .from("goals")
-        .select("player_id, match_id");
-
-      if (goalsError) throw goalsError;
-
       // Get all saves
       const { data: saves, error: savesError } = await supabase
         .from("saves")
@@ -133,7 +125,6 @@ export default function Leaderboard() {
             position: participant.position,
             attendance: 0,
             wins: 0,
-            goals: 0,
             saves: 0,
             total_points: 0,
             beers_brought: beerCount,
@@ -164,23 +155,6 @@ export default function Leaderboard() {
         }
       });
 
-      // Count goals for players (1 point per goal)
-      goals?.forEach(goal => {
-        const participant = participants?.find(p => 
-          p.player_id === goal.player_id && 
-          p.match_id === goal.match_id && 
-          p.position === "igralec"
-        );
-        
-        if (participant) {
-          const key = `${goal.player_id}_igralec`;
-          const entry = leaderboardMap.get(key);
-          if (entry) {
-            entry.goals += 1;
-          }
-        }
-      });
-
       // Count saves for goalkeepers (1 point per save)
       saves?.forEach(save => {
         const participant = participants?.find(p => 
@@ -201,7 +175,7 @@ export default function Leaderboard() {
       // Calculate total points (win points already added in the loop above)
       const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
         ...entry,
-        total_points: entry.total_points + entry.attendance + entry.goals + entry.saves,
+        total_points: entry.total_points + entry.attendance + entry.saves,
       }));
 
       // Sort by total points
@@ -254,12 +228,6 @@ export default function Leaderboard() {
                 <p className="font-semibold">{entry.wins}</p>
                 <p className="text-muted-foreground">Zmage</p>
               </div>
-              {entry.position === "igralec" && (
-                <div className="text-center">
-                  <p className="font-semibold">{entry.goals}</p>
-                  <p className="text-muted-foreground">Goli</p>
-                </div>
-              )}
               {entry.position === "vratar" && (
                 <div className="text-center">
                   <p className="font-semibold">{entry.saves}</p>
