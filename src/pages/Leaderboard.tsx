@@ -260,11 +260,23 @@ export default function Leaderboard() {
                 <p className="font-semibold">{entry.wins}</p>
                 <p className="text-muted-foreground">Zmage</p>
               </div>
-              {entry.position === "vratar" && (
+              {entry.position === "igralec" && (
                 <div className="text-center">
-                  <p className="font-semibold">{entry.saves}</p>
-                  <p className="text-muted-foreground">Obrambe</p>
+                  <p className="font-semibold">{entry.goals_for}</p>
+                  <p className="text-muted-foreground">Goli ekipe</p>
                 </div>
+              )}
+              {entry.position === "vratar" && (
+                <>
+                  <div className="text-center">
+                    <p className="font-semibold">{entry.saves}</p>
+                    <p className="text-muted-foreground">Obrambe</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold">{entry.goals_against}</p>
+                    <p className="text-muted-foreground">Prejeti goli</p>
+                  </div>
+                </>
               )}
               <div className="text-center">
                 <p className="font-semibold">🍺 {entry.beers_brought}</p>
@@ -305,8 +317,10 @@ export default function Leaderboard() {
                 • Zmaga v rednem delu: 3 točke<br />
                 • Zmaga po kazenskih strelih: 2 točki<br />
                 • Poraz po kazenskih strelih: 1 točka<br />
-                • Gol (igralec): 1 točka<br />
-                • Obramba (vratar): 1 točka
+                • Obramba (vratar): 1 točka<br /><br />
+                <strong>Pri izenačenih točkah:</strong><br />
+                • Igralci: več golov ekipe<br />
+                • Vratarji: manj prejetih golov
               </p>
             )}
           </CardHeader>
