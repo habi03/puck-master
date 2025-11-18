@@ -277,7 +277,7 @@ export default function Players() {
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <Star className="h-4 w-4 fill-primary text-primary" />
                       <span className="font-bold text-sm">
-                        {player.average_rating.toFixed(1)}
+                        {player.average_rating.toFixed(2)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         ({player.total_ratings})
