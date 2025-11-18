@@ -12,7 +12,6 @@ interface LeaderboardEntry {
   position: string;
   attendance: number;
   wins: number;
-  saves: number;
   total_points: number;
   beers_brought: number;
   goals_for: number; // Goals scored by player's team
@@ -88,13 +87,6 @@ export default function Leaderboard() {
 
       if (resultsError) throw resultsError;
 
-      // Get all saves
-      const { data: saves, error: savesError } = await supabase
-        .from("saves")
-        .select("player_id, match_id, saves_count");
-
-      if (savesError) throw savesError;
-
       // Get profiles for all players
       const playerIds = [...new Set(participants?.map(p => p.player_id) || [])];
       const { data: profiles, error: profilesError } = await supabase
@@ -127,7 +119,6 @@ export default function Leaderboard() {
             position: participant.position,
             attendance: 0,
             wins: 0,
-            saves: 0,
             total_points: 0,
             beers_brought: beerCount,
             goals_for: 0,
@@ -170,27 +161,10 @@ export default function Leaderboard() {
         }
       });
 
-      // Count saves for goalkeepers (1 point per save)
-      saves?.forEach(save => {
-        const participant = participants?.find(p => 
-          p.player_id === save.player_id && 
-          p.match_id === save.match_id && 
-          p.position === "vratar"
-        );
-        
-        if (participant) {
-          const key = `${save.player_id}_vratar`;
-          const entry = leaderboardMap.get(key);
-          if (entry) {
-            entry.saves += save.saves_count;
-          }
-        }
-      });
-
       // Calculate total points (win points already added in the loop above)
       const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
         ...entry,
-        total_points: entry.total_points + entry.attendance + entry.saves,
+        total_points: entry.total_points + entry.attendance,
       }));
 
       // Sort by total points, then by goals (goals_for for players, goals_against for goalkeepers)
@@ -267,16 +241,10 @@ export default function Leaderboard() {
                 </div>
               )}
               {entry.position === "vratar" && (
-                <>
-                  <div className="text-center">
-                    <p className="font-semibold">{entry.saves}</p>
-                    <p className="text-muted-foreground">Obrambe</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold">{entry.goals_against}</p>
-                    <p className="text-muted-foreground">Prejeti goli</p>
-                  </div>
-                </>
+                <div className="text-center">
+                  <p className="font-semibold">{entry.goals_against}</p>
+                  <p className="text-muted-foreground">Prejeti goli</p>
+                </div>
               )}
               <div className="text-center">
                 <p className="font-semibold">🍺 {entry.beers_brought}</p>
@@ -316,8 +284,7 @@ export default function Leaderboard() {
                 • Prisotnost: 1 točka<br />
                 • Zmaga v rednem delu: 3 točke<br />
                 • Zmaga po kazenskih strelih: 2 točki<br />
-                • Poraz po kazenskih strelih: 1 točka<br />
-                • Obramba (vratar): 1 točka<br /><br />
+                • Poraz po kazenskih strelih: 1 točka<br /><br />
                 <strong>Pri izenačenih točkah:</strong><br />
                 • Igralci: več golov ekipe<br />
                 • Vratarji: manj prejetih golov
