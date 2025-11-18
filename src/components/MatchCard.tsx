@@ -310,7 +310,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4 flex-shrink-0" />
-          <span className="text-xs">{match.match_time}</span>
+          <span className="text-xs">{match.match_time.slice(0, 5)}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4 flex-shrink-0" />

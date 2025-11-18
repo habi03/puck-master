@@ -468,7 +468,7 @@ export default function MatchDetails() {
             )}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Ura: {match.match_time} • {match.number_of_teams} ekipe
+            Ura: {match.match_time.slice(0, 5)} • {match.number_of_teams} ekipe
           </p>
         </div>
 
