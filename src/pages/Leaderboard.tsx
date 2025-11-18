@@ -281,10 +281,10 @@ export default function Leaderboard() {
             {showScoring && (
               <p className="text-sm text-muted-foreground mt-2 pt-2 border-t">
                 <strong>Točkovanje:</strong><br />
-                • Prisotnost: 1 točka<br />
-                • Zmaga v rednem delu: 3 točke<br />
-                • Zmaga po kazenskih strelih: 2 točki<br />
-                • Poraz po kazenskih strelih: 1 točka<br /><br />
+                • Prisotnost: +1 točka<br />
+                • Zmaga v rednem delu: +3 točke<br />
+                • Zmaga po kazenskih strelih: +2 točki<br />
+                • Poraz po kazenskih strelih: +1 točka<br /><br />
                 <strong>Pri izenačenih točkah:</strong><br />
                 • Igralci: več golov ekipe<br />
                 • Vratarji: manj prejetih golov
