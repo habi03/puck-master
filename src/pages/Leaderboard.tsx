@@ -15,6 +15,8 @@ interface LeaderboardEntry {
   saves: number;
   total_points: number;
   beers_brought: number;
+  goals_for: number; // Goals scored by player's team
+  goals_against: number; // Goals conceded by goalkeeper's team
 }
 
 export default function Leaderboard() {
@@ -128,6 +130,8 @@ export default function Leaderboard() {
             saves: 0,
             total_points: 0,
             beers_brought: beerCount,
+            goals_for: 0,
+            goals_against: 0,
           });
         }
 
@@ -142,6 +146,17 @@ export default function Leaderboard() {
           const teamResult = matchResults.find(r => r.team_number === participant.team_number);
           const otherResults = matchResults.filter(r => r.team_number !== participant.team_number);
           const winType = teamResult?.win_type || 'regulation';
+          
+          // Track goals for players (goals scored by their team)
+          if (teamResult && participant.position === "igralec") {
+            entry.goals_for += teamResult.goals_scored;
+          }
+          
+          // Track goals against for goalkeepers (goals conceded by their team)
+          if (teamResult && participant.position === "vratar") {
+            const goalsAgainst = otherResults.reduce((sum, r) => sum + r.goals_scored, 0);
+            entry.goals_against += goalsAgainst;
+          }
           
           if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
             // Team won
@@ -178,8 +193,25 @@ export default function Leaderboard() {
         total_points: entry.total_points + entry.attendance + entry.saves,
       }));
 
-      // Sort by total points
-      leaderboardData.sort((a, b) => b.total_points - a.total_points);
+      // Sort by total points, then by goals (goals_for for players, goals_against for goalkeepers)
+      leaderboardData.sort((a, b) => {
+        // First sort by total points
+        if (b.total_points !== a.total_points) {
+          return b.total_points - a.total_points;
+        }
+        
+        // If points are equal, use goals as tiebreaker
+        if (a.position === "igralec" && b.position === "igralec") {
+          // For players: more goals scored is better
+          return b.goals_for - a.goals_for;
+        } else if (a.position === "vratar" && b.position === "vratar") {
+          // For goalkeepers: fewer goals conceded is better
+          return a.goals_against - b.goals_against;
+        }
+        
+        // Mixed positions (shouldn't happen in practice)
+        return 0;
+      });
 
       setLeaderboard(leaderboardData);
     } catch (error) {
@@ -191,7 +223,7 @@ export default function Leaderboard() {
 
   const players = leaderboard.filter(e => e.position === "igralec");
   const goalkeepers = leaderboard.filter(e => e.position === "vratar");
-  const combined = [...leaderboard].sort((a, b) => b.total_points - a.total_points);
+  const combined = [...leaderboard];
 
   const renderLeaderboardTable = (entries: LeaderboardEntry[]) => (
     <div className="space-y-2">
