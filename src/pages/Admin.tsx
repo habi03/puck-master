@@ -456,7 +456,7 @@ export default function Admin() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base">Tekma</CardTitle>
                       <CardDescription className="text-xs">
-                        {new Date(match.match_date).toLocaleDateString('sl-SI')} ob {match.match_time}
+                        {new Date(match.match_date).toLocaleDateString('sl-SI')} ob {match.match_time.slice(0, 5)}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
