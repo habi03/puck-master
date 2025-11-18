@@ -48,7 +48,7 @@ export default function MatchDetails() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba">("serpentine");
+  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last">("serpentine");
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [playerGoals, setPlayerGoals] = useState<{ [key: number]: { [playerId: string]: number } }>({});
@@ -371,6 +371,26 @@ export default function MatchDetails() {
           teams[teamIndex].push(player);
           picks++;
         });
+      } else if (algorithm === "first-last") {
+        // First-Last pattern: first and last to team 1, second and second-to-last to team 2, etc.
+        let front = 0;
+        let back = sortedPlayers.length - 1;
+        let teamIndex = 0;
+        
+        while (front <= back) {
+          // Add front player
+          teams[teamIndex].push(sortedPlayers[front]);
+          front++;
+          
+          // Add back player (if different from front)
+          if (front <= back) {
+            teams[teamIndex].push(sortedPlayers[back]);
+            back--;
+          }
+          
+          // Move to next team (round-robin)
+          teamIndex = (teamIndex + 1) % numTeams;
+        }
       }
       
       // Update database with team assignments
@@ -745,13 +765,14 @@ export default function MatchDetails() {
                 <label className="text-xs text-muted-foreground mb-1 block">
                   Algoritem razporejanja
                 </label>
-                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba") => setAlgorithm(v)}>
+                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last") => setAlgorithm(v)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="serpentine">Serpentine (Kača)</SelectItem>
                     <SelectItem value="abba">ABBA</SelectItem>
+                    <SelectItem value="first-last">Prvi-Zadnji</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
