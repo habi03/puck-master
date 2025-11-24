@@ -335,7 +335,7 @@ export default function MatchDetails() {
           // DP approach for optimal 2-team partition
           const n = sortedPlayers.length;
           const totalRating = sortedPlayers.reduce((sum, p) => sum + (p.combined_rating || 0), 0);
-          const target = Math.floor(totalRating / 2);
+          const target = Math.floor(totalRating * 100 / 2); // Scale by 100 to match scaled ratings
           
           // DP table: dp[i][j] = can we achieve sum j using first i players?
           const dp: boolean[][] = Array(n + 1).fill(null).map(() => Array(target + 1).fill(false));
