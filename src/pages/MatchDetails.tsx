@@ -728,10 +728,17 @@ export default function MatchDetails() {
                     parseInt(teamNum) === 2 ? "text-red-700" : 
                     "text-blue-700"
                   }`}>
-                    <span className="font-bold">Ekipa {teamNum}</span>
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {teamPlayers.length} igralcev
-                    </Badge>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">Ekipa {teamNum}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {teamPlayers.length} igralcev
+                        </Badge>
+                      </div>
+                      <div className="text-xs font-normal text-muted-foreground">
+                        Povprečje: {(teamPlayers.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / teamPlayers.length).toFixed(2)}
+                      </div>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
