@@ -49,6 +49,7 @@ export default function MatchDetails() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last" | "greedy" | "dp">("serpentine");
+  const [usedAlgorithm, setUsedAlgorithm] = useState<string | null>(null);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
@@ -414,6 +415,16 @@ export default function MatchDetails() {
           
         if (error) throw error;
       }
+      
+      // Store which algorithm was used
+      const algorithmNames = {
+        serpentine: "Serpentine (Kača)",
+        abba: "ABBA",
+        "first-last": "First-Last (Prvi-Zadnji)",
+        greedy: "Greedy balansiranje",
+        dp: "DP optimalen"
+      };
+      setUsedAlgorithm(algorithmNames[algorithm]);
       
       toast.success("Ekipe uspešno razporejene");
       fetchParticipants();
@@ -783,7 +794,14 @@ export default function MatchDetails() {
 
         {Object.keys(teams).length > 0 && (
           <div className="space-y-3 mb-4">
-            <h3 className="text-sm font-semibold">Ekipe</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold">Ekipe</h3>
+              {usedAlgorithm && (
+                <Badge variant="outline" className="text-xs">
+                  {usedAlgorithm}
+                </Badge>
+              )}
+            </div>
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => (
               <Card key={teamNum} className={`${
                 parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
