@@ -48,7 +48,7 @@ export default function MatchDetails() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last" | "greedy">("serpentine");
+  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last" | "greedy" | "dp">("serpentine");
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
@@ -329,6 +329,87 @@ export default function MatchDetails() {
           teams[minRatingTeamIndex].push(player);
           teamRatings[minRatingTeamIndex] += player.combined_rating || 0;
         });
+      } else if (algorithm === "dp") {
+        // Dynamic Programming - Partition Problem (optimal for 2 teams)
+        if (numTeams === 2) {
+          // DP approach for optimal 2-team partition
+          const n = sortedPlayers.length;
+          const totalRating = sortedPlayers.reduce((sum, p) => sum + (p.combined_rating || 0), 0);
+          const target = Math.floor(totalRating / 2);
+          
+          // DP table: dp[i][j] = can we achieve sum j using first i players?
+          const dp: boolean[][] = Array(n + 1).fill(null).map(() => Array(target + 1).fill(false));
+          const parent: number[][] = Array(n + 1).fill(null).map(() => Array(target + 1).fill(-1));
+          
+          // Base case
+          for (let i = 0; i <= n; i++) {
+            dp[i][0] = true;
+          }
+          
+          // Fill DP table
+          for (let i = 1; i <= n; i++) {
+            const rating = Math.round((sortedPlayers[i - 1].combined_rating || 0) * 100); // Scale to avoid decimals
+            for (let j = 0; j <= target; j++) {
+              // Don't take player i
+              if (dp[i - 1][j]) {
+                dp[i][j] = true;
+                parent[i][j] = 0; // 0 means don't take
+              }
+              // Take player i
+              if (j >= rating && dp[i - 1][j - rating]) {
+                dp[i][j] = true;
+                parent[i][j] = 1; // 1 means take
+              }
+            }
+          }
+          
+          // Find best achievable sum close to target
+          let bestSum = target;
+          while (bestSum >= 0 && !dp[n][bestSum]) {
+            bestSum--;
+          }
+          
+          // Backtrack to find which players are in team 1
+          const team1Players: Set<number> = new Set();
+          let currentSum = bestSum;
+          for (let i = n; i >= 1; i--) {
+            if (parent[i][currentSum] === 1) {
+              team1Players.add(i - 1);
+              const rating = Math.round((sortedPlayers[i - 1].combined_rating || 0) * 100);
+              currentSum -= rating;
+            }
+          }
+          
+          // Distribute players
+          sortedPlayers.forEach((player, index) => {
+            if (team1Players.has(index)) {
+              teams[0].push(player);
+            } else {
+              teams[1].push(player);
+            }
+          });
+        } else {
+          // For more than 2 teams, fall back to greedy
+          const teamRatings: number[] = Array(numTeams).fill(0);
+          teams.forEach((team, index) => {
+            team.forEach(player => {
+              teamRatings[index] += player.combined_rating || 0;
+            });
+          });
+          
+          sortedPlayers.forEach((player) => {
+            let minRatingTeamIndex = 0;
+            let minRating = teamRatings[0];
+            for (let i = 1; i < numTeams; i++) {
+              if (teamRatings[i] < minRating) {
+                minRating = teamRatings[i];
+                minRatingTeamIndex = i;
+              }
+            }
+            teams[minRatingTeamIndex].push(player);
+            teamRatings[minRatingTeamIndex] += player.combined_rating || 0;
+          });
+        }
       }
       
       // Update database with team assignments
@@ -550,7 +631,7 @@ export default function MatchDetails() {
                 <label className="text-xs text-muted-foreground mb-1 block">
                   Algoritem razporejanja
                 </label>
-                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last" | "greedy") => setAlgorithm(v)}>
+                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last" | "greedy" | "dp") => setAlgorithm(v)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -559,6 +640,7 @@ export default function MatchDetails() {
                     <SelectItem value="abba">ABBA</SelectItem>
                     <SelectItem value="first-last">Prvi-Zadnji</SelectItem>
                     <SelectItem value="greedy">Greedy balansiranje</SelectItem>
+                    <SelectItem value="dp">DP optimalen (počasen)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
