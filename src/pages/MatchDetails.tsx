@@ -48,7 +48,7 @@ export default function MatchDetails() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last">("serpentine");
+  const [algorithm, setAlgorithm] = useState<"serpentine" | "abba" | "first-last" | "greedy">("serpentine");
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
@@ -300,6 +300,35 @@ export default function MatchDetails() {
           // Move to next team (round-robin)
           teamIndex = (teamIndex + 1) % numTeams;
         }
+      } else if (algorithm === "greedy") {
+        // Greedy balancing by ratings
+        // Keep track of total ratings for each team
+        const teamRatings: number[] = Array(numTeams).fill(0);
+        
+        // Add goalkeeper ratings to team totals
+        teams.forEach((team, index) => {
+          team.forEach(player => {
+            teamRatings[index] += player.combined_rating || 0;
+          });
+        });
+        
+        // Distribute players - always add to team with lowest total rating
+        sortedPlayers.forEach((player) => {
+          // Find team with lowest rating
+          let minRatingTeamIndex = 0;
+          let minRating = teamRatings[0];
+          
+          for (let i = 1; i < numTeams; i++) {
+            if (teamRatings[i] < minRating) {
+              minRating = teamRatings[i];
+              minRatingTeamIndex = i;
+            }
+          }
+          
+          // Add player to team with lowest rating
+          teams[minRatingTeamIndex].push(player);
+          teamRatings[minRatingTeamIndex] += player.combined_rating || 0;
+        });
       }
       
       // Update database with team assignments
@@ -498,6 +527,11 @@ export default function MatchDetails() {
                   return [...prev, <span key={`sep-${idx}`} className="text-5xl font-bold text-muted-foreground px-2">:</span>, curr];
                 }, [] as React.ReactNode[])}
               </div>
+              {matchResults.length > 0 && matchResults[0].win_type && (
+                <div className="text-center text-sm text-muted-foreground border-t pt-3">
+                  {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -516,7 +550,7 @@ export default function MatchDetails() {
                 <label className="text-xs text-muted-foreground mb-1 block">
                   Algoritem razporejanja
                 </label>
-                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last") => setAlgorithm(v)}>
+                <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last" | "greedy") => setAlgorithm(v)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -524,6 +558,7 @@ export default function MatchDetails() {
                     <SelectItem value="serpentine">Serpentine (Kača)</SelectItem>
                     <SelectItem value="abba">ABBA</SelectItem>
                     <SelectItem value="first-last">Prvi-Zadnji</SelectItem>
+                    <SelectItem value="greedy">Greedy balansiranje</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

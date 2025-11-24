@@ -349,6 +349,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
               }, [] as React.ReactNode[])}
             </div>
+            {matchResults.length > 0 && matchResults[0].win_type && (
+              <div className="text-center text-xs text-muted-foreground mt-2">
+                {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
