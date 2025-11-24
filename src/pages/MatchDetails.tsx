@@ -334,51 +334,37 @@ export default function MatchDetails() {
         if (numTeams === 2) {
           // DP approach for optimal 2-team partition
           const n = sortedPlayers.length;
-          const totalRating = sortedPlayers.reduce((sum, p) => sum + (p.combined_rating || 0), 0);
-          const target = Math.floor(totalRating * 100 / 2); // Scale by 100 to match scaled ratings
+          const scaledRatings = sortedPlayers.map(p => Math.round((p.combined_rating || 0) * 100));
+          const totalRating = scaledRatings.reduce((sum, r) => sum + r, 0);
+          const target = Math.floor(totalRating / 2);
           
-          // DP table: dp[i][j] = can we achieve sum j using first i players?
-          const dp: boolean[][] = Array(n + 1).fill(null).map(() => Array(target + 1).fill(false));
-          const parent: number[][] = Array(n + 1).fill(null).map(() => Array(target + 1).fill(-1));
+          // DP table: dp[j] = can we achieve sum j?
+          const dp: boolean[] = Array(target + 1).fill(false);
+          dp[0] = true;
           
-          // Base case
-          for (let i = 0; i <= n; i++) {
-            dp[i][0] = true;
-          }
+          // For backtracking: store which players contributed to each sum
+          const chosen: Set<number>[] = Array(target + 1).fill(null).map(() => new Set());
           
           // Fill DP table
-          for (let i = 1; i <= n; i++) {
-            const rating = Math.round((sortedPlayers[i - 1].combined_rating || 0) * 100); // Scale to avoid decimals
-            for (let j = 0; j <= target; j++) {
-              // Don't take player i
-              if (dp[i - 1][j]) {
-                dp[i][j] = true;
-                parent[i][j] = 0; // 0 means don't take
-              }
-              // Take player i
-              if (j >= rating && dp[i - 1][j - rating]) {
-                dp[i][j] = true;
-                parent[i][j] = 1; // 1 means take
+          for (let i = 0; i < n; i++) {
+            const rating = scaledRatings[i];
+            // Go backwards to avoid using same player twice
+            for (let j = target; j >= rating; j--) {
+              if (dp[j - rating] && !dp[j]) {
+                dp[j] = true;
+                chosen[j] = new Set([...chosen[j - rating], i]);
               }
             }
           }
           
           // Find best achievable sum close to target
           let bestSum = target;
-          while (bestSum >= 0 && !dp[n][bestSum]) {
+          while (bestSum >= 0 && !dp[bestSum]) {
             bestSum--;
           }
           
-          // Backtrack to find which players are in team 1
-          const team1Players: Set<number> = new Set();
-          let currentSum = bestSum;
-          for (let i = n; i >= 1; i--) {
-            if (parent[i][currentSum] === 1) {
-              team1Players.add(i - 1);
-              const rating = Math.round((sortedPlayers[i - 1].combined_rating || 0) * 100);
-              currentSum -= rating;
-            }
-          }
+          // Get team 1 players
+          const team1Players = chosen[bestSum];
           
           // Distribute players
           sortedPlayers.forEach((player, index) => {
