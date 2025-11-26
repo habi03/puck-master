@@ -219,12 +219,14 @@ export default function MatchDetails() {
       const numTeams = match.number_of_teams;
       const teams: Participant[][] = Array.from({ length: numTeams }, () => []);
       
-      // Sort goalkeepers by combined_rating (highest first)
-      const sortedGoalkeepers = [...goalkeepers].sort((a, b) => 
-        (b.combined_rating || 0) - (a.combined_rating || 0)
-      );
+      // Sort goalkeepers alphabetically by name
+      const sortedGoalkeepers = [...goalkeepers].sort((a, b) => {
+        const nameA = a.profiles?.full_name || "";
+        const nameB = b.profiles?.full_name || "";
+        return nameA.localeCompare(nameB);
+      });
       
-      // Distribute goalkeepers - best to team 1, second best to team 2, etc.
+      // Distribute goalkeepers - first alphabetically to team 1, second to team 2, etc.
       sortedGoalkeepers.slice(0, numTeams).forEach((gk, index) => {
         teams[index].push(gk);
       });
