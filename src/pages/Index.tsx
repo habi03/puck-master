@@ -221,15 +221,24 @@ export default function Index() {
                 Ni še zaključenih tekem.
               </p>
             ) : (
-              matches.filter(m => m.is_completed).map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  currentUser={profile}
-                  participants={participants.filter(p => p.match_id === match.id)}
-                  onUpdate={handleUpdate}
-                />
-              ))
+              matches
+                .filter(m => m.is_completed)
+                .sort((a, b) => {
+                  // Sort completed matches by date descending (newest first)
+                  const dateCompare = new Date(b.match_date).getTime() - new Date(a.match_date).getTime();
+                  if (dateCompare !== 0) return dateCompare;
+                  // If dates are equal, sort by time descending
+                  return b.match_time.localeCompare(a.match_time);
+                })
+                .map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    currentUser={profile}
+                    participants={participants.filter(p => p.match_id === match.id)}
+                    onUpdate={handleUpdate}
+                  />
+                ))
             )}
           </TabsContent>
         </Tabs>
