@@ -824,7 +824,11 @@ export default function MatchDetails() {
                         </Badge>
                       </div>
                       <div className="text-xs font-normal text-muted-foreground">
-                        Povprečje: {(teamPlayers.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / teamPlayers.length).toFixed(2)}
+                        Povprečje: {(() => {
+                          const playersOnly = teamPlayers.filter(p => p.position === "igralec");
+                          if (playersOnly.length === 0) return "N/A";
+                          return (playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length).toFixed(2);
+                        })()}
                       </div>
                     </div>
                   </CardTitle>
@@ -842,9 +846,6 @@ export default function MatchDetails() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-muted-foreground">
-                          ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
-                        </span>
                         {isAdmin && (
                           <Select
                             value={p.team_number?.toString()}
@@ -949,7 +950,11 @@ export default function MatchDetails() {
                 {/* Vratarji */}
                 {unassigned
                   .filter(p => p.position === "vratar")
-                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .sort((a, b) => {
+                    const nameA = a.profiles?.full_name || "";
+                    const nameB = b.profiles?.full_name || "";
+                    return nameA.localeCompare(nameB);
+                  })
                   .map((p) => (
                     <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -961,9 +966,6 @@ export default function MatchDetails() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-muted-foreground">
-                          ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
-                        </span>
                         {isAdmin && (
                           <Select
                             value="unassigned"
@@ -1069,7 +1071,11 @@ export default function MatchDetails() {
                 {/* Vratarji */}
                 {participants
                   .filter(p => p.position === "vratar")
-                  .sort((a, b) => (b.combined_rating || 0) - (a.combined_rating || 0))
+                  .sort((a, b) => {
+                    const nameA = a.profiles?.full_name || "";
+                    const nameB = b.profiles?.full_name || "";
+                    return nameA.localeCompare(nameB);
+                  })
                   .map((p) => (
                   <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -1089,9 +1095,6 @@ export default function MatchDetails() {
                         </Badge>
                       )}
                     </div>
-                    <span className="text-muted-foreground flex-shrink-0">
-                      ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
-                    </span>
                   </div>
                 ))}
                 
