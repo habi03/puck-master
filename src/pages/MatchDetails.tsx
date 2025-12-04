@@ -880,6 +880,14 @@ export default function MatchDetails() {
                                   .update({ team_number: value === "unassigned" ? null : parseInt(value) })
                                   .eq("id", p.id);
                                 if (error) throw error;
+                                
+                                // Mark as manual assignment
+                                await supabase
+                                  .from("matches")
+                                  .update({ team_algorithm: "Ročno" })
+                                  .eq("id", matchId);
+                                setUsedAlgorithm("Ročno");
+                                
                                 toast.success("Ekipa posodobljena");
                                 fetchParticipants();
                               } catch (error: any) {
@@ -935,6 +943,14 @@ export default function MatchDetails() {
                                   .update({ team_number: value === "unassigned" ? null : parseInt(value) })
                                   .eq("id", p.id);
                                 if (error) throw error;
+                                
+                                // Mark as manual assignment
+                                await supabase
+                                  .from("matches")
+                                  .update({ team_algorithm: "Ročno" })
+                                  .eq("id", matchId);
+                                setUsedAlgorithm("Ročno");
+                                
                                 toast.success("Ekipa posodobljena");
                                 fetchParticipants();
                               } catch (error: any) {
@@ -1000,6 +1016,14 @@ export default function MatchDetails() {
                                   .update({ team_number: value === "unassigned" ? null : parseInt(value) })
                                   .eq("id", p.id);
                                 if (error) throw error;
+                                
+                                // Mark as manual assignment
+                                await supabase
+                                  .from("matches")
+                                  .update({ team_algorithm: "Ročno" })
+                                  .eq("id", matchId);
+                                setUsedAlgorithm("Ročno");
+                                
                                 toast.success("Ekipa posodobljena");
                                 fetchParticipants();
                               } catch (error: any) {
@@ -1057,6 +1081,14 @@ export default function MatchDetails() {
                                   .update({ team_number: value === "unassigned" ? null : parseInt(value) })
                                   .eq("id", p.id);
                                 if (error) throw error;
+                                
+                                // Mark as manual assignment
+                                await supabase
+                                  .from("matches")
+                                  .update({ team_algorithm: "Ročno" })
+                                  .eq("id", matchId);
+                                setUsedAlgorithm("Ročno");
+                                
                                 toast.success("Ekipa posodobljena");
                                 fetchParticipants();
                               } catch (error: any) {
