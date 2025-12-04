@@ -220,6 +220,7 @@ export type Database = {
           match_date: string
           match_time: string
           number_of_teams: number
+          team_algorithm: string | null
           updated_at: string
         }
         Insert: {
@@ -231,6 +232,7 @@ export type Database = {
           match_date: string
           match_time: string
           number_of_teams: number
+          team_algorithm?: string | null
           updated_at?: string
         }
         Update: {
@@ -242,6 +244,7 @@ export type Database = {
           match_date?: string
           match_time?: string
           number_of_teams?: number
+          team_algorithm?: string | null
           updated_at?: string
         }
         Relationships: [
