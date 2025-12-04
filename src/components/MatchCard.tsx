@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -55,6 +55,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [editTime, setEditTime] = useState(match.match_time.slice(0, 5));
   const [removePlayersDialogOpen, setRemovePlayersDialogOpen] = useState(false);
   const [playersToRemove, setPlayersToRemove] = useState<string[]>([]);
+  const [changePositionDialogOpen, setChangePositionDialogOpen] = useState(false);
+  const [positionChanges, setPositionChanges] = useState<Record<string, "igralec" | "vratar">>({});
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -200,6 +202,74 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       toast.success(`Uspešno odstranjenih ${playersToRemove.length} igralcev`);
       setRemovePlayersDialogOpen(false);
       setPlayersToRemove([]);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenChangePosition = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Initialize with current positions
+    const initialPositions: Record<string, "igralec" | "vratar"> = {};
+    participants.forEach(p => {
+      initialPositions[p.player_id] = p.position;
+    });
+    setPositionChanges(initialPositions);
+    setChangePositionDialogOpen(true);
+  };
+
+  const handlePositionChange = (playerId: string, newPosition: "igralec" | "vratar") => {
+    setPositionChanges(prev => ({ ...prev, [playerId]: newPosition }));
+  };
+
+  const handleSavePositionChanges = async () => {
+    setLoading(true);
+    try {
+      // Find participants whose position changed
+      const changedParticipants = participants.filter(p => 
+        positionChanges[p.player_id] && positionChanges[p.player_id] !== p.position
+      );
+
+      if (changedParticipants.length === 0) {
+        toast.info("Nobena pozicija ni bila spremenjena");
+        setChangePositionDialogOpen(false);
+        return;
+      }
+
+      // Update each changed participant
+      for (const participant of changedParticipants) {
+        const newPosition = positionChanges[participant.player_id];
+        
+        // Calculate new rating based on position
+        let combinedRating = null;
+        if (newPosition === "igralec") {
+          combinedRating = 3.0;
+          const { data: ratingData } = await supabase
+            .from("rating_aggregates")
+            .select("average_rating")
+            .eq("player_id", participant.player_id)
+            .single();
+          if (ratingData?.average_rating) {
+            combinedRating = ratingData.average_rating;
+          }
+        }
+
+        const { error } = await supabase
+          .from("match_participants")
+          .update({ 
+            position: newPosition,
+            combined_rating: combinedRating
+          })
+          .eq("id", participant.id);
+
+        if (error) throw error;
+      }
+
+      toast.success(`Uspešno spremenjenih ${changedParticipants.length} pozicij`);
+      setChangePositionDialogOpen(false);
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -548,6 +618,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     <DropdownMenuItem onClick={handleOpenRemovePlayers}>
                       <Trash2 className="h-4 w-4 mr-2" />
                       Odstrani igralce
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenChangePosition}>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Spremeni pozicije
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -912,6 +986,72 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 disabled={loading || playersToRemove.length === 0}
               >
                 {loading ? "Odstranjujem..." : `Odstrani (${playersToRemove.length})`}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for changing player positions */}
+      <Dialog open={changePositionDialogOpen} onOpenChange={setChangePositionDialogOpen}>
+        <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Spremeni pozicije igralcev</DialogTitle>
+            <DialogDescription>
+              Spremenite pozicije igralcev (igralec / vratar).
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[60vh] pr-4">
+            {participants.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Na tekmo ni prijavljen noben igralec.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {participants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">
+                        {participant.profiles?.full_name || participant.profiles?.email || "Neznano ime"}
+                      </p>
+                    </div>
+                    <Select
+                      value={positionChanges[participant.player_id] || participant.position}
+                      onValueChange={(v: "igralec" | "vratar") => handlePositionChange(participant.player_id, v)}
+                    >
+                      <SelectTrigger className="w-24 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border z-50">
+                        <SelectItem value="igralec">Igralec</SelectItem>
+                        <SelectItem value="vratar">Vratar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+          
+          {participants.length > 0 && (
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setChangePositionDialogOpen(false)}
+              >
+                Prekliči
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSavePositionChanges}
+                disabled={loading}
+              >
+                {loading ? "Shranjujem..." : "Shrani"}
               </Button>
             </div>
           )}
