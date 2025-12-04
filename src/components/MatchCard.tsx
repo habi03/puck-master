@@ -1,14 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
-import { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MatchCardProps {
   match: any;
@@ -30,10 +44,18 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [loading, setLoading] = useState(false);
   const [matchResults, setMatchResults] = useState<any[]>([]);
   const [matchSaves, setMatchSaves] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [addPlayersDialogOpen, setAddPlayersDialogOpen] = useState(false);
+  const [leagueMembers, setLeagueMembers] = useState<any[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<{ id: string; position: "igralec" | "vratar" }[]>([]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
   const isCompleted = match.is_completed || false;
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, [match.league_id, currentUser.id]);
 
   useEffect(() => {
     if (isCompleted) {
@@ -41,6 +63,37 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       fetchMatchSaves();
     }
   }, [isCompleted, match.id]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("league_members")
+        .select("role")
+        .eq("league_id", match.league_id)
+        .eq("user_id", currentUser.id)
+        .single();
+
+      if (error) throw error;
+      setIsAdmin(data?.role === "admin");
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  };
+
+  const fetchLeagueMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("league_members")
+        .select("*, profiles(*)")
+        .eq("league_id", match.league_id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setLeagueMembers(data || []);
+    } catch (error: any) {
+      toast.error("Napaka pri nalaganju članov");
+    }
+  };
 
   const fetchMatchResults = async () => {
     try {
@@ -68,6 +121,93 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       setMatchSaves(data || []);
     } catch (error: any) {
       console.error("Error fetching saves:", error);
+    }
+  };
+
+  const handleOpenAddPlayers = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await fetchLeagueMembers();
+    setSelectedPlayers([]);
+    setAddPlayersDialogOpen(true);
+  };
+
+  const togglePlayerSelection = (playerId: string, playerPosition: "igralec" | "vratar" = "igralec") => {
+    setSelectedPlayers(prev => {
+      const existing = prev.find(p => p.id === playerId);
+      if (existing) {
+        return prev.filter(p => p.id !== playerId);
+      } else {
+        return [...prev, { id: playerId, position: playerPosition }];
+      }
+    });
+  };
+
+  const updatePlayerPosition = (playerId: string, newPosition: "igralec" | "vratar") => {
+    setSelectedPlayers(prev => 
+      prev.map(p => p.id === playerId ? { ...p, position: newPosition } : p)
+    );
+  };
+
+  const handleAddSelectedPlayers = async () => {
+    if (selectedPlayers.length === 0) {
+      toast.error("Izberite vsaj enega igralca");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Filter out players who are already participants
+      const existingPlayerIds = participants.map(p => p.player_id);
+      const newPlayers = selectedPlayers.filter(p => !existingPlayerIds.includes(p.id));
+
+      if (newPlayers.length === 0) {
+        toast.error("Vsi izbrani igralci so že prijavljeni");
+        setLoading(false);
+        return;
+      }
+
+      // Calculate ratings for each player
+      const insertData = await Promise.all(newPlayers.map(async (player) => {
+        let combinedRating = null;
+
+        // Only calculate rating for players (not goalkeepers)
+        if (player.position === "igralec") {
+          combinedRating = 3.0; // Default middle value
+
+          // Get peer rating
+          const { data: ratingData } = await supabase
+            .from("rating_aggregates")
+            .select("average_rating")
+            .eq("player_id", player.id)
+            .single();
+
+          if (ratingData?.average_rating) {
+            combinedRating = ratingData.average_rating;
+          }
+        }
+
+        return {
+          match_id: match.id,
+          player_id: player.id,
+          position: player.position,
+          combined_rating: combinedRating,
+        };
+      }));
+
+      const { error } = await supabase
+        .from("match_participants")
+        .insert(insertData);
+
+      if (error) throw error;
+
+      toast.success(`Uspešno dodanih ${newPlayers.length} igralcev`);
+      setAddPlayersDialogOpen(false);
+      setSelectedPlayers([]);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -296,175 +436,282 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const matchDate = new Date(match.match_date);
   const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: sl });
 
+  // Filter members who are not already participants
+  const availableMembers = leagueMembers.filter(
+    member => !participants.some(p => p.player_id === member.user_id)
+  );
+
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-lg">
-          <span>Tekma</span>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
-            {isCompleted && (
-              <Badge variant="default" className="text-xs">Zaključena</Badge>
-            )}
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2 pb-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4 flex-shrink-0" />
-          <span className="capitalize text-xs">{formattedDate}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4 flex-shrink-0" />
-          <span className="text-xs">{match.match_time.slice(0, 5)}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4 flex-shrink-0" />
-          <span className="text-xs">{participants.length} prijavljenih</span>
-        </div>
-        
-        {beerBringer && (
-          <div className="flex items-center gap-2 text-sm text-primary">
-            <Beer className="h-4 w-4 flex-shrink-0" />
-            <span className="text-xs font-semibold">
-              Pivo: {currentUser.id === beerBringer.player_id ? 'Ti' : (beerBringer.profiles?.full_name || 'Nekdo')}
-            </span>
-          </div>
-        )}
-        
-        {isCompleted && (
-          <div className="pt-2 border-t mt-2 space-y-2">
-            <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
-            <div className="flex gap-3 justify-center">
-              {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
-                const result = matchResults.find(r => r.team_number === teamNum);
-                const goals = result?.goals_scored || 0;
-                const teamColor = teamNum === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                                 teamNum === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                                 "bg-blue-100 text-blue-700 border-blue-300";
-                return (
-                  <div key={teamNum} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border ${teamColor}`}>
-                    <span className="text-xs font-semibold">Ekipa {teamNum}</span>
-                    <div className="text-2xl font-bold">
-                      {goals}
-                    </div>
-                  </div>
-                );
-              }).reduce((prev, curr, idx) => {
-                if (idx === 0) return [curr];
-                return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
-              }, [] as React.ReactNode[])}
+    <>
+      <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between text-lg">
+            <span>Tekma</span>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
+              {isCompleted && (
+                <Badge variant="default" className="text-xs">Zaključena</Badge>
+              )}
+              {isAdmin && !isCompleted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border z-50">
+                    <DropdownMenuItem onClick={handleOpenAddPlayers}>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Dodaj igralce
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-            {matchResults.length > 0 && matchResults[0].win_type && (
-              <div className="text-center text-xs text-muted-foreground mt-2">
-                {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 pb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4 flex-shrink-0" />
+            <span className="capitalize text-xs">{formattedDate}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span className="text-xs">{match.match_time.slice(0, 5)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4 flex-shrink-0" />
+            <span className="text-xs">{participants.length} prijavljenih</span>
+          </div>
+          
+          {beerBringer && (
+            <div className="flex items-center gap-2 text-sm text-primary">
+              <Beer className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs font-semibold">
+                Pivo: {currentUser.id === beerBringer.player_id ? 'Ti' : (beerBringer.profiles?.full_name || 'Nekdo')}
+              </span>
+            </div>
+          )}
+          
+          {isCompleted && (
+            <div className="pt-2 border-t mt-2 space-y-2">
+              <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
+              <div className="flex gap-3 justify-center">
+                {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
+                  const result = matchResults.find(r => r.team_number === teamNum);
+                  const goals = result?.goals_scored || 0;
+                  const teamColor = teamNum === 1 ? "bg-green-100 text-green-700 border-green-300" : 
+                                   teamNum === 2 ? "bg-red-100 text-red-700 border-red-300" : 
+                                   "bg-blue-100 text-blue-700 border-blue-300";
+                  return (
+                    <div key={teamNum} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border ${teamColor}`}>
+                      <span className="text-xs font-semibold">Ekipa {teamNum}</span>
+                      <div className="text-2xl font-bold">
+                        {goals}
+                      </div>
+                    </div>
+                  );
+                }).reduce((prev, curr, idx) => {
+                  if (idx === 0) return [curr];
+                  return [...prev, <span key={`sep-${idx}`} className="text-2xl font-bold text-muted-foreground">:</span>, curr];
+                }, [] as React.ReactNode[])}
+              </div>
+              {matchResults.length > 0 && matchResults[0].win_type && (
+                <div className="text-center text-xs text-muted-foreground mt-2">
+                  {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex-col gap-4 pt-3">
+          {!isCompleted ? (
+            !isSignedUp ? (
+              <div className="w-full space-y-4">
+                <Select value={position} onValueChange={(v: any) => setPosition(v)}>
+                  <SelectTrigger 
+                    className="w-full touch-manipulation" 
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent 
+                    className="touch-manipulation"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <SelectItem value="igralec">Igralec</SelectItem>
+                    <SelectItem value="vratar">Vratar</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSignUp();
+                  }} 
+                  disabled={loading} 
+                  className="w-full"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Prijavi se
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
+                  Prijavljeni kot: {userParticipation.position}
+                </Badge>
+                
+                {!userParticipation.brings_beer && !beerBringer && (
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBringBeer();
+                    }} 
+                    disabled={loading} 
+                    variant="secondary"
+                    className="w-full"
+                  >
+                    <Beer className="h-4 w-4 mr-2" />
+                    JAZ PRINESEM PIVO
+                  </Button>
+                )}
+                
+                {userParticipation.brings_beer && (
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancelBeer();
+                    }} 
+                    disabled={loading} 
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Beer className="h-4 w-4 mr-2" />
+                    PREKLIČI PIVO
+                  </Button>
+                )}
+                
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSignOut();
+                  }} 
+                  disabled={loading} 
+                  variant="destructive" 
+                  className="w-full"
+                >
+                  <UserMinus className="h-4 w-4 mr-2" />
+                  Odjavi se
+                </Button>
+              </>
+            )
+          ) : (
+            <Badge variant="secondary" className="w-full justify-center py-2 text-xs">
+              Prijave zaprte - tekma zaključena
+            </Badge>
+          )}
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full gap-1 text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/match/${match.id}`);
+            }}
+          >
+            Podrobnosti
+            <ChevronRight className="h-3 w-3" />
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Dialog for adding players */}
+      <Dialog open={addPlayersDialogOpen} onOpenChange={setAddPlayersDialogOpen}>
+        <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Dodaj igralce na tekmo</DialogTitle>
+            <DialogDescription>
+              Izberite igralce, ki jih želite ročno dodati na tekmo.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[400px] pr-4">
+            {availableMembers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Vsi člani lige so že prijavljeni na tekmo.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {availableMembers.map((member) => {
+                  const isSelected = selectedPlayers.some(p => p.id === member.user_id);
+                  const selectedPlayer = selectedPlayers.find(p => p.id === member.user_id);
+                  
+                  return (
+                    <div
+                      key={member.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => togglePlayerSelection(member.user_id)}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {member.profiles?.full_name || member.profiles?.email || "Neznano ime"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {member.profiles?.email}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {isSelected && (
+                        <Select
+                          value={selectedPlayer?.position || "igralec"}
+                          onValueChange={(v: "igralec" | "vratar") => updatePlayerPosition(member.user_id, v)}
+                        >
+                          <SelectTrigger className="w-24 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="igralec">Igralec</SelectItem>
+                            <SelectItem value="vratar">Vratar</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex-col gap-4 pt-3">
-        {!isCompleted ? (
-          !isSignedUp ? (
-            <div className="w-full space-y-4">
-              <Select value={position} onValueChange={(v: any) => setPosition(v)}>
-                <SelectTrigger 
-                  className="w-full touch-manipulation" 
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent 
-                  className="touch-manipulation"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <SelectItem value="igralec">Igralec</SelectItem>
-                  <SelectItem value="vratar">Vratar</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSignUp();
-                }} 
-                disabled={loading} 
-                className="w-full"
+          </ScrollArea>
+          
+          {availableMembers.length > 0 && (
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setAddPlayersDialogOpen(false)}
               >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Prijavi se
+                Prekliči
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleAddSelectedPlayers}
+                disabled={loading || selectedPlayers.length === 0}
+              >
+                {loading ? "Dodajam..." : `Dodaj (${selectedPlayers.length})`}
               </Button>
             </div>
-          ) : (
-            <>
-              <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-                Prijavljeni kot: {userParticipation.position}
-              </Badge>
-              
-              {!userParticipation.brings_beer && !beerBringer && (
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleBringBeer();
-                  }} 
-                  disabled={loading} 
-                  variant="secondary"
-                  className="w-full"
-                >
-                  <Beer className="h-4 w-4 mr-2" />
-                  JAZ PRINESEM PIVO
-                </Button>
-              )}
-              
-              {userParticipation.brings_beer && (
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCancelBeer();
-                  }} 
-                  disabled={loading} 
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Beer className="h-4 w-4 mr-2" />
-                  PREKLIČI PIVO
-                </Button>
-              )}
-              
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSignOut();
-                }} 
-                disabled={loading} 
-                variant="destructive" 
-                className="w-full"
-              >
-                <UserMinus className="h-4 w-4 mr-2" />
-                Odjavi se
-              </Button>
-            </>
-          )
-        ) : (
-          <Badge variant="secondary" className="w-full justify-center py-2 text-xs">
-            Prijave zaprte - tekma zaključena
-          </Badge>
-        )}
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="w-full gap-1 text-xs"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/match/${match.id}`);
-          }}
-        >
-          Podrobnosti
-          <ChevronRight className="h-3 w-3" />
-        </Button>
-      </CardFooter>
-    </Card>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
