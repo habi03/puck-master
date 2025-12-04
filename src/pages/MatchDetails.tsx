@@ -22,6 +22,7 @@ type Match = {
   number_of_teams: number;
   league_id: string;
   is_completed: boolean;
+  team_algorithm: string | null;
 };
 
 type Participant = {
@@ -122,6 +123,11 @@ export default function MatchDetails() {
 
       if (error) throw error;
       setMatch(data);
+      
+      // Set algorithm from database if available
+      if (data.team_algorithm) {
+        setUsedAlgorithm(data.team_algorithm);
+      }
     } catch (error: any) {
       toast.error("Napaka pri nalaganju tekme");
       navigate("/");
@@ -419,14 +425,23 @@ export default function MatchDetails() {
       }
       
       // Store which algorithm was used
-      const algorithmNames = {
+      const algorithmNames: Record<string, string> = {
         serpentine: "Serpentine (Kača)",
         abba: "ABBA",
         "first-last": "First-Last (Prvi-Zadnji)",
         greedy: "Greedy balansiranje",
         dp: "DP optimalen"
       };
-      setUsedAlgorithm(algorithmNames[algorithm]);
+      const algorithmName = algorithmNames[algorithm];
+      setUsedAlgorithm(algorithmName);
+      
+      // Save algorithm to database
+      const { error: algoError } = await supabase
+        .from("matches")
+        .update({ team_algorithm: algorithmName })
+        .eq("id", matchId);
+      
+      if (algoError) console.error("Error saving algorithm:", algoError);
       
       toast.success("Ekipe uspešno razporejene");
       fetchParticipants();
@@ -440,12 +455,21 @@ export default function MatchDetails() {
   const clearTeams = async () => {
     setLoading(true);
     try {
+      // Clear team assignments
       const { error } = await supabase
         .from("match_participants")
         .update({ team_number: null })
         .eq("match_id", matchId);
         
       if (error) throw error;
+      
+      // Clear algorithm from database
+      await supabase
+        .from("matches")
+        .update({ team_algorithm: null })
+        .eq("id", matchId);
+      
+      setUsedAlgorithm(null);
       toast.success("Ekipe počiščene");
       fetchParticipants();
     } catch (error: any) {
