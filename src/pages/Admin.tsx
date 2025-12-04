@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar, Plus, Lock } from "lucide-react";
+import { Shield, Users, Calendar, Plus, Lock, Pencil } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,6 +26,8 @@ export default function Admin() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<any>(null);
   const [leaguePassword, setLeaguePassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const navigate = useNavigate();
@@ -36,12 +38,25 @@ export default function Admin() {
     number_of_teams: z.coerce.number().min(2, "Vsaj 2 ekipi").max(10, "Največ 10 ekip")
   });
 
+  const editMatchSchema = z.object({
+    match_date: z.string().min(1, "Datum je obvezen"),
+    match_time: z.string().min(1, "Ura je obvezna"),
+  });
+
   const form = useForm<z.infer<typeof matchSchema>>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
       match_date: "",
       match_time: "",
       number_of_teams: 2
+    }
+  });
+
+  const editForm = useForm<z.infer<typeof editMatchSchema>>({
+    resolver: zodResolver(editMatchSchema),
+    defaultValues: {
+      match_date: "",
+      match_time: "",
     }
   });
 
@@ -299,6 +314,40 @@ export default function Admin() {
     }
   };
 
+  const handleEditMatch = (match: any) => {
+    setEditingMatch(match);
+    editForm.reset({
+      match_date: match.match_date,
+      match_time: match.match_time.slice(0, 5),
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateMatch = async (values: z.infer<typeof editMatchSchema>) => {
+    if (!editingMatch) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({
+          match_date: values.match_date,
+          match_time: values.match_time,
+        })
+        .eq("id", editingMatch.id);
+
+      if (error) throw error;
+      toast.success("Tekma uspešno posodobljena");
+      setEditDialogOpen(false);
+      setEditingMatch(null);
+      fetchMatches();
+    } catch (error: any) {
+      toast.error("Napaka pri posodabljanju tekme");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user || !isAdmin) return null;
 
   return (
@@ -463,20 +512,79 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground">
                         Število ekip: {match.number_of_teams}
                       </p>
-                      <Button
-                        onClick={() => handleDeleteMatch(match.id)}
-                        disabled={loading}
-                        variant="destructive"
-                        size="sm"
-                        className="w-full"
-                      >
-                        Izbriši tekmo
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleEditMatch(match)}
+                          disabled={loading}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Uredi
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteMatch(match.id)}
+                          disabled={loading}
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          Izbriši
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             )}
+            {/* Edit Match Dialog */}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-base">Uredi tekmo</DialogTitle>
+                  <DialogDescription className="text-xs">
+                    Spremeni datum in uro tekme
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(handleUpdateMatch)} className="space-y-3">
+                    <FormField
+                      control={editForm.control}
+                      name="match_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Datum</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} className="text-sm" />
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="match_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Ura</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} className="text-sm" />
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button type="submit" className="w-full" size="sm" disabled={loading}>
+                      {loading ? "Shranjujem..." : "Shrani spremembe"}
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4">
