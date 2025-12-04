@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -53,6 +53,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editDate, setEditDate] = useState(match.match_date);
   const [editTime, setEditTime] = useState(match.match_time.slice(0, 5));
+  const [removePlayersDialogOpen, setRemovePlayersDialogOpen] = useState(false);
+  const [playersToRemove, setPlayersToRemove] = useState<string[]>([]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -157,6 +159,47 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       toast.success("Tekma uspešno posodobljena");
       setEditDialogOpen(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenRemovePlayers = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPlayersToRemove([]);
+    setRemovePlayersDialogOpen(true);
+  };
+
+  const togglePlayerToRemove = (playerId: string) => {
+    setPlayersToRemove(prev => 
+      prev.includes(playerId) 
+        ? prev.filter(id => id !== playerId) 
+        : [...prev, playerId]
+    );
+  };
+
+  const handleRemoveSelectedPlayers = async () => {
+    if (playersToRemove.length === 0) {
+      toast.error("Izberite vsaj enega igralca");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("match_participants")
+        .delete()
+        .eq("match_id", match.id)
+        .in("player_id", playersToRemove);
+
+      if (error) throw error;
+
+      toast.success(`Uspešno odstranjenih ${playersToRemove.length} igralcev`);
+      setRemovePlayersDialogOpen(false);
+      setPlayersToRemove([]);
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -502,6 +545,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <Pencil className="h-4 w-4 mr-2" />
                       Uredi datum/uro
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenRemovePlayers}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Odstrani igralce
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -798,6 +845,76 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               {loading ? "Shranjujem..." : "Shrani"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for removing players */}
+      <Dialog open={removePlayersDialogOpen} onOpenChange={setRemovePlayersDialogOpen}>
+        <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Odstrani igralce s tekme</DialogTitle>
+            <DialogDescription>
+              Izberite igralce, ki jih želite odstraniti s tekme.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[60vh] pr-4">
+            {participants.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Na tekmo ni prijavljen noben igralec.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {participants.map((participant) => {
+                  const isSelected = playersToRemove.includes(participant.player_id);
+                  
+                  return (
+                    <div
+                      key={participant.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                        isSelected ? "border-destructive bg-destructive/5" : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => togglePlayerToRemove(participant.player_id)}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {participant.profiles?.full_name || participant.profiles?.email || "Neznano ime"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {participant.position === "vratar" ? "Vratar" : "Igralec"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+          
+          {participants.length > 0 && (
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setRemovePlayersDialogOpen(false)}
+              >
+                Prekliči
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleRemoveSelectedPlayers}
+                disabled={loading || playersToRemove.length === 0}
+              >
+                {loading ? "Odstranjujem..." : `Odstrani (${playersToRemove.length})`}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
