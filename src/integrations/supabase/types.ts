@@ -217,9 +217,13 @@ export type Database = {
           id: string
           is_completed: boolean
           league_id: string
+          location: string | null
           match_date: string
           match_time: string
+          max_participants: number | null
+          notes: string | null
           number_of_teams: number
+          signups_locked: boolean
           team_algorithm: string | null
           updated_at: string
         }
@@ -229,9 +233,13 @@ export type Database = {
           id?: string
           is_completed?: boolean
           league_id: string
+          location?: string | null
           match_date: string
           match_time: string
+          max_participants?: number | null
+          notes?: string | null
           number_of_teams: number
+          signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string
         }
@@ -241,9 +249,13 @@ export type Database = {
           id?: string
           is_completed?: boolean
           league_id?: string
+          location?: string | null
           match_date?: string
           match_time?: string
+          max_participants?: number | null
+          notes?: string | null
           number_of_teams?: number
+          signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string
         }

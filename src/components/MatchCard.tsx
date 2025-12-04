@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -32,6 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MatchCardProps {
   match: any;
@@ -57,6 +58,12 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [playersToRemove, setPlayersToRemove] = useState<string[]>([]);
   const [changePositionDialogOpen, setChangePositionDialogOpen] = useState(false);
   const [positionChanges, setPositionChanges] = useState<Record<string, "igralec" | "vratar">>({});
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [locationValue, setLocationValue] = useState(match.location || "");
+  const [maxParticipantsDialogOpen, setMaxParticipantsDialogOpen] = useState(false);
+  const [maxParticipantsValue, setMaxParticipantsValue] = useState<string>(match.max_participants?.toString() || "");
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [notesValue, setNotesValue] = useState(match.notes || "");
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -278,6 +285,101 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
+  const handleToggleSignupsLocked = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ signups_locked: !match.signups_locked })
+        .eq("id", match.id);
+
+      if (error) throw error;
+      toast.success(match.signups_locked ? "Prijave odklenjene" : "Prijave zaklenjene");
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenLocation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocationValue(match.location || "");
+    setLocationDialogOpen(true);
+  };
+
+  const handleSaveLocation = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ location: locationValue || null })
+        .eq("id", match.id);
+
+      if (error) throw error;
+      toast.success("Lokacija shranjena");
+      setLocationDialogOpen(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenMaxParticipants = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMaxParticipantsValue(match.max_participants?.toString() || "");
+    setMaxParticipantsDialogOpen(true);
+  };
+
+  const handleSaveMaxParticipants = async () => {
+    setLoading(true);
+    try {
+      const maxVal = maxParticipantsValue ? parseInt(maxParticipantsValue) : null;
+      const { error } = await supabase
+        .from("matches")
+        .update({ max_participants: maxVal })
+        .eq("id", match.id);
+
+      if (error) throw error;
+      toast.success(maxVal ? `Omejitev nastavljena na ${maxVal} igralcev` : "Omejitev odstranjena");
+      setMaxParticipantsDialogOpen(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenNotes = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNotesValue(match.notes || "");
+    setNotesDialogOpen(true);
+  };
+
+  const handleSaveNotes = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ notes: notesValue || null })
+        .eq("id", match.id);
+
+      if (error) throw error;
+      toast.success("Opomba shranjena");
+      setNotesDialogOpen(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const togglePlayerSelection = (playerId: string, playerPosition: "igralec" | "vratar" = "igralec") => {
     setSelectedPlayers(prev => {
       const existing = prev.find(p => p.id === playerId);
@@ -361,6 +463,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleSignUp = async () => {
     if (isCompleted) {
       toast.error("Tekma je zaključena - prijave so zaprte");
+      return;
+    }
+    if (match.signups_locked) {
+      toast.error("Prijave so zaklenjene");
+      return;
+    }
+    if (match.max_participants && participants.length >= match.max_participants) {
+      toast.error(`Doseženo maksimalno število prijav (${match.max_participants})`);
       return;
     }
     setLoading(true);
@@ -623,6 +733,31 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Spremeni pozicije
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleToggleSignupsLocked}>
+                      {match.signups_locked ? (
+                        <>
+                          <Unlock className="h-4 w-4 mr-2" />
+                          Odkleni prijave
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          Zakleni prijave
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenLocation}>
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Nastavi lokacijo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenMaxParticipants}>
+                      <UsersRound className="h-4 w-4 mr-2" />
+                      Omeji prijave
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenNotes}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Dodaj opombo
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -640,8 +775,31 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4 flex-shrink-0" />
-            <span className="text-xs">{participants.length} prijavljenih</span>
+            <span className="text-xs">
+              {participants.length}{match.max_participants ? `/${match.max_participants}` : ''} prijavljenih
+            </span>
           </div>
+          
+          {match.location && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs">{match.location}</span>
+            </div>
+          )}
+          
+          {match.signups_locked && !isCompleted && (
+            <div className="flex items-center gap-2 text-sm text-destructive">
+              <Lock className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs font-medium">Prijave zaklenjene</span>
+            </div>
+          )}
+          
+          {match.notes && (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+              <FileText className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-2">{match.notes}</span>
+            </div>
+          )}
           
           {beerBringer && (
             <div className="flex items-center gap-2 text-sm text-primary">
@@ -1055,6 +1213,102 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for location */}
+      <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Nastavi lokacijo</DialogTitle>
+            <DialogDescription>
+              Vnesite lokacijo ali igrišče tekme.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="location">Lokacija</Label>
+              <Input
+                id="location"
+                placeholder="npr. Športni park, Igrišče pri šoli..."
+                value={locationValue}
+                onChange={(e) => setLocationValue(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setLocationDialogOpen(false)}>
+              Prekliči
+            </Button>
+            <Button className="flex-1" onClick={handleSaveLocation} disabled={loading}>
+              {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for max participants */}
+      <Dialog open={maxParticipantsDialogOpen} onOpenChange={setMaxParticipantsDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Omeji število prijav</DialogTitle>
+            <DialogDescription>
+              Nastavite maksimalno število prijavljenih igralcev. Pustite prazno za brez omejitve.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="max-participants">Maksimalno število</Label>
+              <Input
+                id="max-participants"
+                type="number"
+                min="1"
+                placeholder="Brez omejitve"
+                value={maxParticipantsValue}
+                onChange={(e) => setMaxParticipantsValue(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setMaxParticipantsDialogOpen(false)}>
+              Prekliči
+            </Button>
+            <Button className="flex-1" onClick={handleSaveMaxParticipants} disabled={loading}>
+              {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for notes */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Dodaj opombo</DialogTitle>
+            <DialogDescription>
+              Dodajte zapisek ali komentar k tekmi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes">Opomba</Label>
+              <Textarea
+                id="notes"
+                placeholder="npr. Prinesite športno opremo, tekma bo v dvorani..."
+                value={notesValue}
+                onChange={(e) => setNotesValue(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setNotesDialogOpen(false)}>
+              Prekliči
+            </Button>
+            <Button className="flex-1" onClick={handleSaveNotes} disabled={loading}>
+              {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
