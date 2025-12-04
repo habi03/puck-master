@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface MatchCardProps {
   match: any;
@@ -48,6 +50,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [addPlayersDialogOpen, setAddPlayersDialogOpen] = useState(false);
   const [leagueMembers, setLeagueMembers] = useState<any[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<{ id: string; position: "igralec" | "vratar" }[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDate, setEditDate] = useState(match.match_date);
+  const [editTime, setEditTime] = useState(match.match_time.slice(0, 5));
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -129,6 +134,35 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     await fetchLeagueMembers();
     setSelectedPlayers([]);
     setAddPlayersDialogOpen(true);
+  };
+
+  const handleOpenEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditDate(match.match_date);
+    setEditTime(match.match_time.slice(0, 5));
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateMatch = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({
+          match_date: editDate,
+          match_time: editTime,
+        })
+        .eq("id", match.id);
+
+      if (error) throw error;
+      toast.success("Tekma uspešno posodobljena");
+      setEditDialogOpen(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePlayerSelection = (playerId: string, playerPosition: "igralec" | "vratar" = "igralec") => {
@@ -464,6 +498,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <UserPlus className="h-4 w-4 mr-2" />
                       Dodaj igralce
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenEdit}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Uredi datum/uro
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -710,6 +748,56 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for editing match date/time */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Uredi tekmo</DialogTitle>
+            <DialogDescription>
+              Spremenite datum in uro tekme.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Datum</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-time">Ura</Label>
+              <Input
+                id="edit-time"
+                type="time"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setEditDialogOpen(false)}
+            >
+              Prekliči
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleUpdateMatch}
+              disabled={loading}
+            >
+              {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
