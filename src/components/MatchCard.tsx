@@ -445,9 +445,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     <>
       <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between text-lg">
-            <span>Tekma</span>
-            <div className="flex items-center gap-2">
+          <CardTitle className="flex items-center justify-between text-lg gap-2">
+            <span className="shrink-0">Tekma</span>
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
               <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
               {isCompleted && (
                 <Badge variant="default" className="text-xs">Zaključena</Badge>
@@ -455,7 +455,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               {isAdmin && !isCompleted && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -630,7 +630,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       {/* Dialog for adding players */}
       <Dialog open={addPlayersDialogOpen} onOpenChange={setAddPlayersDialogOpen}>
-        <DialogContent className="max-w-md" onClick={(e) => e.stopPropagation()}>
+        <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
             <DialogTitle>Dodaj igralce na tekmo</DialogTitle>
             <DialogDescription>
@@ -638,7 +638,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="max-h-[400px] pr-4">
+          <ScrollArea className="max-h-[60vh] pr-4">
             {availableMembers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 Vsi člani lige so že prijavljeni na tekmo.
@@ -652,7 +652,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   return (
                     <div
                       key={member.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border transition-colors gap-2 ${
                         isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
                       }`}
                     >
@@ -661,11 +661,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                           checked={isSelected}
                           onCheckedChange={() => togglePlayerSelection(member.user_id)}
                         />
-                        <div>
-                          <p className="text-sm font-medium">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
                             {member.profiles?.full_name || member.profiles?.email || "Neznano ime"}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground truncate">
                             {member.profiles?.email}
                           </p>
                         </div>
@@ -676,7 +676,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                           value={selectedPlayer?.position || "igralec"}
                           onValueChange={(v: "igralec" | "vratar") => updatePlayerPosition(member.user_id, v)}
                         >
-                          <SelectTrigger className="w-24 h-8">
+                          <SelectTrigger className="w-full sm:w-24 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
