@@ -183,9 +183,11 @@ export default function Leaderboard() {
 
         const entry = leaderboardMap.get(key)!;
         
-        // Count attendance and add attendance points for this match
-        entry.attendance += 1;
-        entry.total_points += matchScoring.points_attendance;
+        // Count attendance only if points_attendance > 0
+        if (matchScoring.points_attendance > 0) {
+          entry.attendance += 1;
+          entry.total_points += matchScoring.points_attendance;
+        }
 
         // Check if team won and calculate points based on win type
         const matchResults = results?.filter(r => r.match_id === participant.match_id) || [];
