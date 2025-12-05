@@ -413,16 +413,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleSaveScoring = async () => {
     setLoading(true);
     try {
-      console.log("Saving scoring values:", scoringValues);
-      
-      const updateData = {
-        points_attendance: parseInt(scoringValues.points_attendance) || 1,
-        points_win: parseInt(scoringValues.points_win) || 3,
-        points_penalty_win: parseInt(scoringValues.points_penalty_win) || 2,
-        points_penalty_loss: parseInt(scoringValues.points_penalty_loss) || 1,
+      const parseValue = (val: string, defaultVal: number) => {
+        const parsed = parseInt(val);
+        return Number.isNaN(parsed) ? defaultVal : parsed;
       };
       
-      console.log("Update data:", updateData);
+      const updateData = {
+        points_attendance: parseValue(scoringValues.points_attendance, 1),
+        points_win: parseValue(scoringValues.points_win, 3),
+        points_penalty_win: parseValue(scoringValues.points_penalty_win, 2),
+        points_penalty_loss: parseValue(scoringValues.points_penalty_loss, 1),
+      };
       
       const { error } = await supabase
         .from("leagues")
