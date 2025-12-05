@@ -413,12 +413,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleSaveScoring = async () => {
     setLoading(true);
     try {
+      console.log("Saving scoring values:", scoringValues);
+      
       const updateData = {
         points_attendance: parseInt(scoringValues.points_attendance) || 1,
         points_win: parseInt(scoringValues.points_win) || 3,
         points_penalty_win: parseInt(scoringValues.points_penalty_win) || 2,
         points_penalty_loss: parseInt(scoringValues.points_penalty_loss) || 1,
       };
+      
+      console.log("Update data:", updateData);
       
       const { error } = await supabase
         .from("leagues")
@@ -428,6 +432,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       toast.success("Točkovanje shranjeno");
       setScoringDialogOpen(false);
+      onUpdate();
     } catch (error: any) {
       toast.error(error.message);
     } finally {
