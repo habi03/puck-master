@@ -398,11 +398,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       if (error) throw error;
       const leagueAny = data as any;
+      
+      const getValue = (val: any, defaultVal: string) => {
+        if (val === null || val === undefined) return defaultVal;
+        return val.toString();
+      };
+      
       setScoringValues({
-        points_attendance: leagueAny.points_attendance?.toString() || "1",
-        points_win: leagueAny.points_win?.toString() || "3",
-        points_penalty_win: leagueAny.points_penalty_win?.toString() || "2",
-        points_penalty_loss: leagueAny.points_penalty_loss?.toString() || "1",
+        points_attendance: getValue(leagueAny.points_attendance, "1"),
+        points_win: getValue(leagueAny.points_win, "3"),
+        points_penalty_win: getValue(leagueAny.points_penalty_win, "2"),
+        points_penalty_loss: getValue(leagueAny.points_penalty_loss, "1"),
       });
       setScoringDialogOpen(true);
     } catch (error: any) {
