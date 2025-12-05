@@ -392,16 +392,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     try {
       const { data, error } = await supabase
         .from("leagues")
-        .select("points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .select("*")
         .eq("id", match.league_id)
         .single();
 
       if (error) throw error;
+      const leagueAny = data as any;
       setScoringValues({
-        points_attendance: data.points_attendance?.toString() || "1",
-        points_win: data.points_win?.toString() || "3",
-        points_penalty_win: data.points_penalty_win?.toString() || "2",
-        points_penalty_loss: data.points_penalty_loss?.toString() || "1",
+        points_attendance: leagueAny.points_attendance?.toString() || "1",
+        points_win: leagueAny.points_win?.toString() || "3",
+        points_penalty_win: leagueAny.points_penalty_win?.toString() || "2",
+        points_penalty_loss: leagueAny.points_penalty_loss?.toString() || "1",
       });
       setScoringDialogOpen(true);
     } catch (error: any) {
@@ -412,14 +413,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleSaveScoring = async () => {
     setLoading(true);
     try {
+      const updateData = {
+        points_attendance: parseInt(scoringValues.points_attendance) || 1,
+        points_win: parseInt(scoringValues.points_win) || 3,
+        points_penalty_win: parseInt(scoringValues.points_penalty_win) || 2,
+        points_penalty_loss: parseInt(scoringValues.points_penalty_loss) || 1,
+      };
+      
       const { error } = await supabase
         .from("leagues")
-        .update({
-          points_attendance: parseInt(scoringValues.points_attendance) || 1,
-          points_win: parseInt(scoringValues.points_win) || 3,
-          points_penalty_win: parseInt(scoringValues.points_penalty_win) || 2,
-          points_penalty_loss: parseInt(scoringValues.points_penalty_loss) || 1,
-        })
+        .update(updateData as any)
         .eq("id", match.league_id);
 
       if (error) throw error;

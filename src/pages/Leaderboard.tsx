@@ -80,17 +80,18 @@ export default function Leaderboard() {
       // Get scoring configuration from league
       const { data: leagueData, error: leagueError } = await supabase
         .from("leagues")
-        .select("points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .select("*")
         .eq("id", leagueId)
         .single();
 
       if (leagueError) throw leagueError;
       
+      const leagueAny = leagueData as any;
       const scoringConfig: ScoringConfig = {
-        points_attendance: leagueData.points_attendance ?? 1,
-        points_win: leagueData.points_win ?? 3,
-        points_penalty_win: leagueData.points_penalty_win ?? 2,
-        points_penalty_loss: leagueData.points_penalty_loss ?? 1,
+        points_attendance: leagueAny.points_attendance ?? 1,
+        points_win: leagueAny.points_win ?? 3,
+        points_penalty_win: leagueAny.points_penalty_win ?? 2,
+        points_penalty_loss: leagueAny.points_penalty_loss ?? 1,
       };
       setScoring(scoringConfig);
 
