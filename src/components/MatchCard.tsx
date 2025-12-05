@@ -61,7 +61,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [locationValue, setLocationValue] = useState(match.location || "");
   const [maxParticipantsDialogOpen, setMaxParticipantsDialogOpen] = useState(false);
-  const [maxParticipantsValue, setMaxParticipantsValue] = useState<string>(match.max_participants?.toString() || "");
+  const [maxPlayersValue, setMaxPlayersValue] = useState<string>(match.max_players?.toString() || "");
+  const [maxGoalkeepersValue, setMaxGoalkeepersValue] = useState<string>(match.max_goalkeepers?.toString() || "");
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [notesValue, setNotesValue] = useState(match.notes || "");
   const [scoringDialogOpen, setScoringDialogOpen] = useState(false);
@@ -338,21 +339,26 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleOpenMaxParticipants = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setMaxParticipantsValue(match.max_participants?.toString() || "");
+    setMaxPlayersValue(match.max_players?.toString() || "");
+    setMaxGoalkeepersValue(match.max_goalkeepers?.toString() || "");
     setMaxParticipantsDialogOpen(true);
   };
 
   const handleSaveMaxParticipants = async () => {
     setLoading(true);
     try {
-      const maxVal = maxParticipantsValue ? parseInt(maxParticipantsValue) : null;
+      const maxPlayers = maxPlayersValue ? parseInt(maxPlayersValue) : null;
+      const maxGoalkeepers = maxGoalkeepersValue ? parseInt(maxGoalkeepersValue) : null;
       const { error } = await supabase
         .from("matches")
-        .update({ max_participants: maxVal })
+        .update({ 
+          max_players: maxPlayers,
+          max_goalkeepers: maxGoalkeepers 
+        } as any)
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success(maxVal ? `Omejitev nastavljena na ${maxVal} igralcev` : "Omejitev odstranjena");
+      toast.success("Omejitve shranjene");
       setMaxParticipantsDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -542,21 +548,29 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       toast.error("Prijave so zaklenjene");
       return;
     }
-    if (match.max_participants && participants.length >= match.max_participants) {
-      toast.error(`Doseženo maksimalno število prijav (${match.max_participants})`);
-      return;
+    // Check position-specific limits
+    const playersCount = participants.filter(p => p.position === "igralec").length;
+    const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
+    
+    if (position === "igralec") {
+      if (match.max_players && playersCount >= match.max_players) {
+        toast.error(`Doseženo maksimalno število igralcev (${match.max_players})`);
+        return;
+      }
+    } else if (position === "vratar") {
+      if (match.max_goalkeepers && goalkeepersCount >= match.max_goalkeepers) {
+        toast.error(`Doseženo maksimalno število vratarjev (${match.max_goalkeepers})`);
+        return;
+      }
+      // Also check the team limit
+      if (goalkeepersCount >= match.number_of_teams) {
+        toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih (en vratar na ekipo)`);
+        return;
+      }
     }
+    
     setLoading(true);
     try {
-      // Check goalkeeper limit per team
-      if (position === "vratar") {
-        const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
-        if (goalkeepersCount >= match.number_of_teams) {
-          toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih (en vratar na ekipo)`);
-          setLoading(false);
-          return;
-        }
-      }
 
       // Calculate combined rating at time of signup
       // Goalkeepers don't need ratings - they will be sorted alphabetically
@@ -853,7 +867,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4 flex-shrink-0" />
             <span className="text-xs">
-              {participants.length}{match.max_participants ? `/${match.max_participants}` : ''} prijavljenih
+              {(() => {
+                const playersCount = participants.filter(p => p.position === "igralec").length;
+                const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
+                const playersText = `${playersCount}${match.max_players ? `/${match.max_players}` : ''} igralcev`;
+                const goalkeepersText = `${goalkeepersCount}${match.max_goalkeepers ? `/${match.max_goalkeepers}` : ''} vratarjev`;
+                return `${playersText}, ${goalkeepersText}`;
+              })()}
             </span>
           </div>
           
@@ -1330,19 +1350,30 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <DialogHeader>
             <DialogTitle>Omeji število prijav</DialogTitle>
             <DialogDescription>
-              Nastavite maksimalno število prijavljenih igralcev. Pustite prazno za brez omejitve.
+              Nastavite maksimalno število igralcev in vratarjev. Pustite prazno za brez omejitve.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="max-participants">Maksimalno število</Label>
+              <Label htmlFor="max-players">Maksimalno igralcev</Label>
               <Input
-                id="max-participants"
+                id="max-players"
                 type="number"
                 min="1"
                 placeholder="Brez omejitve"
-                value={maxParticipantsValue}
-                onChange={(e) => setMaxParticipantsValue(e.target.value)}
+                value={maxPlayersValue}
+                onChange={(e) => setMaxPlayersValue(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="max-goalkeepers">Maksimalno vratarjev</Label>
+              <Input
+                id="max-goalkeepers"
+                type="number"
+                min="1"
+                placeholder="Brez omejitve"
+                value={maxGoalkeepersValue}
+                onChange={(e) => setMaxGoalkeepersValue(e.target.value)}
               />
             </div>
           </div>

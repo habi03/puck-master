@@ -232,7 +232,9 @@ export type Database = {
           location: string | null
           match_date: string
           match_time: string
+          max_goalkeepers: number | null
           max_participants: number | null
+          max_players: number | null
           notes: string | null
           number_of_teams: number
           points_attendance: number | null
@@ -252,7 +254,9 @@ export type Database = {
           location?: string | null
           match_date: string
           match_time: string
+          max_goalkeepers?: number | null
           max_participants?: number | null
+          max_players?: number | null
           notes?: string | null
           number_of_teams: number
           points_attendance?: number | null
@@ -272,7 +276,9 @@ export type Database = {
           location?: string | null
           match_date?: string
           match_time?: string
+          max_goalkeepers?: number | null
           max_participants?: number | null
+          max_players?: number | null
           notes?: string | null
           number_of_teams?: number
           points_attendance?: number | null
