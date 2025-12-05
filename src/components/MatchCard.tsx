@@ -390,25 +390,30 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const handleOpenScoring = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { data, error } = await supabase
-        .from("leagues")
-        .select("*")
-        .eq("id", match.league_id)
-        .single();
+      // Fetch both match and league data
+      const [matchRes, leagueRes] = await Promise.all([
+        supabase.from("matches").select("*").eq("id", match.id).single(),
+        supabase.from("leagues").select("*").eq("id", match.league_id).single()
+      ]);
 
-      if (error) throw error;
-      const leagueAny = data as any;
+      if (matchRes.error) throw matchRes.error;
+      if (leagueRes.error) throw leagueRes.error;
       
-      const getValue = (val: any, defaultVal: string) => {
-        if (val === null || val === undefined) return defaultVal;
-        return val.toString();
+      const matchAny = matchRes.data as any;
+      const leagueAny = leagueRes.data as any;
+      
+      // Use match value if set, otherwise use league default
+      const getValue = (matchVal: any, leagueVal: any, defaultVal: string) => {
+        if (matchVal !== null && matchVal !== undefined) return matchVal.toString();
+        if (leagueVal !== null && leagueVal !== undefined) return leagueVal.toString();
+        return defaultVal;
       };
       
       setScoringValues({
-        points_attendance: getValue(leagueAny.points_attendance, "1"),
-        points_win: getValue(leagueAny.points_win, "3"),
-        points_penalty_win: getValue(leagueAny.points_penalty_win, "2"),
-        points_penalty_loss: getValue(leagueAny.points_penalty_loss, "1"),
+        points_attendance: getValue(matchAny.points_attendance, leagueAny.points_attendance, "1"),
+        points_win: getValue(matchAny.points_win, leagueAny.points_win, "3"),
+        points_penalty_win: getValue(matchAny.points_penalty_win, leagueAny.points_penalty_win, "2"),
+        points_penalty_loss: getValue(matchAny.points_penalty_loss, leagueAny.points_penalty_loss, "1"),
       });
       setScoringDialogOpen(true);
     } catch (error: any) {
@@ -431,13 +436,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         points_penalty_loss: parseValue(scoringValues.points_penalty_loss, 1),
       };
       
+      // Save to match instead of league
       const { error } = await supabase
-        .from("leagues")
+        .from("matches")
         .update(updateData as any)
-        .eq("id", match.league_id);
+        .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Točkovanje shranjeno");
+      toast.success("Točkovanje za tekmo shranjeno");
       setScoringDialogOpen(false);
       onUpdate();
     } catch (error: any) {
