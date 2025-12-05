@@ -104,8 +104,8 @@ export default function Leaderboard() {
 
       if (matchesError) throw matchesError;
 
-      // Build a map of match_id to scoring config
-      const matchScoringMap = new Map<string, ScoringConfig>();
+      // Build a map of match_id to scoring config + flag if attendance was explicitly set
+      const matchScoringMap = new Map<string, ScoringConfig & { attendanceExplicitlySet: boolean }>();
       matches?.forEach(m => {
         const mAny = m as any;
         matchScoringMap.set(m.id, {
@@ -113,6 +113,7 @@ export default function Leaderboard() {
           points_win: mAny.points_win ?? leagueDefaults.points_win,
           points_penalty_win: mAny.points_penalty_win ?? leagueDefaults.points_penalty_win,
           points_penalty_loss: mAny.points_penalty_loss ?? leagueDefaults.points_penalty_loss,
+          attendanceExplicitlySet: mAny.points_attendance !== null,
         });
       });
 
@@ -165,7 +166,7 @@ export default function Leaderboard() {
         const beerCount = beerData?.find(b => b.player_id === participant.player_id)?.beers_brought || 0;
         
         // Get scoring config for this specific match
-        const matchScoring = matchScoringMap.get(participant.match_id) || leagueDefaults;
+        const matchScoring = matchScoringMap.get(participant.match_id) || { ...leagueDefaults, attendanceExplicitlySet: false };
         
         if (!leaderboardMap.has(key)) {
           leaderboardMap.set(key, {
@@ -183,8 +184,9 @@ export default function Leaderboard() {
 
         const entry = leaderboardMap.get(key)!;
         
-        // Count attendance only if points_attendance > 0
-        if (matchScoring.points_attendance > 0) {
+        // Skip attendance count only if match explicitly has points_attendance = 0
+        const skipAttendance = matchScoring.attendanceExplicitlySet && matchScoring.points_attendance === 0;
+        if (!skipAttendance) {
           entry.attendance += 1;
           entry.total_points += matchScoring.points_attendance;
         }
