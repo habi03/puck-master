@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -64,6 +64,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [maxParticipantsValue, setMaxParticipantsValue] = useState<string>(match.max_participants?.toString() || "");
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [notesValue, setNotesValue] = useState(match.notes || "");
+  const [scoringDialogOpen, setScoringDialogOpen] = useState(false);
+  const [scoringValues, setScoringValues] = useState({
+    points_attendance: "1",
+    points_win: "3",
+    points_penalty_win: "2",
+    points_penalty_loss: "1",
+  });
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation;
@@ -373,6 +380,51 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       toast.success("Opomba shranjena");
       setNotesDialogOpen(false);
       onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenScoring = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { data, error } = await supabase
+        .from("leagues")
+        .select("points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .eq("id", match.league_id)
+        .single();
+
+      if (error) throw error;
+      setScoringValues({
+        points_attendance: data.points_attendance?.toString() || "1",
+        points_win: data.points_win?.toString() || "3",
+        points_penalty_win: data.points_penalty_win?.toString() || "2",
+        points_penalty_loss: data.points_penalty_loss?.toString() || "1",
+      });
+      setScoringDialogOpen(true);
+    } catch (error: any) {
+      toast.error("Napaka pri nalaganju točkovanja");
+    }
+  };
+
+  const handleSaveScoring = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("leagues")
+        .update({
+          points_attendance: parseInt(scoringValues.points_attendance) || 1,
+          points_win: parseInt(scoringValues.points_win) || 3,
+          points_penalty_win: parseInt(scoringValues.points_penalty_win) || 2,
+          points_penalty_loss: parseInt(scoringValues.points_penalty_loss) || 1,
+        })
+        .eq("id", match.league_id);
+
+      if (error) throw error;
+      toast.success("Točkovanje shranjeno");
+      setScoringDialogOpen(false);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -757,6 +809,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     <DropdownMenuItem onClick={handleOpenNotes}>
                       <FileText className="h-4 w-4 mr-2" />
                       Dodaj opombo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenScoring}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Nastavi točkovanje
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1306,6 +1362,68 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               Prekliči
             </Button>
             <Button className="flex-1" onClick={handleSaveNotes} disabled={loading}>
+              {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for scoring configuration */}
+      <Dialog open={scoringDialogOpen} onOpenChange={setScoringDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Nastavi točkovanje</DialogTitle>
+            <DialogDescription>
+              Določite koliko točk se dodeli za posamezne dogodke v ligi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="points-attendance">Prisotnost na tekmi</Label>
+              <Input
+                id="points-attendance"
+                type="number"
+                min="0"
+                value={scoringValues.points_attendance}
+                onChange={(e) => setScoringValues(prev => ({ ...prev, points_attendance: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="points-win">Zmaga (redni del)</Label>
+              <Input
+                id="points-win"
+                type="number"
+                min="0"
+                value={scoringValues.points_win}
+                onChange={(e) => setScoringValues(prev => ({ ...prev, points_win: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="points-penalty-win">Zmaga po kazenskih strelih</Label>
+              <Input
+                id="points-penalty-win"
+                type="number"
+                min="0"
+                value={scoringValues.points_penalty_win}
+                onChange={(e) => setScoringValues(prev => ({ ...prev, points_penalty_win: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="points-penalty-loss">Poraz po kazenskih strelih</Label>
+              <Input
+                id="points-penalty-loss"
+                type="number"
+                min="0"
+                value={scoringValues.points_penalty_loss}
+                onChange={(e) => setScoringValues(prev => ({ ...prev, points_penalty_loss: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setScoringDialogOpen(false)}>
+              Prekliči
+            </Button>
+            <Button className="flex-1" onClick={handleSaveScoring} disabled={loading}>
               {loading ? "Shranjujem..." : "Shrani"}
             </Button>
           </div>

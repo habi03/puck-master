@@ -103,6 +103,10 @@ export type Database = {
           id: string
           name: string
           password: string | null
+          points_attendance: number
+          points_penalty_loss: number
+          points_penalty_win: number
+          points_win: number
           updated_at: string
         }
         Insert: {
@@ -112,6 +116,10 @@ export type Database = {
           id?: string
           name: string
           password?: string | null
+          points_attendance?: number
+          points_penalty_loss?: number
+          points_penalty_win?: number
+          points_win?: number
           updated_at?: string
         }
         Update: {
@@ -121,6 +129,10 @@ export type Database = {
           id?: string
           name?: string
           password?: string | null
+          points_attendance?: number
+          points_penalty_loss?: number
+          points_penalty_win?: number
+          points_win?: number
           updated_at?: string
         }
         Relationships: []

@@ -18,12 +18,25 @@ interface LeaderboardEntry {
   goals_against: number; // Goals conceded by goalkeeper's team
 }
 
+interface ScoringConfig {
+  points_attendance: number;
+  points_win: number;
+  points_penalty_win: number;
+  points_penalty_loss: number;
+}
+
 export default function Leaderboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showScoring, setShowScoring] = useState(false);
+  const [scoring, setScoring] = useState<ScoringConfig>({
+    points_attendance: 1,
+    points_win: 3,
+    points_penalty_win: 2,
+    points_penalty_loss: 1,
+  });
 
   useEffect(() => {
     checkUser();
@@ -63,6 +76,23 @@ export default function Leaderboard() {
   const fetchLeaderboard = async (leagueId: string) => {
     try {
       setLoading(true);
+
+      // Get scoring configuration from league
+      const { data: leagueData, error: leagueError } = await supabase
+        .from("leagues")
+        .select("points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .eq("id", leagueId)
+        .single();
+
+      if (leagueError) throw leagueError;
+      
+      const scoringConfig: ScoringConfig = {
+        points_attendance: leagueData.points_attendance ?? 1,
+        points_win: leagueData.points_win ?? 3,
+        points_penalty_win: leagueData.points_penalty_win ?? 2,
+        points_penalty_loss: leagueData.points_penalty_loss ?? 1,
+      };
+      setScoring(scoringConfig);
 
       // Get all match participants with their profiles
       const { data: participants, error: participantsError } = await supabase
@@ -152,11 +182,11 @@ export default function Leaderboard() {
           if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
             // Team won
             entry.wins += 1;
-            // Add win points to total: 3 for regulation, 2 for penalty shootout
-            entry.total_points += winType === 'regulation' ? 3 : 2;
+            // Add win points to total based on scoring config
+            entry.total_points += winType === 'regulation' ? scoringConfig.points_win : scoringConfig.points_penalty_win;
           } else if (teamResult && winType === 'penalty_shootout' && otherResults.some(r => teamResult.goals_scored < r.goals_scored)) {
-            // Team lost after penalty shootout: 1 point
-            entry.total_points += 1;
+            // Team lost after penalty shootout
+            entry.total_points += scoringConfig.points_penalty_loss;
           }
         }
       });
@@ -164,7 +194,7 @@ export default function Leaderboard() {
       // Calculate total points (win points already added in the loop above)
       const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
         ...entry,
-        total_points: entry.total_points + entry.attendance,
+        total_points: entry.total_points + (entry.attendance * scoringConfig.points_attendance),
       }));
 
       // Sort by total points, then by goals (goals_for for players, goals_against for goalkeepers)
@@ -281,10 +311,10 @@ export default function Leaderboard() {
             {showScoring && (
               <p className="text-sm text-muted-foreground mt-2 pt-2 border-t">
                 <strong>Točkovanje:</strong><br />
-                • Prisotnost: 1 točka<br />
-                • Zmaga v rednem delu: +3 točke<br />
-                • Zmaga po kazenskih strelih: +2 točki<br />
-                • Poraz po kazenskih strelih: +1 točka<br /><br />
+                • Prisotnost: {scoring.points_attendance} {scoring.points_attendance === 1 ? "točka" : "točke"}<br />
+                • Zmaga v rednem delu: +{scoring.points_win} {scoring.points_win === 1 ? "točka" : "točke"}<br />
+                • Zmaga po kazenskih strelih: +{scoring.points_penalty_win} {scoring.points_penalty_win === 1 ? "točka" : "točki"}<br />
+                • Poraz po kazenskih strelih: +{scoring.points_penalty_loss} {scoring.points_penalty_loss === 1 ? "točka" : "točka"}<br /><br />
                 <strong>Pri izenačenih točkah:</strong><br />
                 • Igralci: več golov ekipe<br />
                 • Vratarji: manj prejetih golov
