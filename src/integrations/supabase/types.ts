@@ -235,6 +235,10 @@ export type Database = {
           max_participants: number | null
           notes: string | null
           number_of_teams: number
+          points_attendance: number | null
+          points_penalty_loss: number | null
+          points_penalty_win: number | null
+          points_win: number | null
           signups_locked: boolean
           team_algorithm: string | null
           updated_at: string
@@ -251,6 +255,10 @@ export type Database = {
           max_participants?: number | null
           notes?: string | null
           number_of_teams: number
+          points_attendance?: number | null
+          points_penalty_loss?: number | null
+          points_penalty_win?: number | null
+          points_win?: number | null
           signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string
@@ -267,6 +275,10 @@ export type Database = {
           max_participants?: number | null
           notes?: string | null
           number_of_teams?: number
+          points_attendance?: number | null
+          points_penalty_loss?: number | null
+          points_penalty_win?: number | null
+          points_win?: number | null
           signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string

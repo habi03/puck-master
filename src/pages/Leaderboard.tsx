@@ -77,7 +77,7 @@ export default function Leaderboard() {
     try {
       setLoading(true);
 
-      // Get scoring configuration from league
+      // Get league default scoring configuration
       const { data: leagueData, error: leagueError } = await supabase
         .from("leagues")
         .select("*")
@@ -87,13 +87,34 @@ export default function Leaderboard() {
       if (leagueError) throw leagueError;
       
       const leagueAny = leagueData as any;
-      const scoringConfig: ScoringConfig = {
+      const leagueDefaults: ScoringConfig = {
         points_attendance: leagueAny.points_attendance ?? 1,
         points_win: leagueAny.points_win ?? 3,
         points_penalty_win: leagueAny.points_penalty_win ?? 2,
         points_penalty_loss: leagueAny.points_penalty_loss ?? 1,
       };
-      setScoring(scoringConfig);
+      setScoring(leagueDefaults);
+
+      // Get all completed matches with their scoring
+      const { data: matches, error: matchesError } = await supabase
+        .from("matches")
+        .select("*")
+        .eq("league_id", leagueId)
+        .eq("is_completed", true);
+
+      if (matchesError) throw matchesError;
+
+      // Build a map of match_id to scoring config
+      const matchScoringMap = new Map<string, ScoringConfig>();
+      matches?.forEach(m => {
+        const mAny = m as any;
+        matchScoringMap.set(m.id, {
+          points_attendance: mAny.points_attendance ?? leagueDefaults.points_attendance,
+          points_win: mAny.points_win ?? leagueDefaults.points_win,
+          points_penalty_win: mAny.points_penalty_win ?? leagueDefaults.points_penalty_win,
+          points_penalty_loss: mAny.points_penalty_loss ?? leagueDefaults.points_penalty_loss,
+        });
+      });
 
       // Get all match participants with their profiles
       const { data: participants, error: participantsError } = await supabase
@@ -143,6 +164,9 @@ export default function Leaderboard() {
         const profile = profiles?.find(p => p.id === participant.player_id);
         const beerCount = beerData?.find(b => b.player_id === participant.player_id)?.beers_brought || 0;
         
+        // Get scoring config for this specific match
+        const matchScoring = matchScoringMap.get(participant.match_id) || leagueDefaults;
+        
         if (!leaderboardMap.has(key)) {
           leaderboardMap.set(key, {
             player_id: participant.player_id,
@@ -159,8 +183,9 @@ export default function Leaderboard() {
 
         const entry = leaderboardMap.get(key)!;
         
-        // Count attendance (1 point per match)
+        // Count attendance and add attendance points for this match
         entry.attendance += 1;
+        entry.total_points += matchScoring.points_attendance;
 
         // Check if team won and calculate points based on win type
         const matchResults = results?.filter(r => r.match_id === participant.match_id) || [];
@@ -181,22 +206,18 @@ export default function Leaderboard() {
           }
           
           if (teamResult && otherResults.every(r => teamResult.goals_scored > r.goals_scored)) {
-            // Team won
+            // Team won - use match-specific scoring
             entry.wins += 1;
-            // Add win points to total based on scoring config
-            entry.total_points += winType === 'regulation' ? scoringConfig.points_win : scoringConfig.points_penalty_win;
+            entry.total_points += winType === 'regulation' ? matchScoring.points_win : matchScoring.points_penalty_win;
           } else if (teamResult && winType === 'penalty_shootout' && otherResults.some(r => teamResult.goals_scored < r.goals_scored)) {
-            // Team lost after penalty shootout
-            entry.total_points += scoringConfig.points_penalty_loss;
+            // Team lost after penalty shootout - use match-specific scoring
+            entry.total_points += matchScoring.points_penalty_loss;
           }
         }
       });
 
-      // Calculate total points (win points already added in the loop above)
-      const leaderboardData = Array.from(leaderboardMap.values()).map(entry => ({
-        ...entry,
-        total_points: entry.total_points + (entry.attendance * scoringConfig.points_attendance),
-      }));
+      // Points are now calculated per-match in the loop above
+      const leaderboardData = Array.from(leaderboardMap.values());
 
       // Sort by total points, then by goals (goals_for for players, goals_against for goalkeepers)
       leaderboardData.sort((a, b) => {
