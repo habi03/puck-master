@@ -30,6 +30,12 @@ export default function Admin() {
   const [editingMatch, setEditingMatch] = useState<any>(null);
   const [leaguePassword, setLeaguePassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
+  const [scoringDefaults, setScoringDefaults] = useState({
+    points_attendance: "1",
+    points_win: "3",
+    points_penalty_win: "2",
+    points_penalty_loss: "1",
+  });
   const navigate = useNavigate();
 
   const matchSchema = z.object({
@@ -176,14 +182,55 @@ export default function Admin() {
     try {
       const { data, error } = await supabase
         .from("leagues")
-        .select("password")
+        .select("*")
         .eq("id", currentLeagueId)
         .single();
 
       if (error) throw error;
       setLeaguePassword(data?.password || "");
+      
+      const leagueAny = data as any;
+      const getValue = (val: any, defaultVal: string) => {
+        if (val === null || val === undefined) return defaultVal;
+        return val.toString();
+      };
+      setScoringDefaults({
+        points_attendance: getValue(leagueAny.points_attendance, "1"),
+        points_win: getValue(leagueAny.points_win, "3"),
+        points_penalty_win: getValue(leagueAny.points_penalty_win, "2"),
+        points_penalty_loss: getValue(leagueAny.points_penalty_loss, "1"),
+      });
     } catch (error: any) {
       // Error fetching settings - continue silently
+    }
+  };
+
+  const handleUpdateScoringDefaults = async () => {
+    setLoading(true);
+    try {
+      const parseValue = (val: string, defaultVal: number) => {
+        const parsed = parseInt(val);
+        return Number.isNaN(parsed) ? defaultVal : parsed;
+      };
+      
+      const updateData = {
+        points_attendance: parseValue(scoringDefaults.points_attendance, 1),
+        points_win: parseValue(scoringDefaults.points_win, 3),
+        points_penalty_win: parseValue(scoringDefaults.points_penalty_win, 2),
+        points_penalty_loss: parseValue(scoringDefaults.points_penalty_loss, 1),
+      };
+
+      const { error } = await supabase
+        .from("leagues")
+        .update(updateData as any)
+        .eq("id", currentLeagueId);
+
+      if (error) throw error;
+      toast.success("Default točkovanje shranjeno");
+    } catch (error: any) {
+      toast.error("Napaka pri shranjevanju točkovanja");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -631,6 +678,69 @@ export default function Admin() {
                   className="w-full"
                 >
                   {loading ? "Shranjujem..." : leaguePassword ? "Posodobi geslo" : "Nastavi geslo"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  🏆 Default točkovanje
+                </CardTitle>
+                <CardDescription>
+                  Privzete vrednosti točkovanja za nove tekme. Vsaka tekma lahko ima svoje točkovanje.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="points_attendance">Prisotnost</Label>
+                    <Input
+                      id="points_attendance"
+                      type="number"
+                      min="0"
+                      value={scoringDefaults.points_attendance}
+                      onChange={(e) => setScoringDefaults(prev => ({ ...prev, points_attendance: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="points_win">Zmaga (redni del)</Label>
+                    <Input
+                      id="points_win"
+                      type="number"
+                      min="0"
+                      value={scoringDefaults.points_win}
+                      onChange={(e) => setScoringDefaults(prev => ({ ...prev, points_win: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="points_penalty_win">Zmaga (penali)</Label>
+                    <Input
+                      id="points_penalty_win"
+                      type="number"
+                      min="0"
+                      value={scoringDefaults.points_penalty_win}
+                      onChange={(e) => setScoringDefaults(prev => ({ ...prev, points_penalty_win: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="points_penalty_loss">Poraz (penali)</Label>
+                    <Input
+                      id="points_penalty_loss"
+                      type="number"
+                      min="0"
+                      value={scoringDefaults.points_penalty_loss}
+                      onChange={(e) => setScoringDefaults(prev => ({ ...prev, points_penalty_loss: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={handleUpdateScoringDefaults} 
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? "Shranjujem..." : "Shrani točkovanje"}
                 </Button>
               </CardContent>
             </Card>
