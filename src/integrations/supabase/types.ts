@@ -143,6 +143,7 @@ export type Database = {
           combined_rating: number | null
           created_at: string
           id: string
+          is_absent: boolean
           is_present: boolean | null
           match_id: string
           player_id: string
@@ -155,6 +156,7 @@ export type Database = {
           combined_rating?: number | null
           created_at?: string
           id?: string
+          is_absent?: boolean
           is_present?: boolean | null
           match_id: string
           player_id: string
@@ -167,6 +169,7 @@ export type Database = {
           combined_rating?: number | null
           created_at?: string
           id?: string
+          is_absent?: boolean
           is_present?: boolean | null
           match_id?: string
           player_id?: string

@@ -74,7 +74,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   });
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
-  const isSignedUp = !!userParticipation;
+  const isSignedUp = !!userParticipation && !userParticipation.is_absent;
+  const isMarkedAbsent = !!userParticipation && userParticipation.is_absent;
   const isCompleted = match.is_completed || false;
 
   useEffect(() => {
@@ -729,6 +730,61 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
+  const handleMarkAbsent = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena");
+      return;
+    }
+    if (match.signups_locked) {
+      toast.error("Prijave so zaklenjene");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("match_participants")
+        .insert({
+          match_id: match.id,
+          player_id: currentUser.id,
+          position: "igralec",
+          is_absent: true,
+          combined_rating: null,
+        });
+
+      if (error) throw error;
+      toast.success("Označeni ste kot odsotni");
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelAbsent = async () => {
+    if (isCompleted) {
+      toast.error("Tekma je zaključena");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("match_participants")
+        .delete()
+        .eq("id", userParticipation.id);
+
+      if (error) throw error;
+      toast.success("Preklic odsotnosti");
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBringBeer = async () => {
     if (isCompleted) {
       toast.error("Tekma je zaključena");
@@ -940,7 +996,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         </CardContent>
         <CardFooter className="flex-col gap-4 pt-3">
           {!isCompleted ? (
-            !isSignedUp ? (
+            !isSignedUp && !isMarkedAbsent ? (
               <div className="w-full space-y-4">
                 <Select value={position} onValueChange={(v: any) => setPosition(v)}>
                   <SelectTrigger 
@@ -970,7 +1026,36 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   <UserPlus className="h-4 w-4 mr-2" />
                   Prijavi se
                 </Button>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkAbsent();
+                  }} 
+                  disabled={loading} 
+                  variant="outline"
+                  className="w-full"
+                >
+                  <UserMinus className="h-4 w-4 mr-2" />
+                  Odsoten
+                </Button>
               </div>
+            ) : isMarkedAbsent ? (
+              <>
+                <Badge variant="destructive" className="w-full justify-center py-1.5 text-xs">
+                  Označeni kot odsotni
+                </Badge>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancelAbsent();
+                  }} 
+                  disabled={loading} 
+                  variant="outline"
+                  className="w-full"
+                >
+                  Prekliči odsotnost
+                </Button>
+              </>
             ) : (
               <>
                 <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">

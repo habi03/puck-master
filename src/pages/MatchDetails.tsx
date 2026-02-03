@@ -1197,6 +1197,28 @@ export default function MatchDetails() {
             Ni še prijavljenih igralcev
           </p>
         )}
+
+        {/* Odsotni igralci */}
+        {participants.filter(p => p.is_present === false || (p as any).is_absent === true).length > 0 && (
+          <div className="space-y-2 mt-6">
+            <h3 className="text-sm font-semibold text-muted-foreground">
+              Odsotni
+            </h3>
+            <Card>
+              <CardContent className="pt-4 space-y-2">
+                {participants
+                  .filter(p => p.is_present === false || (p as any).is_absent === true)
+                  .map((p) => (
+                    <div key={p.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">
+                        {p.profiles?.full_name || p.profiles?.email.split('@')[0]}
+                      </span>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );
