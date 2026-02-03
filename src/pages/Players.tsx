@@ -31,6 +31,12 @@ interface PlayerWithRating {
   myRating?: number;
 }
 
+interface Rater {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+}
+
 export default function Players() {
   const [user, setUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<PlayerWithRating[]>([]);
@@ -40,6 +46,10 @@ export default function Players() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
+  const [isLeagueAdmin, setIsLeagueAdmin] = useState(false);
+  const [ratersDialogOpen, setRatersDialogOpen] = useState(false);
+  const [raters, setRaters] = useState<Rater[]>([]);
+  const [ratersPlayerName, setRatersPlayerName] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,10 +84,10 @@ export default function Players() {
       
       if (!user) return;
       
-      // Verify membership
+      // Verify membership and check admin status
       const { data, error } = await supabase
         .from("league_members")
-        .select("id")
+        .select("id, role")
         .eq("league_id", leagueId)
         .eq("user_id", user.id)
         .single();
@@ -90,6 +100,7 @@ export default function Players() {
       }
       
       setCurrentLeagueId(leagueId);
+      setIsLeagueAdmin(data.role === 'admin');
     };
     
     if (user) {
@@ -202,6 +213,50 @@ export default function Players() {
     }
   };
 
+  const handleRatingClick = async (player: PlayerWithRating) => {
+    if (!isLeagueAdmin || player.total_ratings === 0) return;
+    
+    try {
+      // Fetch all raters for this player
+      const { data: ratingsData, error: ratingsError } = await supabase
+        .from("player_ratings")
+        .select("rater_id")
+        .eq("rated_player_id", player.id);
+
+      if (ratingsError) throw ratingsError;
+
+      if (!ratingsData || ratingsData.length === 0) {
+        setRaters([]);
+        setRatersPlayerName(player.full_name);
+        setRatersDialogOpen(true);
+        return;
+      }
+
+      const raterIds = ratingsData.map(r => r.rater_id);
+
+      // Fetch profiles of raters
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", raterIds);
+
+      if (profilesError) throw profilesError;
+
+      const ratersData: Rater[] = (profiles || []).map(p => ({
+        id: p.id,
+        full_name: p.full_name || "Brez imena",
+        avatar_url: p.avatar_url || undefined,
+      }));
+
+      setRaters(ratersData);
+      setRatersPlayerName(player.full_name);
+      setRatersDialogOpen(true);
+    } catch (error) {
+      toast.error("Napaka pri nalaganju ocenjevalcev");
+      console.error(error);
+    }
+  };
+
   const submitRating = async () => {
     if (!selectedPlayer || !user) return;
 
@@ -274,7 +329,11 @@ export default function Players() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div 
+                      className={`flex items-center gap-1 flex-shrink-0 ${isLeagueAdmin && player.total_ratings > 0 ? 'cursor-pointer hover:opacity-70 transition-opacity' : ''}`}
+                      onClick={() => handleRatingClick(player)}
+                      title={isLeagueAdmin && player.total_ratings > 0 ? "Klikni za ogled ocenjevalcev" : undefined}
+                    >
                       <Star className="h-4 w-4 fill-primary text-primary" />
                       <span className="font-bold text-sm">
                         {player.average_rating.toFixed(2)}
@@ -367,6 +426,36 @@ export default function Players() {
                   </p>
                 )}
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Raters Dialog - Admin only */}
+        <Dialog open={ratersDialogOpen} onOpenChange={setRatersDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Ocenjevalci igralca: {ratersPlayerName}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              {raters.length === 0 ? (
+                <p className="text-center text-muted-foreground text-sm">
+                  Ta igralec še nima ocen.
+                </p>
+              ) : (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                  {raters.map((rater) => (
+                    <div key={rater.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={rater.avatar_url} alt={rater.full_name} />
+                        <AvatarFallback>
+                          {rater.full_name[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{rater.full_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
