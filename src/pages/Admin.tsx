@@ -771,6 +771,76 @@ export default function Admin() {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Barve ekip
+                </CardTitle>
+                <CardDescription>
+                  Nastavite barve za posamezne ekipe (do 4 ekipe).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {teamColors.slice(0, 4).map((color, index) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Ekipa {index + 1}</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) => {
+                            const newColors = [...teamColors];
+                            newColors[index] = e.target.value;
+                            setTeamColors(newColors);
+                          }}
+                          className="w-10 h-10 rounded cursor-pointer border border-border"
+                        />
+                        <Input
+                          value={color}
+                          onChange={(e) => {
+                            const newColors = [...teamColors];
+                            newColors[index] = e.target.value;
+                            setTeamColors(newColors);
+                          }}
+                          className="font-mono text-sm"
+                          placeholder="#000000"
+                        />
+                      </div>
+                      <div 
+                        className="h-8 rounded-md border flex items-center justify-center text-xs font-semibold"
+                        style={{
+                          backgroundColor: `${color}20`,
+                          color: color,
+                          borderColor: `${color}60`,
+                        }}
+                      >
+                        Ekipa {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => setTeamColors([...DEFAULT_TEAM_COLORS])}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Ponastavi na privzete barve
+                </Button>
+                
+                <Button 
+                  onClick={handleUpdateTeamColors} 
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? "Shranjujem..." : "Shrani barve"}
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
