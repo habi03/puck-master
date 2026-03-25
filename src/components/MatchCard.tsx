@@ -424,6 +424,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         points_penalty_win: getValue(matchAny.points_penalty_win, leagueAny.points_penalty_win, "2"),
         points_penalty_loss: getValue(matchAny.points_penalty_loss, leagueAny.points_penalty_loss, "1"),
       });
+      // Load team colors
+      if (leagueAny.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      }
       setScoringDialogOpen(true);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju točkovanja");
