@@ -751,17 +751,9 @@ export default function MatchDetails() {
                   const goalkeepers = teamPlayers.filter(p => p.position === "vratar");
                   
                   return (
-                    <Card key={teamNum} className={`${
-                      parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
-                      parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
-                      "bg-blue-50 border-blue-200"
-                    }`}>
+                    <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                       <CardHeader className="pb-3">
-                        <CardTitle className={`text-sm flex items-center justify-between ${
-                          parseInt(teamNum) === 1 ? "text-green-700" : 
-                          parseInt(teamNum) === 2 ? "text-red-700" : 
-                          "text-blue-700"
-                        }`}>
+                        <CardTitle className="text-sm flex items-center justify-between" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                           <span className="font-bold">Ekipa {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
@@ -842,17 +834,9 @@ export default function MatchDetails() {
               )}
             </div>
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => (
-              <Card key={teamNum} className={`${
-                parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
-                parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
-                "bg-blue-50 border-blue-200"
-              }`}>
+              <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                 <CardHeader className="pb-2">
-                  <CardTitle className={`text-sm ${
-                    parseInt(teamNum) === 1 ? "text-green-700" : 
-                    parseInt(teamNum) === 2 ? "text-red-700" : 
-                    "text-blue-700"
-                  }`}>
+                  <CardTitle className="text-sm" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold">Ekipa {teamNum}</span>
