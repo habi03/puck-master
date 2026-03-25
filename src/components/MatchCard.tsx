@@ -989,11 +989,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
                   const result = matchResults.find(r => r.team_number === teamNum);
                   const goals = result?.goals_scored || 0;
-                  const teamColor = teamNum === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                                   teamNum === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                                   "bg-blue-100 text-blue-700 border-blue-300";
                   return (
-                    <div key={teamNum} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border ${teamColor}`}>
+                    <div key={teamNum} className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border" style={getTeamColorStyle(teamNum, teamColors)}>
                       <span className="text-xs font-semibold">Ekipa {teamNum}</span>
                       <div className="text-2xl font-bold">
                         {goals}
