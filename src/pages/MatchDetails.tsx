@@ -1155,11 +1155,7 @@ export default function MatchDetails() {
                         {p.position}
                       </Badge>
                       {p.team_number && (
-                        <Badge className={`text-xs flex-shrink-0 ${
-                          p.team_number === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                          p.team_number === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                          "bg-blue-100 text-blue-700 border-blue-300"
-                        }`}>
+                        <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
                           Ekipa {p.team_number}
                         </Badge>
                       )}
