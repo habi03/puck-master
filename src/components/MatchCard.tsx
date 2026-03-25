@@ -549,9 +549,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       toast.error("Prijave so zaklenjene");
       return;
     }
-    // Check position-specific limits
-    const playersCount = participants.filter(p => p.position === "igralec").length;
-    const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
+    // Check position-specific limits (exclude absent)
+    const activeParticipants = participants.filter(p => !p.is_absent);
+    const playersCount = activeParticipants.filter(p => p.position === "igralec").length;
+    const goalkeepersCount = activeParticipants.filter(p => p.position === "vratar").length;
     
     if (position === "igralec") {
       if (match.max_players && playersCount >= match.max_players) {
@@ -924,8 +925,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             <Users className="h-4 w-4 flex-shrink-0" />
             <span className="text-xs">
               {(() => {
-                const playersCount = participants.filter(p => p.position === "igralec").length;
-                const goalkeepersCount = participants.filter(p => p.position === "vratar").length;
+                const active = participants.filter(p => !p.is_absent);
+                const playersCount = active.filter(p => p.position === "igralec").length;
+                const goalkeepersCount = active.filter(p => p.position === "vratar").length;
                 const playersText = `${playersCount}${match.max_players ? `/${match.max_players}` : ''} igralcev`;
                 const goalkeepersText = `${goalkeepersCount}${match.max_goalkeepers ? `/${match.max_goalkeepers}` : ''} vratarjev`;
                 return `${playersText}, ${goalkeepersText}`;
