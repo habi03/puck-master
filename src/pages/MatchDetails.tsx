@@ -218,9 +218,10 @@ export default function MatchDetails() {
     
     setLoading(true);
     try {
-      // Separate goalkeepers and players
-      const goalkeepers = participants.filter(p => p.position === "vratar");
-      const players = participants.filter(p => p.position === "igralec");
+      // Separate goalkeepers and players (exclude absent)
+      const activePlayers = participants.filter(p => !(p as any).is_absent);
+      const goalkeepers = activePlayers.filter(p => p.position === "vratar");
+      const players = activePlayers.filter(p => p.position === "igralec");
       
       const numTeams = match.number_of_teams;
       const teams: Participant[][] = Array.from({ length: numTeams }, () => []);

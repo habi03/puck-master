@@ -832,7 +832,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
-  const beerBringer = participants.find(p => p.brings_beer);
+  const beerBringer = participants.filter(p => !p.is_absent).find(p => p.brings_beer);
 
   const matchDate = new Date(match.match_date);
   const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: sl });
