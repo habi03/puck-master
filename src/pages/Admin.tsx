@@ -243,6 +243,24 @@ export default function Admin() {
     }
   };
 
+  const handleUpdateTeamColors = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("leagues")
+        .update({ team_colors: teamColors } as any)
+        .eq("id", currentLeagueId);
+
+      if (error) throw error;
+      toast.success("Barve ekip shranjene");
+    } catch (error: any) {
+      toast.error("Napaka pri shranjevanju barv");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleUpdateRole = async (memberId: string, newRole: "admin" | "plačan_član" | "neplačan_član") => {
     setLoading(true);
     try {
