@@ -1,0 +1,1 @@
+ALTER TABLE public.leagues ADD COLUMN team_colors jsonb DEFAULT '["#22c55e","#ef4444","#3b82f6","#eab308"]'::jsonb;
