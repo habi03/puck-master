@@ -218,9 +218,10 @@ export default function MatchDetails() {
     
     setLoading(true);
     try {
-      // Separate goalkeepers and players
-      const goalkeepers = participants.filter(p => p.position === "vratar");
-      const players = participants.filter(p => p.position === "igralec");
+      // Separate goalkeepers and players (exclude absent)
+      const activePlayers = participants.filter(p => !(p as any).is_absent);
+      const goalkeepers = activePlayers.filter(p => p.position === "vratar");
+      const players = activePlayers.filter(p => p.position === "igralec");
       
       const numTeams = match.number_of_teams;
       const teams: Participant[][] = Array.from({ length: numTeams }, () => []);
@@ -556,11 +557,14 @@ export default function MatchDetails() {
 
   if (!match) return null;
 
+  // Filter out absent players from active participants
+  const activeParticipants = participants.filter(p => !(p as any).is_absent);
+
   // Group participants by team
   const teams: { [key: number]: Participant[] } = {};
   const unassigned: Participant[] = [];
   
-  participants.forEach(p => {
+  activeParticipants.forEach(p => {
     if (p.team_number) {
       if (!teams[p.team_number]) teams[p.team_number] = [];
       teams[p.team_number].push(p);
@@ -671,7 +675,7 @@ export default function MatchDetails() {
               <div className="flex gap-2">
                 <Button 
                   onClick={distributeTeams}
-                  disabled={loading || participants.length === 0}
+                  disabled={loading || activeParticipants.length === 0}
                   size="sm"
                   className="flex-1"
                 >
@@ -815,7 +819,7 @@ export default function MatchDetails() {
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Users className="h-4 w-4" />
-          <span>{participants.length} prijavljenih igralcev</span>
+          <span>{activeParticipants.length} prijavljenih igralcev</span>
         </div>
 
         {Object.keys(teams).length > 0 && (
@@ -1192,7 +1196,7 @@ export default function MatchDetails() {
           </div>
         )}
 
-        {participants.length === 0 && (
+        {activeParticipants.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
             Ni še prijavljenih igralcev
           </p>
