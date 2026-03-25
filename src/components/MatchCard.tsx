@@ -73,6 +73,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_win: "2",
     points_penalty_loss: "1",
   });
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation && !userParticipation.is_absent;
