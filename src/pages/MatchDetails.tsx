@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getTeamColorStyle, DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
