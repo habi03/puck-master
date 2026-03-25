@@ -82,6 +82,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   useEffect(() => {
     checkAdminStatus();
+    fetchTeamColors();
   }, [match.league_id, currentUser.id]);
 
   useEffect(() => {
@@ -90,6 +91,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       fetchMatchSaves();
     }
   }, [isCompleted, match.id]);
+
+  const fetchTeamColors = async () => {
+    try {
+      const { data } = await supabase.from("leagues").select("*").eq("id", match.league_id).single();
+      const leagueAny = data as any;
+      if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      }
+    } catch {}
+  };
 
   const checkAdminStatus = async () => {
     try {
