@@ -56,6 +56,7 @@ export default function MatchDetails() {
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
   const [winType, setWinType] = useState<"regulation" | "penalty_shootout">("regulation");
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
