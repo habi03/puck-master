@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { getTeamColorStyle, DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,6 +73,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_win: "2",
     points_penalty_loss: "1",
   });
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation && !userParticipation.is_absent;
@@ -80,6 +82,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   useEffect(() => {
     checkAdminStatus();
+    fetchTeamColors();
   }, [match.league_id, currentUser.id]);
 
   useEffect(() => {
@@ -88,6 +91,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       fetchMatchSaves();
     }
   }, [isCompleted, match.id]);
+
+  const fetchTeamColors = async () => {
+    try {
+      const { data } = await supabase.from("leagues").select("*").eq("id", match.league_id).single();
+      const leagueAny = data as any;
+      if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      }
+    } catch {}
+  };
 
   const checkAdminStatus = async () => {
     try {
@@ -422,6 +435,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         points_penalty_win: getValue(matchAny.points_penalty_win, leagueAny.points_penalty_win, "2"),
         points_penalty_loss: getValue(matchAny.points_penalty_loss, leagueAny.points_penalty_loss, "1"),
       });
+      // Load team colors
+      if (leagueAny.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      }
       setScoringDialogOpen(true);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju točkovanja");
@@ -972,11 +989,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
                   const result = matchResults.find(r => r.team_number === teamNum);
                   const goals = result?.goals_scored || 0;
-                  const teamColor = teamNum === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                                   teamNum === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                                   "bg-blue-100 text-blue-700 border-blue-300";
                   return (
-                    <div key={teamNum} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border ${teamColor}`}>
+                    <div key={teamNum} className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border" style={getTeamColorStyle(teamNum, teamColors)}>
                       <span className="text-xs font-semibold">Ekipa {teamNum}</span>
                       <div className="text-2xl font-bold">
                         {goals}

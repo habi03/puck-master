@@ -107,6 +107,7 @@ export type Database = {
           points_penalty_loss: number
           points_penalty_win: number
           points_win: number
+          team_colors: Json | null
           updated_at: string
         }
         Insert: {
@@ -120,6 +121,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          team_colors?: Json | null
           updated_at?: string
         }
         Update: {
@@ -133,6 +135,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          team_colors?: Json | null
           updated_at?: string
         }
         Relationships: []

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getTeamColorStyle, getTeamCardStyle, getTeamTextColor, DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -55,6 +56,7 @@ export default function MatchDetails() {
   const [teamGoals, setTeamGoals] = useState<{ [key: number]: number }>({});
   const [matchResults, setMatchResults] = useState<any[]>([]);
   const [winType, setWinType] = useState<"regulation" | "penalty_shootout">("regulation");
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -127,6 +129,13 @@ export default function MatchDetails() {
       // Set algorithm from database if available
       if (data.team_algorithm) {
         setUsedAlgorithm(data.team_algorithm);
+      }
+
+      // Load team colors from league
+      const { data: leagueData } = await supabase.from("leagues").select("*").eq("id", data.league_id).single();
+      const leagueAny = leagueData as any;
+      if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
       }
     } catch (error: any) {
       toast.error("Napaka pri nalaganju tekme");
@@ -742,17 +751,9 @@ export default function MatchDetails() {
                   const goalkeepers = teamPlayers.filter(p => p.position === "vratar");
                   
                   return (
-                    <Card key={teamNum} className={`${
-                      parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
-                      parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
-                      "bg-blue-50 border-blue-200"
-                    }`}>
+                    <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                       <CardHeader className="pb-3">
-                        <CardTitle className={`text-sm flex items-center justify-between ${
-                          parseInt(teamNum) === 1 ? "text-green-700" : 
-                          parseInt(teamNum) === 2 ? "text-red-700" : 
-                          "text-blue-700"
-                        }`}>
+                        <CardTitle className="text-sm flex items-center justify-between" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                           <span className="font-bold">Ekipa {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
@@ -833,17 +834,9 @@ export default function MatchDetails() {
               )}
             </div>
                 {Object.entries(teams).map(([teamNum, teamPlayers]) => (
-              <Card key={teamNum} className={`${
-                parseInt(teamNum) === 1 ? "bg-green-50 border-green-200" : 
-                parseInt(teamNum) === 2 ? "bg-red-50 border-red-200" : 
-                "bg-blue-50 border-blue-200"
-              }`}>
+              <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                 <CardHeader className="pb-2">
-                  <CardTitle className={`text-sm ${
-                    parseInt(teamNum) === 1 ? "text-green-700" : 
-                    parseInt(teamNum) === 2 ? "text-red-700" : 
-                    "text-blue-700"
-                  }`}>
+                  <CardTitle className="text-sm" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold">Ekipa {teamNum}</span>
@@ -1146,11 +1139,7 @@ export default function MatchDetails() {
                         {p.position}
                       </Badge>
                       {p.team_number && (
-                        <Badge className={`text-xs flex-shrink-0 ${
-                          p.team_number === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                          p.team_number === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                          "bg-blue-100 text-blue-700 border-blue-300"
-                        }`}>
+                        <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
                           Ekipa {p.team_number}
                         </Badge>
                       )}
@@ -1177,11 +1166,7 @@ export default function MatchDetails() {
                         {p.position}
                       </Badge>
                       {p.team_number && (
-                        <Badge className={`text-xs flex-shrink-0 ${
-                          p.team_number === 1 ? "bg-green-100 text-green-700 border-green-300" : 
-                          p.team_number === 2 ? "bg-red-100 text-red-700 border-red-300" : 
-                          "bg-blue-100 text-blue-700 border-blue-300"
-                        }`}>
+                        <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
                           Ekipa {p.team_number}
                         </Badge>
                       )}

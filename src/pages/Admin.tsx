@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar, Plus, Lock, Pencil } from "lucide-react";
+import { Shield, Users, Calendar, Plus, Lock, Pencil, Palette } from "lucide-react";
+import { DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,6 +37,7 @@ export default function Admin() {
     points_penalty_win: "2",
     points_penalty_loss: "1",
   });
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
   const navigate = useNavigate();
 
   const matchSchema = z.object({
@@ -200,6 +202,13 @@ export default function Admin() {
         points_penalty_win: getValue(leagueAny.points_penalty_win, "2"),
         points_penalty_loss: getValue(leagueAny.points_penalty_loss, "1"),
       });
+      
+      // Load team colors
+      if (leagueAny.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      } else {
+        setTeamColors([...DEFAULT_TEAM_COLORS]);
+      }
     } catch (error: any) {
       // Error fetching settings - continue silently
     }
@@ -233,6 +242,24 @@ export default function Admin() {
       setLoading(false);
     }
   };
+
+  const handleUpdateTeamColors = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("leagues")
+        .update({ team_colors: teamColors } as any)
+        .eq("id", currentLeagueId);
+
+      if (error) throw error;
+      toast.success("Barve ekip shranjene");
+    } catch (error: any) {
+      toast.error("Napaka pri shranjevanju barv");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleUpdateRole = async (memberId: string, newRole: "admin" | "plačan_član" | "neplačan_član") => {
     setLoading(true);
@@ -741,6 +768,76 @@ export default function Admin() {
                   className="w-full"
                 >
                   {loading ? "Shranjujem..." : "Shrani točkovanje"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Barve ekip
+                </CardTitle>
+                <CardDescription>
+                  Nastavite barve za posamezne ekipe (do 4 ekipe).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {teamColors.slice(0, 4).map((color, index) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Ekipa {index + 1}</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) => {
+                            const newColors = [...teamColors];
+                            newColors[index] = e.target.value;
+                            setTeamColors(newColors);
+                          }}
+                          className="w-10 h-10 rounded cursor-pointer border border-border"
+                        />
+                        <Input
+                          value={color}
+                          onChange={(e) => {
+                            const newColors = [...teamColors];
+                            newColors[index] = e.target.value;
+                            setTeamColors(newColors);
+                          }}
+                          className="font-mono text-sm"
+                          placeholder="#000000"
+                        />
+                      </div>
+                      <div 
+                        className="h-8 rounded-md border flex items-center justify-center text-xs font-semibold"
+                        style={{
+                          backgroundColor: `${color}20`,
+                          color: color,
+                          borderColor: `${color}60`,
+                        }}
+                      >
+                        Ekipa {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => setTeamColors([...DEFAULT_TEAM_COLORS])}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Ponastavi na privzete barve
+                </Button>
+                
+                <Button 
+                  onClick={handleUpdateTeamColors} 
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? "Shranjujem..." : "Shrani barve"}
                 </Button>
               </CardContent>
             </Card>
