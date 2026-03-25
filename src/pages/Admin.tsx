@@ -202,6 +202,13 @@ export default function Admin() {
         points_penalty_win: getValue(leagueAny.points_penalty_win, "2"),
         points_penalty_loss: getValue(leagueAny.points_penalty_loss, "1"),
       });
+      
+      // Load team colors
+      if (leagueAny.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      } else {
+        setTeamColors([...DEFAULT_TEAM_COLORS]);
+      }
     } catch (error: any) {
       // Error fetching settings - continue silently
     }
