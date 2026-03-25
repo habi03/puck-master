@@ -130,6 +130,13 @@ export default function MatchDetails() {
       if (data.team_algorithm) {
         setUsedAlgorithm(data.team_algorithm);
       }
+
+      // Load team colors from league
+      const { data: leagueData } = await supabase.from("leagues").select("*").eq("id", data.league_id).single();
+      const leagueAny = leagueData as any;
+      if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
+        setTeamColors(leagueAny.team_colors);
+      }
     } catch (error: any) {
       toast.error("Napaka pri nalaganju tekme");
       navigate("/");
