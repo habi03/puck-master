@@ -37,6 +37,7 @@ export default function Admin() {
     points_penalty_win: "2",
     points_penalty_loss: "1",
   });
+  const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
   const navigate = useNavigate();
 
   const matchSchema = z.object({
