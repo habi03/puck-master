@@ -262,13 +262,13 @@ export default function Index() {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-3">
-            {matches.filter(m => m.is_completed).length === 0 ? (
+            {matches.filter(m => m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
                 Ni še zaključenih tekem.
               </p>
             ) : (
               matches
-                .filter(m => m.is_completed)
+                .filter(m => m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId))
                 .sort((a, b) => {
                   // Sort completed matches by date descending (newest first)
                   const dateCompare = new Date(b.match_date).getTime() - new Date(a.match_date).getTime();
