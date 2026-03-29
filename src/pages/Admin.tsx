@@ -218,6 +218,95 @@ export default function Admin() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", currentLeagueId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setSeasons(data || []);
+    } catch (error: any) {
+      toast.error("Napaka pri nalaganju sezon");
+    }
+  };
+
+  const handleCreateSeason = async () => {
+    if (!newSeasonName.trim()) {
+      toast.error("Ime sezone je obvezno");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("seasons")
+        .insert({
+          league_id: currentLeagueId,
+          name: newSeasonName.trim(),
+          is_active: seasons.length === 0, // First season is active by default
+        } as any);
+
+      if (error) throw error;
+      toast.success("Sezona ustvarjena");
+      setNewSeasonName("");
+      setSeasonDialogOpen(false);
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetActiveSeason = async (seasonId: string) => {
+    setLoading(true);
+    try {
+      // Deactivate all seasons for this league
+      const { error: deactivateError } = await supabase
+        .from("seasons")
+        .update({ is_active: false } as any)
+        .eq("league_id", currentLeagueId);
+
+      if (deactivateError) throw deactivateError;
+
+      // Activate the selected season
+      const { error: activateError } = await supabase
+        .from("seasons")
+        .update({ is_active: true } as any)
+        .eq("id", seasonId);
+
+      if (activateError) throw activateError;
+
+      toast.success("Aktivna sezona spremenjena");
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSeason = async (seasonId: string) => {
+    if (!confirm("Ali ste prepričani? Tekme v tej sezoni bodo ostale brez sezone.")) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("seasons")
+        .delete()
+        .eq("id", seasonId);
+
+      if (error) throw error;
+      toast.success("Sezona izbrisana");
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpdateScoringDefaults = async () => {
     setLoading(true);
     try {
