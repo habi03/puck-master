@@ -151,6 +151,15 @@ export default function Leaderboard() {
         });
       });
 
+      // Get match IDs for filtering participants
+      const matchIds = matches?.map(m => m.id) || [];
+      
+      if (matchIds.length === 0) {
+        setLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
       // Get all match participants with their profiles
       const { data: participants, error: participantsError } = await supabase
         .from("match_participants")
@@ -158,11 +167,9 @@ export default function Leaderboard() {
           player_id,
           position,
           team_number,
-          match_id,
-          matches!inner(id, league_id, is_completed)
+          match_id
         `)
-        .eq("matches.league_id", leagueId)
-        .eq("matches.is_completed", true)
+        .in("match_id", matchIds)
         .eq("is_present", true);
 
       if (participantsError) throw participantsError;
