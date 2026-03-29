@@ -393,6 +393,9 @@ export default function Admin() {
   const handleCreateMatch = async (values: z.infer<typeof matchSchema>) => {
     setLoading(true);
     try {
+      // Find active season
+      const activeSeason = seasons.find(s => s.is_active);
+      
       const { error } = await supabase
         .from("matches")
         .insert({
@@ -400,8 +403,9 @@ export default function Admin() {
           match_date: values.match_date,
           match_time: values.match_time,
           number_of_teams: values.number_of_teams,
-          created_by: user?.id
-        });
+          created_by: user?.id,
+          ...(activeSeason ? { season_id: activeSeason.id } : {}),
+        } as any);
 
       if (error) throw error;
       toast.success("Tekma uspešno ustvarjena");
