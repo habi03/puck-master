@@ -128,6 +128,7 @@ export default function Admin() {
       fetchMembers();
       fetchMatches();
       fetchLeagueSettings();
+      fetchSeasons();
     }
   }, [user, currentLeagueId]);
 
