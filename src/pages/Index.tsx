@@ -81,6 +81,7 @@ export default function Index() {
     if (user && currentLeagueId) {
       fetchProfile();
       fetchCurrentMembership();
+      fetchSeasons();
       fetchMatches();
       fetchParticipants();
     }
