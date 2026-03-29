@@ -42,10 +42,10 @@ export function getTeamColorStyle(teamNum: number, colors: string[] = DEFAULT_TE
   const light = isLightColor(hex);
   const textColor = light ? darkenHex(hex, 0.5) : hex;
   return {
-    backgroundColor: `${hex}20`,
+    backgroundColor: `${hex}26`,
     color: textColor,
-    borderColor: light ? `${darkenHex(hex, 0.3)}80` : `${hex}60`,
-    borderWidth: "1px",
+    borderColor: light ? `${darkenHex(hex, 0.3)}B3` : `${hex}99`,
+    borderWidth: "2px",
     borderStyle: "solid",
   };
 }
@@ -56,9 +56,9 @@ export function getTeamCardStyle(teamNum: number, colors: string[] = DEFAULT_TEA
   const light = isLightColor(hex);
   const borderHex = light ? darkenHex(hex, 0.3) : hex;
   return {
-    backgroundColor: `${hex}12`,
-    borderColor: `${borderHex}60`,
-    borderWidth: "1px",
+    backgroundColor: `${hex}1A`,
+    borderColor: `${borderHex}99`,
+    borderWidth: "2px",
     borderStyle: "solid",
   };
 }
