@@ -390,6 +390,24 @@ export default function Leaderboard() {
           </CardHeader>
         </Card>
 
+        {seasons.length > 0 && (
+          <div className="mb-4">
+            <Select value={selectedSeasonId} onValueChange={handleSeasonChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Izberi sezono" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Vse sezone</SelectItem>
+                {seasons.map((season) => (
+                  <SelectItem key={season.id} value={season.id}>
+                    {season.name} {season.is_active ? "⭐" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all">
