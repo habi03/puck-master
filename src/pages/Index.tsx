@@ -219,6 +219,24 @@ export default function Index() {
           </p>
         </div>
 
+        {seasons.length > 0 && (
+          <div className="mb-4">
+            <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Izberi sezono" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Vse sezone</SelectItem>
+                {seasons.map((season) => (
+                  <SelectItem key={season.id} value={season.id}>
+                    {season.name} {season.is_active ? "⭐" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="upcoming">Prihajajoče tekme</TabsTrigger>
@@ -226,7 +244,7 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
-            {matches.filter(m => !m.is_completed).length === 0 ? (
+            {matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
                 Trenutno ni razpisanih prihajajučih tekem.
               </p>
