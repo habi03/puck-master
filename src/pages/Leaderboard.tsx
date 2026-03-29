@@ -124,11 +124,17 @@ export default function Leaderboard() {
       setScoring(leagueDefaults);
 
       // Get all completed matches with their scoring
-      const { data: matches, error: matchesError } = await supabase
+      let matchesQuery = supabase
         .from("matches")
         .select("*")
         .eq("league_id", leagueId)
         .eq("is_completed", true);
+      
+      if (seasonId !== "all") {
+        matchesQuery = matchesQuery.eq("season_id", seasonId);
+      }
+      
+      const { data: matches, error: matchesError } = await matchesQuery;
 
       if (matchesError) throw matchesError;
 
