@@ -73,10 +73,35 @@ export default function Leaderboard() {
       return;
     }
 
-    fetchLeaderboard(leagueId);
+    // Fetch seasons
+    const { data: seasonsData } = await supabase
+      .from("seasons")
+      .select("*")
+      .eq("league_id", leagueId)
+      .order("created_at", { ascending: false });
+    
+    const seasonsList = seasonsData || [];
+    setSeasons(seasonsList);
+    
+    const activeSeason = seasonsList.find((s: any) => s.is_active);
+    if (activeSeason) {
+      setSelectedSeasonId(activeSeason.id);
+      fetchLeaderboard(leagueId, activeSeason.id);
+    } else {
+      setSelectedSeasonId("all");
+      fetchLeaderboard(leagueId, "all");
+    }
   };
 
-  const fetchLeaderboard = async (leagueId: string) => {
+  const handleSeasonChange = (seasonId: string) => {
+    setSelectedSeasonId(seasonId);
+    const leagueId = localStorage.getItem("currentLeagueId");
+    if (leagueId) {
+      fetchLeaderboard(leagueId, seasonId);
+    }
+  };
+
+  const fetchLeaderboard = async (leagueId: string, seasonId: string = "all") => {
     try {
       setLoading(true);
 
