@@ -16,6 +16,8 @@ export default function Index() {
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [currentMembership, setCurrentMembership] = useState<any>(null);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const navigate = useNavigate();
 
   useEffect(() => {
