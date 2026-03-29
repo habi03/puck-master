@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar, Plus, Lock, Pencil, Palette } from "lucide-react";
+import { Shield, Users, Calendar, Plus, Lock, Pencil, Palette, CalendarDays, Trash2, Star } from "lucide-react";
 import { DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,9 @@ export default function Admin() {
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [newSeasonName, setNewSeasonName] = useState("");
+  const [seasonDialogOpen, setSeasonDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const matchSchema = z.object({
