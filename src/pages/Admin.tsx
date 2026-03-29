@@ -840,6 +840,7 @@ export default function Admin() {
             )}
           </TabsContent>
 
+          <TabsContent value="settings" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
