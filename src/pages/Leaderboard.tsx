@@ -32,6 +32,8 @@ export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showScoring, setShowScoring] = useState(false);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const [scoring, setScoring] = useState<ScoringConfig>({
     points_attendance: 1,
     points_win: 3,
