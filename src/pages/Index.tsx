@@ -249,7 +249,7 @@ export default function Index() {
                 Trenutno ni razpisanih prihajajučih tekem.
               </p>
             ) : (
-              matches.filter(m => !m.is_completed).map((match) => (
+              matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).map((match) => (
                 <MatchCard
                   key={match.id}
                   match={match}
