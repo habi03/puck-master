@@ -247,6 +247,7 @@ export type Database = {
           points_penalty_loss: number | null
           points_penalty_win: number | null
           points_win: number | null
+          season_id: string | null
           signups_locked: boolean
           team_algorithm: string | null
           updated_at: string
@@ -269,6 +270,7 @@ export type Database = {
           points_penalty_loss?: number | null
           points_penalty_win?: number | null
           points_win?: number | null
+          season_id?: string | null
           signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string
@@ -291,6 +293,7 @@ export type Database = {
           points_penalty_loss?: number | null
           points_penalty_win?: number | null
           points_win?: number | null
+          season_id?: string | null
           signups_locked?: boolean
           team_algorithm?: string | null
           updated_at?: string
@@ -315,6 +318,13 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "public_leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -437,6 +447,48 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          league_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          league_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          league_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seasons_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "public_leagues"
             referencedColumns: ["id"]
           },
         ]

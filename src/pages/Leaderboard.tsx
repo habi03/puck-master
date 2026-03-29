@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Award, Target, UserCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface LeaderboardEntry {
   player_id: string;
@@ -31,6 +32,8 @@ export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showScoring, setShowScoring] = useState(false);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const [scoring, setScoring] = useState<ScoringConfig>({
     points_attendance: 1,
     points_win: 3,
@@ -70,10 +73,35 @@ export default function Leaderboard() {
       return;
     }
 
-    fetchLeaderboard(leagueId);
+    // Fetch seasons
+    const { data: seasonsData } = await supabase
+      .from("seasons")
+      .select("*")
+      .eq("league_id", leagueId)
+      .order("created_at", { ascending: false });
+    
+    const seasonsList = seasonsData || [];
+    setSeasons(seasonsList);
+    
+    const activeSeason = seasonsList.find((s: any) => s.is_active);
+    if (activeSeason) {
+      setSelectedSeasonId(activeSeason.id);
+      fetchLeaderboard(leagueId, activeSeason.id);
+    } else {
+      setSelectedSeasonId("all");
+      fetchLeaderboard(leagueId, "all");
+    }
   };
 
-  const fetchLeaderboard = async (leagueId: string) => {
+  const handleSeasonChange = (seasonId: string) => {
+    setSelectedSeasonId(seasonId);
+    const leagueId = localStorage.getItem("currentLeagueId");
+    if (leagueId) {
+      fetchLeaderboard(leagueId, seasonId);
+    }
+  };
+
+  const fetchLeaderboard = async (leagueId: string, seasonId: string = "all") => {
     try {
       setLoading(true);
 
@@ -96,11 +124,17 @@ export default function Leaderboard() {
       setScoring(leagueDefaults);
 
       // Get all completed matches with their scoring
-      const { data: matches, error: matchesError } = await supabase
+      let matchesQuery = supabase
         .from("matches")
         .select("*")
         .eq("league_id", leagueId)
         .eq("is_completed", true);
+      
+      if (seasonId !== "all") {
+        matchesQuery = matchesQuery.eq("season_id", seasonId);
+      }
+      
+      const { data: matches, error: matchesError } = await matchesQuery;
 
       if (matchesError) throw matchesError;
 
@@ -117,6 +151,15 @@ export default function Leaderboard() {
         });
       });
 
+      // Get match IDs for filtering participants
+      const matchIds = matches?.map(m => m.id) || [];
+      
+      if (matchIds.length === 0) {
+        setLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
       // Get all match participants with their profiles
       const { data: participants, error: participantsError } = await supabase
         .from("match_participants")
@@ -124,11 +167,9 @@ export default function Leaderboard() {
           player_id,
           position,
           team_number,
-          match_id,
-          matches!inner(id, league_id, is_completed)
+          match_id
         `)
-        .eq("matches.league_id", leagueId)
-        .eq("matches.is_completed", true)
+        .in("match_id", matchIds)
         .eq("is_present", true);
 
       if (participantsError) throw participantsError;
@@ -348,6 +389,24 @@ export default function Leaderboard() {
             )}
           </CardHeader>
         </Card>
+
+        {seasons.length > 0 && (
+          <div className="mb-4">
+            <Select value={selectedSeasonId} onValueChange={handleSeasonChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Izberi sezono" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Vse sezone</SelectItem>
+                {seasons.map((season) => (
+                  <SelectItem key={season.id} value={season.id}>
+                    {season.name} {season.is_active ? "⭐" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3">

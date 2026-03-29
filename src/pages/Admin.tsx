@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Calendar, Plus, Lock, Pencil, Palette } from "lucide-react";
+import { Shield, Users, Calendar, Plus, Lock, Pencil, Palette, CalendarDays, Trash2, Star } from "lucide-react";
 import { DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,9 @@ export default function Admin() {
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [newSeasonName, setNewSeasonName] = useState("");
+  const [seasonDialogOpen, setSeasonDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const matchSchema = z.object({
@@ -125,6 +128,7 @@ export default function Admin() {
       fetchMembers();
       fetchMatches();
       fetchLeagueSettings();
+      fetchSeasons();
     }
   }, [user, currentLeagueId]);
 
@@ -214,6 +218,95 @@ export default function Admin() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", currentLeagueId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setSeasons(data || []);
+    } catch (error: any) {
+      toast.error("Napaka pri nalaganju sezon");
+    }
+  };
+
+  const handleCreateSeason = async () => {
+    if (!newSeasonName.trim()) {
+      toast.error("Ime sezone je obvezno");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("seasons")
+        .insert({
+          league_id: currentLeagueId,
+          name: newSeasonName.trim(),
+          is_active: seasons.length === 0, // First season is active by default
+        } as any);
+
+      if (error) throw error;
+      toast.success("Sezona ustvarjena");
+      setNewSeasonName("");
+      setSeasonDialogOpen(false);
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetActiveSeason = async (seasonId: string) => {
+    setLoading(true);
+    try {
+      // Deactivate all seasons for this league
+      const { error: deactivateError } = await supabase
+        .from("seasons")
+        .update({ is_active: false } as any)
+        .eq("league_id", currentLeagueId);
+
+      if (deactivateError) throw deactivateError;
+
+      // Activate the selected season
+      const { error: activateError } = await supabase
+        .from("seasons")
+        .update({ is_active: true } as any)
+        .eq("id", seasonId);
+
+      if (activateError) throw activateError;
+
+      toast.success("Aktivna sezona spremenjena");
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSeason = async (seasonId: string) => {
+    if (!confirm("Ali ste prepričani? Tekme v tej sezoni bodo ostale brez sezone.")) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("seasons")
+        .delete()
+        .eq("id", seasonId);
+
+      if (error) throw error;
+      toast.success("Sezona izbrisana");
+      fetchSeasons();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpdateScoringDefaults = async () => {
     setLoading(true);
     try {
@@ -300,6 +393,9 @@ export default function Admin() {
   const handleCreateMatch = async (values: z.infer<typeof matchSchema>) => {
     setLoading(true);
     try {
+      // Find active season
+      const activeSeason = seasons.find(s => s.is_active);
+      
       const { error } = await supabase
         .from("matches")
         .insert({
@@ -307,8 +403,9 @@ export default function Admin() {
           match_date: values.match_date,
           match_time: values.match_time,
           number_of_teams: values.number_of_teams,
-          created_by: user?.id
-        });
+          created_by: user?.id,
+          ...(activeSeason ? { season_id: activeSeason.id } : {}),
+        } as any);
 
       if (error) throw error;
       toast.success("Tekma uspešno ustvarjena");
@@ -438,9 +535,10 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="members" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="members">Člani</TabsTrigger>
             <TabsTrigger value="matches">Tekme</TabsTrigger>
+            <TabsTrigger value="seasons">Sezone</TabsTrigger>
             <TabsTrigger value="settings">Nastavitve</TabsTrigger>
           </TabsList>
 
@@ -659,6 +757,91 @@ export default function Admin() {
                 </Form>
               </DialogContent>
             </Dialog>
+          </TabsContent>
+
+          <TabsContent value="seasons" className="mt-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CalendarDays className="h-4 w-4" />
+                <span>{seasons.length} sezon</span>
+              </div>
+              
+              <Dialog open={seasonDialogOpen} onOpenChange={setSeasonDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-1">
+                    <Plus className="h-4 w-4" />
+                    Nova sezona
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="text-base">Ustvari novo sezono</DialogTitle>
+                    <DialogDescription className="text-xs">
+                      Dodaj novo sezono v ligo (npr. "Sezona 2024/25")
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label>Ime sezone</Label>
+                      <Input
+                        value={newSeasonName}
+                        onChange={(e) => setNewSeasonName(e.target.value)}
+                        placeholder="Sezona 2024/25"
+                      />
+                    </div>
+                    <Button onClick={handleCreateSeason} className="w-full" size="sm" disabled={loading}>
+                      {loading ? "Ustvarjam..." : "Ustvari sezono"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {seasons.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                Ni še nobene sezone. Ustvarite prvo sezono.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {seasons.map((season) => (
+                  <Card key={season.id} className={season.is_active ? "border-primary" : ""}>
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{season.name}</span>
+                          {season.is_active && (
+                            <Badge variant="default" className="text-xs">
+                              <Star className="h-3 w-3 mr-1" />
+                              Aktivna
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {!season.is_active && (
+                            <Button
+                              onClick={() => handleSetActiveSeason(season.id)}
+                              disabled={loading}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Aktiviraj
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => handleDeleteSeason(season.id)}
+                            disabled={loading}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4">

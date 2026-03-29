@@ -5,6 +5,7 @@ import { User, Session } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import MatchCard from "@/components/MatchCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function Index() {
@@ -15,6 +16,8 @@ export default function Index() {
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [currentMembership, setCurrentMembership] = useState<any>(null);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,6 +81,7 @@ export default function Index() {
     if (user && currentLeagueId) {
       fetchProfile();
       fetchCurrentMembership();
+      fetchSeasons();
       fetchMatches();
       fetchParticipants();
     }
@@ -111,6 +115,30 @@ export default function Index() {
       setCurrentMembership(data);
     } catch (error: any) {
       toast.error("Napaka pri nalaganju članstva");
+    }
+  };
+
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", currentLeagueId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const seasonsList = data || [];
+      setSeasons(seasonsList);
+      
+      // Default to active season
+      const activeSeason = seasonsList.find((s: any) => s.is_active);
+      if (activeSeason) {
+        setSelectedSeasonId(activeSeason.id);
+      } else {
+        setSelectedSeasonId("all");
+      }
+    } catch (error: any) {
+      // silently fail
     }
   };
 
@@ -191,6 +219,24 @@ export default function Index() {
           </p>
         </div>
 
+        {seasons.length > 0 && (
+          <div className="mb-4">
+            <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Izberi sezono" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Vse sezone</SelectItem>
+                {seasons.map((season) => (
+                  <SelectItem key={season.id} value={season.id}>
+                    {season.name} {season.is_active ? "⭐" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="upcoming">Prihajajoče tekme</TabsTrigger>
@@ -198,12 +244,12 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
-            {matches.filter(m => !m.is_completed).length === 0 ? (
+            {matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
                 Trenutno ni razpisanih prihajajučih tekem.
               </p>
             ) : (
-              matches.filter(m => !m.is_completed).map((match) => (
+              matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).map((match) => (
                 <MatchCard
                   key={match.id}
                   match={match}
@@ -216,13 +262,13 @@ export default function Index() {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-3">
-            {matches.filter(m => m.is_completed).length === 0 ? (
+            {matches.filter(m => m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
                 Ni še zaključenih tekem.
               </p>
             ) : (
               matches
-                .filter(m => m.is_completed)
+                .filter(m => m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId))
                 .sort((a, b) => {
                   // Sort completed matches by date descending (newest first)
                   const dateCompare = new Date(b.match_date).getTime() - new Date(a.match_date).getTime();
