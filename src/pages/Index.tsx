@@ -118,6 +118,30 @@ export default function Index() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", currentLeagueId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const seasonsList = data || [];
+      setSeasons(seasonsList);
+      
+      // Default to active season
+      const activeSeason = seasonsList.find((s: any) => s.is_active);
+      if (activeSeason) {
+        setSelectedSeasonId(activeSeason.id);
+      } else {
+        setSelectedSeasonId("all");
+      }
+    } catch (error: any) {
+      // silently fail
+    }
+  };
+
   const fetchMatches = async () => {
     try {
       const { data, error } = await supabase
