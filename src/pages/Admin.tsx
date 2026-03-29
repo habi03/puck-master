@@ -531,9 +531,10 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="members" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="members">Člani</TabsTrigger>
             <TabsTrigger value="matches">Tekme</TabsTrigger>
+            <TabsTrigger value="seasons">Sezone</TabsTrigger>
             <TabsTrigger value="settings">Nastavitve</TabsTrigger>
           </TabsList>
 
