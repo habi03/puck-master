@@ -336,6 +336,19 @@ export default function Leagues() {
                   />
                 </div>
                 <div className="space-y-1.5">
+                  <Label htmlFor="season-name">Ime prve sezone *</Label>
+                  <Input
+                    id="season-name"
+                    value={newSeasonName}
+                    onChange={(e) => setNewSeasonName(e.target.value)}
+                    placeholder="Npr. Sezona 2025/26"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Vsaka liga potrebuje vsaj eno sezono za ustvarjanje tekem.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="league-password">Geslo (neobvezno)</Label>
                   <Input
                     id="league-password"
