@@ -29,7 +29,11 @@ const leagueSchema = z.object({
     .min(8, "Geslo mora biti dolgo vsaj 8 znakov")
     .max(100, "Geslo je predolgo (max 100 znakov)")
     .optional()
-    .or(z.literal(''))
+    .or(z.literal('')),
+  seasonName: z.string()
+    .trim()
+    .min(1, "Ime sezone je obvezno")
+    .max(100, "Ime sezone je predolgo"),
 });
 
 export default function Leagues() {
