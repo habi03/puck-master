@@ -113,24 +113,43 @@ export default function Leagues() {
       const validatedData = leagueSchema.parse({
         name: newLeagueName,
         description: newLeagueDesc || "",
-        password: newLeaguePassword || ""
+        password: newLeaguePassword || "",
+        seasonName: newSeasonName,
       });
 
-      // Note: Password hashing now happens server-side in a database function/trigger
-      const { error } = await supabase
+      // Create league
+      const { data: leagueData, error } = await supabase
         .from("leagues")
         .insert({
           name: validatedData.name,
           description: validatedData.description || null,
           password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
-        });
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
+
+      // Create first season for this league
+      const { error: seasonError } = await supabase
+        .from("seasons")
+        .insert({
+          league_id: leagueData.id,
+          name: validatedData.seasonName,
+          is_active: true,
+        } as any);
+
+      if (seasonError) {
+        console.error("Error creating season:", seasonError);
+        toast.error("Liga ustvarjena, a napaka pri ustvarjanju sezone");
+      }
+
       toast.success("Liga uspešno ustvarjena!");
       setNewLeagueName("");
       setNewLeagueDesc("");
       setNewLeaguePassword("");
+      setNewSeasonName("");
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
