@@ -44,6 +44,7 @@ export default function Leagues() {
   const [newLeagueName, setNewLeagueName] = useState("");
   const [newLeagueDesc, setNewLeagueDesc] = useState("");
   const [newLeaguePassword, setNewLeaguePassword] = useState("");
+  const [newSeasonName, setNewSeasonName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
