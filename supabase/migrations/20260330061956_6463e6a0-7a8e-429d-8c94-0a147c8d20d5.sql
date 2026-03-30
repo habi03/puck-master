@@ -1,0 +1,1 @@
+UPDATE matches SET season_id = '06c6a0e7-f800-4f9d-9a45-273c8c861c29' WHERE league_id = '769c58de-5830-4ca7-9893-a1ef355a594b' AND (season_id IS NULL OR season_id != '06c6a0e7-f800-4f9d-9a45-273c8c861c29');
