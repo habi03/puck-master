@@ -591,6 +591,11 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="matches" className="mt-4">
+            {!seasons.some(s => s.is_active) && (
+              <div className="mb-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-sm text-destructive">
+                ⚠️ Za ustvarjanje tekem potrebujete aktivno sezono. Pojdite v Nastavitve → Sezone.
+              </div>
+            )}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
@@ -599,7 +604,7 @@ export default function Admin() {
               
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="gap-1">
+                  <Button size="sm" className="gap-1" disabled={!seasons.some(s => s.is_active)}>
                     <Plus className="h-4 w-4" />
                     Nova tekma
                   </Button>
