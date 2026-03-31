@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import MatchDetails from "./pages/MatchDetails";
 import Players from "./pages/Players";
 import Profile from "./pages/Profile";
+import GlobalProfile from "./pages/GlobalProfile";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
