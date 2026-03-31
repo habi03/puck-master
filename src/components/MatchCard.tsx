@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
@@ -74,6 +74,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [changeSeasonDialogOpen, setChangeSeasonDialogOpen] = useState(false);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(match.season_id || "");
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation && !userParticipation.is_absent;
@@ -159,6 +162,46 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       setMatchSaves(data || []);
     } catch (error: any) {
       console.error("Error fetching saves:", error);
+    }
+  };
+
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", match.league_id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setSeasons(data || []);
+    } catch {
+      toast.error("Napaka pri nalaganju sezon");
+    }
+  };
+
+  const handleOpenChangeSeason = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await fetchSeasons();
+    setSelectedSeasonId(match.season_id || "");
+    setChangeSeasonDialogOpen(true);
+  };
+
+  const handleSaveSeasonChange = async () => {
+    if (!selectedSeasonId) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ season_id: selectedSeasonId })
+        .eq("id", match.id);
+      if (error) throw error;
+      toast.success("Tekma prestavljena v drugo sezono");
+      setChangeSeasonDialogOpen(false);
+      onUpdate();
+    } catch {
+      toast.error("Napaka pri spreminjanju sezone");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -923,6 +966,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <Settings className="h-4 w-4 mr-2" />
                       Nastavi točkovanje
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenChangeSeason}>
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      Premakni v sezono
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -1578,6 +1625,36 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             </Button>
             <Button className="flex-1" onClick={handleSaveScoring} disabled={loading}>
               {loading ? "Shranjujem..." : "Shrani"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Season Dialog */}
+      <Dialog open={changeSeasonDialogOpen} onOpenChange={setChangeSeasonDialogOpen}>
+        <DialogContent onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Premakni tekmo v drugo sezono</DialogTitle>
+            <DialogDescription>Izberi sezono, v katero želiš premakniti tekmo.</DialogDescription>
+          </DialogHeader>
+          <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Izberi sezono" />
+            </SelectTrigger>
+            <SelectContent>
+              {seasons.map((season) => (
+                <SelectItem key={season.id} value={season.id}>
+                  {season.name}{season.is_active ? " (aktivna)" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setChangeSeasonDialogOpen(false)}>
+              Prekliči
+            </Button>
+            <Button className="flex-1" onClick={handleSaveSeasonChange} disabled={loading || !selectedSeasonId}>
+              {loading ? "Shranjujem..." : "Premakni"}
             </Button>
           </div>
         </DialogContent>
