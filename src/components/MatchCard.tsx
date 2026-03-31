@@ -165,6 +165,46 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("league_id", match.league_id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setSeasons(data || []);
+    } catch {
+      toast.error("Napaka pri nalaganju sezon");
+    }
+  };
+
+  const handleOpenChangeSeason = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await fetchSeasons();
+    setSelectedSeasonId(match.season_id || "");
+    setChangeSeasonDialogOpen(true);
+  };
+
+  const handleSaveSeasonChange = async () => {
+    if (!selectedSeasonId) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .update({ season_id: selectedSeasonId })
+        .eq("id", match.id);
+      if (error) throw error;
+      toast.success("Tekma prestavljena v drugo sezono");
+      setChangeSeasonDialogOpen(false);
+      onUpdate();
+    } catch {
+      toast.error("Napaka pri spreminjanju sezone");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenAddPlayers = async (e: React.MouseEvent) => {
     e.stopPropagation();
     await fetchLeagueMembers();
