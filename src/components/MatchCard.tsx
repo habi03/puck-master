@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings } from "lucide-react";
+import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sl } from "date-fns/locale";
