@@ -121,7 +121,12 @@ export default function Navbar({ user }: NavbarProps) {
                 
                 <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
                   <UserCircle className="h-4 w-4 mr-2" />
-                  Moj profil
+                  Profil v ligi
+                </Button>
+
+                <Button onClick={() => navigate("/global-profile")} variant="outline" className="w-full justify-start">
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Moj račun
                 </Button>
                 
                 <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
