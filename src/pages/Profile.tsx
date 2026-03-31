@@ -1,475 +1,278 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { User, LogOut, Upload } from "lucide-react";
+import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  
-  // Profile data
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [location, setLocation] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [currentRole, setCurrentRole] = useState<string>("");
-  const [currentLeagueName, setCurrentLeagueName] = useState<string>("");
-  const [currentLeagueId, setCurrentLeagueId] = useState<string>("");
-  const [isLeagueCreator, setIsLeagueCreator] = useState(false);
-  
-  // Password change
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [profile, setProfile] = useState<any>(null);
+  const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
+  const [membership, setMembership] = useState<any>(null);
+  const [leagueName, setLeagueName] = useState("");
+  const [stats, setStats] = useState({
+    matchesPlayed: 0,
+    wins: 0,
+    goals: 0,
+    beersBrought: 0,
+    totalPoints: 0,
+    averageRating: 0,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
-      } else {
-        setUser(session.user);
-        setEmail(session.user.email || "");
-        fetchProfile(session.user.id);
+        return;
       }
+      setUser(session.user);
+
+      const leagueId = localStorage.getItem("currentLeagueId");
+      if (!leagueId) {
+        navigate("/global-profile");
+        return;
+      }
+      setCurrentLeagueId(leagueId);
+      fetchData(session.user.id, leagueId);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
+      if (!session) navigate("/auth");
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchData = async (userId: string, leagueId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      // Fetch profile, membership, and league in parallel
+      const [profileRes, memberRes, leagueRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", userId).single(),
+        supabase.from("league_members").select("*").eq("league_id", leagueId).eq("user_id", userId).single(),
+        supabase.from("leagues").select("name, points_attendance, points_win, points_penalty_win, points_penalty_loss").eq("id", leagueId).single(),
+      ]);
 
-      if (error) throw error;
-      setFullName(data.full_name || "");
-      setLocation(data.location || "");
-      setBirthDate(data.birth_date || "");
-      setAvatarUrl(data.avatar_url || "");
-      
-      // Fetch current league membership
-      const currentLeagueId = localStorage.getItem("currentLeagueId");
-      if (currentLeagueId) {
-        // Verify membership
-        const { data: memberData, error: memberError } = await supabase
-          .from("league_members")
-          .select("role, leagues(name)")
-          .eq("league_id", currentLeagueId)
-          .eq("user_id", userId)
-          .single();
-        
-        if (memberError || !memberData) {
-          // User is no longer a member, clear the stored league
-          localStorage.removeItem("currentLeagueId");
-        } else {
-          setCurrentLeagueId(currentLeagueId);
-          const roleMap: { [key: string]: string } = {
-            'admin': 'Admin',
-            'plačan_član': 'Plačan član',
-            'neplačan_član': 'Neplačan član'
-          };
-          setCurrentRole(roleMap[memberData.role] || memberData.role);
-          setCurrentLeagueName((memberData.leagues as any)?.name || "");
-        }
-        
-        // Check if user is league creator
-        const { data: leagueData } = await supabase
-          .from("leagues")
-          .select("created_by")
-          .eq("id", currentLeagueId)
-          .single();
-        
-        if (leagueData) {
-          setIsLeagueCreator(leagueData.created_by === userId);
-        }
+      if (profileRes.error) throw profileRes.error;
+      if (memberRes.error || !memberRes.data) {
+        localStorage.removeItem("currentLeagueId");
+        navigate("/global-profile");
+        return;
       }
+
+      setProfile(profileRes.data);
+      setMembership(memberRes.data);
+      setLeagueName(leagueRes.data?.name || "");
+
+      // Fetch league-specific stats
+      await fetchStats(userId, leagueId, leagueRes.data);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching profile data:", error);
+      toast.error("Napaka pri nalaganju profila");
     }
   };
 
-  const handleUpdateProfile = async () => {
-    if (!user) return;
-    
-    setLoading(true);
+  const fetchStats = async (userId: string, leagueId: string, leagueConfig: any) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          full_name: fullName,
-          location: location,
-          birth_date: birthDate || null,
-          avatar_url: avatarUrl
-        })
-        .eq("id", user.id);
+      // Get all matches in this league
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("id, is_completed, points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .eq("league_id", leagueId)
+        .eq("is_completed", true);
 
-      if (error) throw error;
-      toast.success("Profil uspešno posodobljen");
-    } catch (error: any) {
-      toast.error("Napaka pri posodabljanju profila");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setUploading(true);
-
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Izbrati morate sliko");
+      if (!matches || matches.length === 0) {
+        setStats({ matchesPlayed: 0, wins: 0, goals: 0, beersBrought: 0, totalPoints: 0, averageRating: 0 });
+        return;
       }
 
-      const file = event.target.files[0];
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
+      const matchIds = matches.map((m) => m.id);
 
-      // Delete old avatar if exists
-      if (avatarUrl) {
-        const oldPath = avatarUrl.split("/").pop();
-        if (oldPath) {
-          await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+      // Get participations, goals, results in parallel
+      const [participationsRes, goalsRes, resultsRes, ratingRes] = await Promise.all([
+        supabase.from("match_participants").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("goals").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("match_results").select("*").in("match_id", matchIds),
+        supabase.from("rating_aggregates").select("average_rating, beers_brought").eq("player_id", userId).single(),
+      ]);
+
+      const participations = participationsRes.data || [];
+      const goals = goalsRes.data || [];
+      const results = resultsRes.data || [];
+
+      let matchesPlayed = 0;
+      let wins = 0;
+      let totalPoints = 0;
+
+      for (const p of participations) {
+        if (p.is_absent) continue;
+        matchesPlayed++;
+
+        const match = matches.find((m) => m.id === p.match_id);
+        if (!match) continue;
+
+        const pa = match.points_attendance ?? leagueConfig?.points_attendance ?? 1;
+        totalPoints += pa;
+
+        if (p.team_number) {
+          const teamResults = results.filter((r) => r.match_id === p.match_id);
+          const myTeamResult = teamResults.find((r) => r.team_number === p.team_number);
+
+          if (myTeamResult) {
+            const otherTeams = teamResults.filter((r) => r.team_number !== p.team_number);
+            const maxOtherGoals = Math.max(...otherTeams.map((r) => r.goals_scored), 0);
+
+            if (myTeamResult.goals_scored > maxOtherGoals) {
+              wins++;
+              if (myTeamResult.win_type === "penalty") {
+                totalPoints += match.points_penalty_win ?? leagueConfig?.points_penalty_win ?? 2;
+              } else {
+                totalPoints += match.points_win ?? leagueConfig?.points_win ?? 3;
+              }
+            } else if (myTeamResult.goals_scored === maxOtherGoals) {
+              // Check penalty loss
+              const loser = teamResults.find(
+                (r) => r.team_number !== p.team_number && r.win_type === "penalty"
+              );
+              if (loser) {
+                totalPoints += match.points_penalty_loss ?? leagueConfig?.points_penalty_loss ?? 1;
+              }
+            }
+          }
         }
       }
 
-      // Upload new avatar
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-
-      setAvatarUrl(data.publicUrl);
-
-      // Update profile in database
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: data.publicUrl })
-        .eq("id", user.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Profilna slika uspešno naložena");
-    } catch (error: any) {
-      toast.error(error.message || "Napaka pri nalaganju slike");
-      console.error(error);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleLeaveLeague = async () => {
-    if (!user || !currentLeagueId) return;
-    
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("league_members")
-        .delete()
-        .eq("league_id", currentLeagueId)
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-      
-      localStorage.removeItem("currentLeagueId");
-      toast.success("Uspešno ste se izpisali iz lige");
-      navigate("/leagues");
-    } catch (error: any) {
-      toast.error("Napaka pri izpisu iz lige");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.error("Gesli se ne ujemata");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast.error("Geslo mora biti dolgo vsaj 6 znakov");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      setStats({
+        matchesPlayed,
+        wins,
+        goals: goals.length,
+        beersBrought: ratingRes.data?.beers_brought || 0,
+        totalPoints,
+        averageRating: ratingRes.data?.average_rating || 0,
       });
-
-      if (error) throw error;
-      toast.success("Geslo uspešno spremenjeno");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error: any) {
-      toast.error("Napaka pri spreminjanju gesla");
-      console.error(error);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  const roleMap: Record<string, string> = {
+    admin: "Admin",
+    plačan_član: "Plačan član",
+    neplačan_član: "Neplačan član",
+  };
+
+  if (!user || !profile || !membership) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar user={user} />
-      
+
       <div className="container max-w-2xl mx-auto p-4 space-y-6">
-        <div className="flex items-center gap-2 mb-6">
+        {/* Header */}
+        <div className="flex items-center gap-2">
           <User className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Moj Profil</h1>
+          <h1 className="text-2xl font-bold">Profil v ligi</h1>
         </div>
 
-        {/* Profile Information */}
+        {/* Profile overview */}
         <Card>
-          <CardHeader>
-            <CardTitle>Osebni podatki</CardTitle>
-            <CardDescription>Posodobite svoje podatke</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Avatar Upload */}
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={avatarUrl} alt={fullName || "Uporabnik"} />
-                <AvatarFallback className="text-2xl">
-                  {fullName ? fullName[0].toUpperCase() : email[0].toUpperCase()}
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Uporabnik"} />
+                <AvatarFallback className="text-xl">
+                  {profile.full_name ? profile.full_name[0].toUpperCase() : profile.email[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex flex-col items-center gap-2">
-                <Label htmlFor="avatar-upload" className="cursor-pointer">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={uploading}
-                    onClick={() => document.getElementById("avatar-upload")?.click()}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? "Nalagam..." : "Naloži profilno sliko"}
-                  </Button>
-                </Label>
-                <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={uploading}
-                  className="hidden"
-                />
-                <p className="text-xs text-muted-foreground text-center">
-                  PNG, JPG ali WEBP (max. 5MB)
-                </p>
+              <div>
+                <h2 className="text-lg font-bold">{profile.full_name || profile.email.split("@")[0]}</h2>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={membership.role === "admin" ? "default" : "secondary"}>
+                    {membership.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
+                    {roleMap[membership.role] || membership.role}
+                  </Badge>
+                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                Emaila ni mogoče spremeniti
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Polno ime</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Vnesite svoje ime"
+        {/* League info */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Trophy className="h-5 w-5 text-primary" />
+              {leagueName}
+            </CardTitle>
+            <CardDescription>Vaša statistika v tej ligi</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <StatItem icon={<Calendar className="h-4 w-4 text-primary" />} label="Tekme" value={stats.matchesPlayed} />
+              <StatItem icon={<Award className="h-4 w-4 text-accent" />} label="Zmage" value={stats.wins} />
+              <StatItem icon={<Target className="h-4 w-4 text-secondary" />} label="Goli" value={stats.goals} />
+              <StatItem icon={<TrendingUp className="h-4 w-4 text-primary" />} label="Točke" value={stats.totalPoints} />
+              <StatItem icon={<Beer className="h-4 w-4 text-accent" />} label="Pijače" value={stats.beersBrought} />
+              <StatItem
+                icon={<Trophy className="h-4 w-4 text-secondary" />}
+                label="Ocena"
+                value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "–"}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Kraj</Label>
-              <Input
-                id="location"
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Vnesite svoj kraj"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="birthDate">Datum rojstva</Label>
-              <Input
-                id="birthDate"
-                type="date"
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-              />
-            </div>
-
-            {currentLeagueName && (
-              <div className="space-y-2">
-                <Label htmlFor="role">Vloga v ekipi ({currentLeagueName})</Label>
-                <Input
-                  id="role"
-                  type="text"
-                  value={currentRole}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Vlogo lahko spreminja samo administrator ekipe
-                </p>
-              </div>
-            )}
-
-            <Button 
-              onClick={handleUpdateProfile} 
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Shranjujem..." : "Shrani spremembe"}
-            </Button>
           </CardContent>
         </Card>
 
         <Separator />
 
-        {/* Leave League */}
-        {currentLeagueName && !isLeagueCreator && (
-          <Card className="border-destructive">
-            <CardHeader>
-              <CardTitle className="text-destructive">Izpis iz lige</CardTitle>
-              <CardDescription>
-                Zapustite ligo {currentLeagueName}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-full">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Izpiši se iz lige
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Ste prepričani?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Ali ste prepričani, da se želite izpisati iz lige "{currentLeagueName}"? 
-                      Ta akcija je nepovratna in boste izgubili dostop do vseh podatkov v tej ligi.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Prekliči</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleLeaveLeague}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Izpiši se
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardContent>
-          </Card>
-        )}
-
-        {isLeagueCreator && currentLeagueName && (
-          <Card className="border-muted">
-            <CardHeader>
-              <CardTitle>Ustanovitelj lige</CardTitle>
-              <CardDescription>
-                Ste ustanovitelj lige {currentLeagueName}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Kot ustanovitelj lige se ne morete izpisati. Če želite prenehati upravljati ligo, 
-                najprej dodelite administratorske pravice drugemu članu ali izbrišite ligo.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        <Separator />
-
-        {/* Password Change */}
+        {/* Permissions info */}
         <Card>
-          <CardHeader>
-            <CardTitle>Spremeni geslo</CardTitle>
-            <CardDescription>Nastavite novo geslo za svoj račun</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Shield className="h-5 w-5" />
+              Dovoljenja
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">Novo geslo</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Vnesite novo geslo"
-              />
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <PermissionRow label="Prijava na tekme" allowed={true} />
+              <PermissionRow label="Ogled lestvice" allowed={true} />
+              <PermissionRow label="Ocenjevanje igralcev" allowed={true} />
+              <PermissionRow label="Upravljanje tekem" allowed={membership.role === "admin"} />
+              <PermissionRow label="Upravljanje članov" allowed={membership.role === "admin"} />
+              <PermissionRow label="Nastavitve lige" allowed={membership.role === "admin"} />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Potrdi novo geslo</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Ponovno vnesite novo geslo"
-              />
-            </div>
-
-            <Button 
-              onClick={handleChangePassword} 
-              disabled={loading || !newPassword || !confirmPassword}
-              className="w-full"
-              variant="secondary"
-            >
-              {loading ? "Spreminjam..." : "Spremeni geslo"}
-            </Button>
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function StatItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border">
+      {icon}
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-lg font-bold">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function PermissionRow({ label, allowed }: { label: string; allowed: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <span className="text-muted-foreground">{label}</span>
+      <Badge variant={allowed ? "default" : "outline"} className="text-xs">
+        {allowed ? "Da" : "Ne"}
+      </Badge>
     </div>
   );
 }
