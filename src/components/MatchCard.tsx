@@ -913,7 +913,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               {isCompleted && (
                 <Badge variant="default" className="text-xs">Zaključena</Badge>
               )}
-              {isAdmin && !isCompleted && (
+              {isAdmin && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -921,51 +921,55 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border z-50">
-                    <DropdownMenuItem onClick={handleOpenAddPlayers}>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Dodaj igralce
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenEdit}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Uredi datum/uro
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenRemovePlayers}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Odstrani igralce
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenChangePosition}>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Spremeni pozicije
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleToggleSignupsLocked}>
-                      {match.signups_locked ? (
-                        <>
-                          <Unlock className="h-4 w-4 mr-2" />
-                          Odkleni prijave
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="h-4 w-4 mr-2" />
-                          Zakleni prijave
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenLocation}>
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Nastavi lokacijo
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenMaxParticipants}>
-                      <UsersRound className="h-4 w-4 mr-2" />
-                      Omeji prijave
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenNotes}>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Dodaj opombo
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleOpenScoring}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Nastavi točkovanje
-                    </DropdownMenuItem>
+                    {!isCompleted && (
+                      <>
+                        <DropdownMenuItem onClick={handleOpenAddPlayers}>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Dodaj igralce
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenEdit}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Uredi datum/uro
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenRemovePlayers}>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Odstrani igralce
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenChangePosition}>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Spremeni pozicije
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleToggleSignupsLocked}>
+                          {match.signups_locked ? (
+                            <>
+                              <Unlock className="h-4 w-4 mr-2" />
+                              Odkleni prijave
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-4 w-4 mr-2" />
+                              Zakleni prijave
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenLocation}>
+                          <MapPin className="h-4 w-4 mr-2" />
+                          Nastavi lokacijo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenMaxParticipants}>
+                          <UsersRound className="h-4 w-4 mr-2" />
+                          Omeji prijave
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenNotes}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Dodaj opombo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenScoring}>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Nastavi točkovanje
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuItem onClick={handleOpenChangeSeason}>
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
                       Premakni v sezono
