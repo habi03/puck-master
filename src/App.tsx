@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/match/:matchId" element={<MatchDetails />} />
           <Route path="/players" element={<Players />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/global-profile" element={<GlobalProfile />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
