@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import MatchDetails from "./pages/MatchDetails";
 import Players from "./pages/Players";
 import Profile from "./pages/Profile";
+import GlobalProfile from "./pages/GlobalProfile";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/match/:matchId" element={<MatchDetails />} />
           <Route path="/players" element={<Players />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/global-profile" element={<GlobalProfile />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
