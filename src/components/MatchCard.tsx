@@ -966,6 +966,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <Settings className="h-4 w-4 mr-2" />
                       Nastavi točkovanje
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleOpenChangeSeason}>
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      Premakni v sezono
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
