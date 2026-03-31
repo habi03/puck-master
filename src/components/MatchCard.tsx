@@ -74,6 +74,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [changeSeasonDialogOpen, setChangeSeasonDialogOpen] = useState(false);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(match.season_id || "");
 
   const userParticipation = participants.find(p => p.player_id === currentUser.id);
   const isSignedUp = !!userParticipation && !userParticipation.is_absent;
