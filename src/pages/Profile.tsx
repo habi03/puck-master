@@ -102,6 +102,9 @@ export default function Profile() {
       setSelectedSeasonId(defaultSeason);
 
       await fetchStats(userId, leagueId, leagueRes.data, defaultSeason);
+      if (defaultSeason === "all" && (seasonsRes.data || []).length > 0) {
+        await fetchAllSeasonStats(userId, leagueId, leagueRes.data);
+      }
     } catch (error) {
       console.error("Error fetching profile data:", error);
       toast.error("Napaka pri nalaganju profila");
