@@ -8,7 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp } from "lucide-react";
+import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Season {
   id: string;
