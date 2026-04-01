@@ -8,7 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp } from "lucide-react";
+import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Season {
   id: string;
@@ -38,7 +39,7 @@ export default function Profile() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const [stats, setStats] = useState<Stats>(emptyStats);
-
+  const [seasonStats, setSeasonStats] = useState<Array<Stats & { name: string }>>([]);
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -67,6 +68,9 @@ export default function Profile() {
   useEffect(() => {
     if (user && currentLeagueId && leagueConfig) {
       fetchStats(user.id, currentLeagueId, leagueConfig, selectedSeasonId);
+      if (selectedSeasonId === "all" && seasons.length > 0) {
+        fetchAllSeasonStats(user.id, currentLeagueId, leagueConfig);
+      }
     }
   }, [selectedSeasonId]);
 
@@ -98,6 +102,9 @@ export default function Profile() {
       setSelectedSeasonId(defaultSeason);
 
       await fetchStats(userId, leagueId, leagueRes.data, defaultSeason);
+      if (defaultSeason === "all" && (seasonsRes.data || []).length > 0) {
+        await fetchAllSeasonStats(userId, leagueId, leagueRes.data);
+      }
     } catch (error) {
       console.error("Error fetching profile data:", error);
       toast.error("Napaka pri nalaganju profila");
@@ -192,6 +199,91 @@ export default function Profile() {
     }
   };
 
+  const computeStatsFromData = (
+    matches: any[], participations: any[], goals: any[], results: any[], config: any
+  ): Omit<Stats, "averageRating"> => {
+    let matchesPlayed = 0, wins = 0, totalPoints = 0, beersBrought = 0, goalCount = 0;
+
+    for (const p of participations) {
+      if (p.is_absent) continue;
+      const match = matches.find((m) => m.id === p.match_id);
+      if (!match) continue;
+      matchesPlayed++;
+      if (p.brings_beer) beersBrought++;
+
+      const pa = match.points_attendance ?? config?.points_attendance ?? 1;
+      totalPoints += pa;
+
+      if (p.team_number) {
+        const teamResults = results.filter((r) => r.match_id === p.match_id);
+        const myTeamResult = teamResults.find((r) => r.team_number === p.team_number);
+        if (myTeamResult) {
+          const otherTeams = teamResults.filter((r) => r.team_number !== p.team_number);
+          const maxOtherGoals = Math.max(...otherTeams.map((r) => r.goals_scored), 0);
+          if (myTeamResult.goals_scored > maxOtherGoals) {
+            wins++;
+            if (myTeamResult.win_type === "penalty") {
+              totalPoints += match.points_penalty_win ?? config?.points_penalty_win ?? 2;
+            } else {
+              totalPoints += match.points_win ?? config?.points_win ?? 3;
+            }
+          } else if (myTeamResult.goals_scored === maxOtherGoals) {
+            const loser = teamResults.find((r) => r.team_number !== p.team_number && r.win_type === "penalty");
+            if (loser) totalPoints += match.points_penalty_loss ?? config?.points_penalty_loss ?? 1;
+          }
+        }
+      }
+    }
+
+    goalCount = goals.length;
+    return { matchesPlayed, wins, goals: goalCount, beersBrought, totalPoints };
+  };
+
+  const fetchAllSeasonStats = async (userId: string, leagueId: string, config: any) => {
+    try {
+      const { data: allMatches } = await supabase
+        .from("matches")
+        .select("id, is_completed, points_attendance, points_win, points_penalty_win, points_penalty_loss, season_id")
+        .eq("league_id", leagueId)
+        .eq("is_completed", true);
+
+      if (!allMatches || allMatches.length === 0) {
+        setSeasonStats([]);
+        return;
+      }
+
+      const matchIds = allMatches.map((m) => m.id);
+      const [participationsRes, goalsRes, resultsRes] = await Promise.all([
+        supabase.from("match_participants").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("goals").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("match_results").select("*").in("match_id", matchIds),
+      ]);
+
+      const participations = participationsRes.data || [];
+      const goals = goalsRes.data || [];
+      const results = resultsRes.data || [];
+
+      // Reverse seasons so chart goes chronologically
+      const chronoSeasons = [...seasons].reverse();
+      const perSeason: Array<Stats & { name: string }> = [];
+
+      for (const season of chronoSeasons) {
+        const sMatches = allMatches.filter((m) => m.season_id === season.id);
+        const sMatchIds = new Set(sMatches.map((m) => m.id));
+        const sParticipations = participations.filter((p) => sMatchIds.has(p.match_id));
+        const sGoals = goals.filter((g) => sMatchIds.has(g.match_id));
+        const sResults = results.filter((r) => sMatchIds.has(r.match_id));
+
+        const computed = computeStatsFromData(sMatches, sParticipations, sGoals, sResults, config);
+        perSeason.push({ ...computed, averageRating: 0, name: season.name });
+      }
+
+      setSeasonStats(perSeason);
+    } catch (error) {
+      console.error("Error fetching season stats:", error);
+    }
+  };
+
   const roleMap: Record<string, string> = {
     admin: "Admin",
     plačan_član: "Plačan član",
@@ -278,6 +370,41 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Season progress chart - only when "all" is selected */}
+        {selectedSeasonId === "all" && seasonStats.length > 1 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Napredek po sezonah
+              </CardTitle>
+              <CardDescription>Primerjava vaše statistike skozi sezone</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={seasonStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="totalPoints" name="Točke" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="matchesPlayed" name="Tekme" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="wins" name="Zmage" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="goals" name="Goli" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
 
         <Separator />
 
