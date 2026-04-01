@@ -196,6 +196,91 @@ export default function Profile() {
     }
   };
 
+  const computeStatsFromData = (
+    matches: any[], participations: any[], goals: any[], results: any[], config: any
+  ): Omit<Stats, "averageRating"> => {
+    let matchesPlayed = 0, wins = 0, totalPoints = 0, beersBrought = 0, goalCount = 0;
+
+    for (const p of participations) {
+      if (p.is_absent) continue;
+      const match = matches.find((m) => m.id === p.match_id);
+      if (!match) continue;
+      matchesPlayed++;
+      if (p.brings_beer) beersBrought++;
+
+      const pa = match.points_attendance ?? config?.points_attendance ?? 1;
+      totalPoints += pa;
+
+      if (p.team_number) {
+        const teamResults = results.filter((r) => r.match_id === p.match_id);
+        const myTeamResult = teamResults.find((r) => r.team_number === p.team_number);
+        if (myTeamResult) {
+          const otherTeams = teamResults.filter((r) => r.team_number !== p.team_number);
+          const maxOtherGoals = Math.max(...otherTeams.map((r) => r.goals_scored), 0);
+          if (myTeamResult.goals_scored > maxOtherGoals) {
+            wins++;
+            if (myTeamResult.win_type === "penalty") {
+              totalPoints += match.points_penalty_win ?? config?.points_penalty_win ?? 2;
+            } else {
+              totalPoints += match.points_win ?? config?.points_win ?? 3;
+            }
+          } else if (myTeamResult.goals_scored === maxOtherGoals) {
+            const loser = teamResults.find((r) => r.team_number !== p.team_number && r.win_type === "penalty");
+            if (loser) totalPoints += match.points_penalty_loss ?? config?.points_penalty_loss ?? 1;
+          }
+        }
+      }
+    }
+
+    goalCount = goals.length;
+    return { matchesPlayed, wins, goals: goalCount, beersBrought, totalPoints };
+  };
+
+  const fetchAllSeasonStats = async (userId: string, leagueId: string, config: any) => {
+    try {
+      const { data: allMatches } = await supabase
+        .from("matches")
+        .select("id, is_completed, points_attendance, points_win, points_penalty_win, points_penalty_loss, season_id")
+        .eq("league_id", leagueId)
+        .eq("is_completed", true);
+
+      if (!allMatches || allMatches.length === 0) {
+        setSeasonStats([]);
+        return;
+      }
+
+      const matchIds = allMatches.map((m) => m.id);
+      const [participationsRes, goalsRes, resultsRes] = await Promise.all([
+        supabase.from("match_participants").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("goals").select("*").eq("player_id", userId).in("match_id", matchIds),
+        supabase.from("match_results").select("*").in("match_id", matchIds),
+      ]);
+
+      const participations = participationsRes.data || [];
+      const goals = goalsRes.data || [];
+      const results = resultsRes.data || [];
+
+      // Reverse seasons so chart goes chronologically
+      const chronoSeasons = [...seasons].reverse();
+      const perSeason: Array<Stats & { name: string }> = [];
+
+      for (const season of chronoSeasons) {
+        const sMatches = allMatches.filter((m) => m.season_id === season.id);
+        const sMatchIds = new Set(sMatches.map((m) => m.id));
+        const sParticipations = participations.filter((p) => sMatchIds.has(p.match_id));
+        const sGoals = goals.filter((g) => sMatchIds.has(g.match_id));
+        const sResults = results.filter((r) => sMatchIds.has(r.match_id));
+
+        const computed = computeStatsFromData(sMatches, sParticipations, sGoals, sResults, config);
+        perSeason.push({ ...computed, averageRating: 0, name: season.name });
+      }
+
+      setSeasonStats(perSeason);
+    } catch (error) {
+      console.error("Error fetching season stats:", error);
+    }
+  };
+
   const roleMap: Record<string, string> = {
     admin: "Admin",
     plačan_član: "Plačan član",
