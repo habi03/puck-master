@@ -39,7 +39,7 @@ export default function Profile() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
   const [stats, setStats] = useState<Stats>(emptyStats);
-
+  const [seasonStats, setSeasonStats] = useState<Array<Stats & { name: string }>>([]);
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
