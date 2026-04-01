@@ -5,9 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp } from "lucide-react";
+
+interface Season {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
+
+interface Stats {
+  matchesPlayed: number;
+  wins: number;
+  goals: number;
+  beersBrought: number;
+  totalPoints: number;
+  averageRating: number;
+}
+
+const emptyStats: Stats = { matchesPlayed: 0, wins: 0, goals: 0, beersBrought: 0, totalPoints: 0, averageRating: 0 };
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -16,14 +34,10 @@ export default function Profile() {
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [membership, setMembership] = useState<any>(null);
   const [leagueName, setLeagueName] = useState("");
-  const [stats, setStats] = useState({
-    matchesPlayed: 0,
-    wins: 0,
-    goals: 0,
-    beersBrought: 0,
-    totalPoints: 0,
-    averageRating: 0,
-  });
+  const [leagueConfig, setLeagueConfig] = useState<any>(null);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("all");
+  const [stats, setStats] = useState<Stats>(emptyStats);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,13 +63,20 @@ export default function Profile() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Re-fetch stats when season changes
+  useEffect(() => {
+    if (user && currentLeagueId && leagueConfig) {
+      fetchStats(user.id, currentLeagueId, leagueConfig, selectedSeasonId);
+    }
+  }, [selectedSeasonId]);
+
   const fetchData = async (userId: string, leagueId: string) => {
     try {
-      // Fetch profile, membership, and league in parallel
-      const [profileRes, memberRes, leagueRes] = await Promise.all([
+      const [profileRes, memberRes, leagueRes, seasonsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("league_members").select("*").eq("league_id", leagueId).eq("user_id", userId).single(),
         supabase.from("leagues").select("name, points_attendance, points_win, points_penalty_win, points_penalty_loss").eq("id", leagueId).single(),
+        supabase.from("seasons").select("id, name, is_active").eq("league_id", leagueId).order("created_at", { ascending: false }),
       ]);
 
       if (profileRes.error) throw profileRes.error;
@@ -68,32 +89,42 @@ export default function Profile() {
       setProfile(profileRes.data);
       setMembership(memberRes.data);
       setLeagueName(leagueRes.data?.name || "");
+      setLeagueConfig(leagueRes.data);
+      setSeasons(seasonsRes.data || []);
 
-      // Fetch league-specific stats
-      await fetchStats(userId, leagueId, leagueRes.data);
+      // Default to active season
+      const activeSeason = (seasonsRes.data || []).find((s) => s.is_active);
+      const defaultSeason = activeSeason ? activeSeason.id : "all";
+      setSelectedSeasonId(defaultSeason);
+
+      await fetchStats(userId, leagueId, leagueRes.data, defaultSeason);
     } catch (error) {
       console.error("Error fetching profile data:", error);
       toast.error("Napaka pri nalaganju profila");
     }
   };
 
-  const fetchStats = async (userId: string, leagueId: string, leagueConfig: any) => {
+  const fetchStats = async (userId: string, leagueId: string, config: any, seasonId: string) => {
     try {
-      // Get all matches in this league
-      const { data: matches } = await supabase
+      let matchesQuery = supabase
         .from("matches")
-        .select("id, is_completed, points_attendance, points_win, points_penalty_win, points_penalty_loss")
+        .select("id, is_completed, points_attendance, points_win, points_penalty_win, points_penalty_loss, season_id")
         .eq("league_id", leagueId)
         .eq("is_completed", true);
 
+      if (seasonId !== "all") {
+        matchesQuery = matchesQuery.eq("season_id", seasonId);
+      }
+
+      const { data: matches } = await matchesQuery;
+
       if (!matches || matches.length === 0) {
-        setStats({ matchesPlayed: 0, wins: 0, goals: 0, beersBrought: 0, totalPoints: 0, averageRating: 0 });
+        setStats(emptyStats);
         return;
       }
 
       const matchIds = matches.map((m) => m.id);
 
-      // Get participations, goals, results in parallel
       const [participationsRes, goalsRes, resultsRes, ratingRes] = await Promise.all([
         supabase.from("match_participants").select("*").eq("player_id", userId).in("match_id", matchIds),
         supabase.from("goals").select("*").eq("player_id", userId).in("match_id", matchIds),
@@ -108,15 +139,17 @@ export default function Profile() {
       let matchesPlayed = 0;
       let wins = 0;
       let totalPoints = 0;
+      let beersBrought = 0;
 
       for (const p of participations) {
         if (p.is_absent) continue;
         matchesPlayed++;
+        if (p.brings_beer) beersBrought++;
 
         const match = matches.find((m) => m.id === p.match_id);
         if (!match) continue;
 
-        const pa = match.points_attendance ?? leagueConfig?.points_attendance ?? 1;
+        const pa = match.points_attendance ?? config?.points_attendance ?? 1;
         totalPoints += pa;
 
         if (p.team_number) {
@@ -130,17 +163,16 @@ export default function Profile() {
             if (myTeamResult.goals_scored > maxOtherGoals) {
               wins++;
               if (myTeamResult.win_type === "penalty") {
-                totalPoints += match.points_penalty_win ?? leagueConfig?.points_penalty_win ?? 2;
+                totalPoints += match.points_penalty_win ?? config?.points_penalty_win ?? 2;
               } else {
-                totalPoints += match.points_win ?? leagueConfig?.points_win ?? 3;
+                totalPoints += match.points_win ?? config?.points_win ?? 3;
               }
             } else if (myTeamResult.goals_scored === maxOtherGoals) {
-              // Check penalty loss
               const loser = teamResults.find(
                 (r) => r.team_number !== p.team_number && r.win_type === "penalty"
               );
               if (loser) {
-                totalPoints += match.points_penalty_loss ?? leagueConfig?.points_penalty_loss ?? 1;
+                totalPoints += match.points_penalty_loss ?? config?.points_penalty_loss ?? 1;
               }
             }
           }
@@ -151,7 +183,7 @@ export default function Profile() {
         matchesPlayed,
         wins,
         goals: goals.length,
-        beersBrought: ratingRes.data?.beers_brought || 0,
+        beersBrought: seasonId === "all" ? (ratingRes.data?.beers_brought || 0) : beersBrought,
         totalPoints,
         averageRating: ratingRes.data?.average_rating || 0,
       });
@@ -203,14 +235,33 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* League info */}
+        {/* League stats with season filter */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Trophy className="h-5 w-5 text-primary" />
-              {leagueName}
-            </CardTitle>
-            <CardDescription>Vaša statistika v tej ligi</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  {leagueName}
+                </CardTitle>
+                <CardDescription>Vaša statistika v tej ligi</CardDescription>
+              </div>
+              {seasons.length > 0 && (
+                <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Sezona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Vse sezone</SelectItem>
+                    {seasons.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} {s.is_active ? "●" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
