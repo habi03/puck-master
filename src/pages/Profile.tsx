@@ -68,6 +68,9 @@ export default function Profile() {
   useEffect(() => {
     if (user && currentLeagueId && leagueConfig) {
       fetchStats(user.id, currentLeagueId, leagueConfig, selectedSeasonId);
+      if (selectedSeasonId === "all" && seasons.length > 0) {
+        fetchAllSeasonStats(user.id, currentLeagueId, leagueConfig);
+      }
     }
   }, [selectedSeasonId]);
 
