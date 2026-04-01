@@ -368,6 +368,41 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Season progress chart - only when "all" is selected */}
+        {selectedSeasonId === "all" && seasonStats.length > 1 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Napredek po sezonah
+              </CardTitle>
+              <CardDescription>Primerjava vaše statistike skozi sezone</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={seasonStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="totalPoints" name="Točke" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="matchesPlayed" name="Tekme" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="wins" name="Zmage" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="goals" name="Goli" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
         <Separator />
 
         {/* Permissions info */}
