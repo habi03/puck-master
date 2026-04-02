@@ -144,9 +144,10 @@ export default function Admin() {
         .single();
 
       if (error) throw error;
-      setIsAdmin(data?.role === "admin");
+      const hasAdminAccess = data?.role === "admin" || data?.role === "super_user";
+      setIsAdmin(hasAdminAccess);
       
-      if (data?.role !== "admin") {
+      if (!hasAdminAccess) {
         toast.error("Nimate administratorskih pravic");
         navigate("/");
       }
