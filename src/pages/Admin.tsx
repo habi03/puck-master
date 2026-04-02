@@ -144,9 +144,10 @@ export default function Admin() {
         .single();
 
       if (error) throw error;
-      setIsAdmin(data?.role === "admin");
+      const hasAdminAccess = data?.role === "admin" || data?.role === "super_user";
+      setIsAdmin(hasAdminAccess);
       
-      if (data?.role !== "admin") {
+      if (!hasAdminAccess) {
         toast.error("Nimate administratorskih pravic");
         navigate("/");
       }
@@ -415,12 +416,12 @@ export default function Admin() {
   };
 
 
-  const handleUpdateRole = async (memberId: string, newRole: "admin" | "plačan_član" | "neplačan_član") => {
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
     setLoading(true);
     try {
       const { error } = await supabase
         .from("league_members")
-        .update({ role: newRole })
+        .update({ role: newRole } as any)
         .eq("id", memberId);
 
       if (error) throw error;
@@ -643,16 +644,18 @@ export default function Admin() {
                     <CardTitle className="text-base flex items-center justify-between">
                       <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
                       <div className="flex gap-1">
-                        {member.role === 'admin' && (
-                          <Badge variant="default" className="text-xs">Admin</Badge>
+                        {(member.role === 'admin' || member.role === 'super_user') && (
+                          <Badge variant="default" className="text-xs">
+                            {member.role === 'super_user' ? 'Super User' : 'Admin'}
+                          </Badge>
                         )}
                         {isSeasonView ? (
                           <Badge variant={currentSeasonRole === 'plačan_član' ? 'default' : 'secondary'} className="text-xs">
                             {currentSeasonRole === 'plačan_član' ? 'Plačan' : 'Neplačan'}
                           </Badge>
                         ) : (
-                          <Badge variant={member.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                            {member.role.replace('_', ' ')}
+                          <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
+                            {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
                           </Badge>
                         )}
                       </div>
@@ -677,16 +680,17 @@ export default function Admin() {
                     ) : (
                       <Select
                         value={member.role}
-                        onValueChange={(value: "admin" | "plačan_član" | "neplačan_član") => handleUpdateRole(member.id, value)}
+                        onValueChange={(value: string) => handleUpdateRole(member.id, value)}
                         disabled={loading || member.user_id === user.id}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="super_user">Super User</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="plačan_član">Plačan član</SelectItem>
-                          <SelectItem value="neplačan_član">Neplačan član</SelectItem>
+                          <SelectItem value="član">Član</SelectItem>
+                          <SelectItem value="poskusni_član">Poskusni član</SelectItem>
                         </SelectContent>
                       </Select>
                     )}

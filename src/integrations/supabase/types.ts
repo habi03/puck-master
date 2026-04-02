@@ -629,7 +629,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "paid_member" | "unpaid_member"
-      league_role: "admin" | "plačan_član" | "neplačan_član"
+      league_role:
+        | "admin"
+        | "plačan_član"
+        | "neplačan_član"
+        | "super_user"
+        | "član"
+        | "poskusni_član"
       player_position: "igralec" | "vratar"
       user_role: "neplačan_član" | "administrator"
     }
@@ -760,7 +766,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "paid_member", "unpaid_member"],
-      league_role: ["admin", "plačan_član", "neplačan_član"],
+      league_role: [
+        "admin",
+        "plačan_član",
+        "neplačan_član",
+        "super_user",
+        "član",
+        "poskusni_član",
+      ],
       player_position: ["igralec", "vratar"],
       user_role: ["neplačan_član", "administrator"],
     },

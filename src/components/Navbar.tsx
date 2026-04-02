@@ -71,7 +71,7 @@ export default function Navbar({ user }: NavbarProps) {
         .single();
 
       if (error) throw error;
-      setIsAdmin(data?.role === "admin");
+      setIsAdmin(data?.role === "admin" || data?.role === "super_user");
     } catch (error) {
       setIsAdmin(false);
     }
