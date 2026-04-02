@@ -603,51 +603,109 @@ export default function Admin() {
           </TabsList>
 
           <TabsContent value="members" className="space-y-3 mt-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-              <Users className="h-4 w-4" />
-              <span>{members.length} članov v ligi</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>{members.length} članov v ligi</span>
+              </div>
+              {seasons.length > 0 && (
+                <Select value={memberSeasonId} onValueChange={(v) => { setMemberSeasonId(v); fetchSeasonRoles(v); }}>
+                  <SelectTrigger className="w-[170px]">
+                    <SelectValue placeholder="Izberi sezono" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="league">Liga (stalna vloga)</SelectItem>
+                    {seasons.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} {s.is_active ? "●" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
-            {members.map((member) => (
-              <Card key={member.id}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
-                    <Badge variant={member.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                      {member.role.replace('_', ' ')}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription className="text-xs">{member.profiles?.email}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 pb-3">
-                  <Select 
-                    value={member.role} 
-                    onValueChange={(value: "admin" | "plačan_član" | "neplačan_član") => handleUpdateRole(member.id, value)}
-                    disabled={loading || member.user_id === user.id}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="plačan_član">Plačan član</SelectItem>
-                      <SelectItem value="neplačan_član">Neplačan član</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {member.user_id !== user.id && (
-                    <Button 
-                      onClick={() => handleRemoveMember(member.id)}
-                      disabled={loading}
-                      variant="destructive"
-                      size="sm"
-                      className="w-full"
-                    >
-                      Odstrani iz lige
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+            {memberSeasonId !== "league" && (
+              <div className="text-xs text-muted-foreground p-2 rounded-lg bg-muted/50 border mb-2">
+                Urejate plačilni status za sezono: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
+              </div>
+            )}
+
+            {members.map((member) => {
+              const isSeasonView = memberSeasonId !== "league";
+              const currentSeasonRole = isSeasonView
+                ? (seasonRoles[member.user_id] || "neplačan_član")
+                : null;
+
+              return (
+                <Card key={member.id}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
+                      <div className="flex gap-1">
+                        {member.role === 'admin' && (
+                          <Badge variant="default" className="text-xs">Admin</Badge>
+                        )}
+                        {isSeasonView ? (
+                          <Badge variant={currentSeasonRole === 'plačan_član' ? 'default' : 'secondary'} className="text-xs">
+                            {currentSeasonRole === 'plačan_član' ? 'Plačan' : 'Neplačan'}
+                          </Badge>
+                        ) : (
+                          <Badge variant={member.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
+                            {member.role.replace('_', ' ')}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="text-xs">{member.profiles?.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2 pb-3">
+                    {isSeasonView ? (
+                      <Select
+                        value={currentSeasonRole!}
+                        onValueChange={(value) => handleUpdateSeasonRole(member.user_id, value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="plačan_član">Plačan član</SelectItem>
+                          <SelectItem value="neplačan_član">Neplačan član</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Select
+                        value={member.role}
+                        onValueChange={(value: "admin" | "plačan_član" | "neplačan_član") => handleUpdateRole(member.id, value)}
+                        disabled={loading || member.user_id === user.id}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="plačan_član">Plačan član</SelectItem>
+                          <SelectItem value="neplačan_član">Neplačan član</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {!isSeasonView && member.user_id !== user.id && (
+                      <Button
+                        onClick={() => handleRemoveMember(member.id)}
+                        disabled={loading}
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                      >
+                        Odstrani iz lige
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
             ))}
           </TabsContent>
 
