@@ -644,16 +644,18 @@ export default function Admin() {
                     <CardTitle className="text-base flex items-center justify-between">
                       <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
                       <div className="flex gap-1">
-                        {member.role === 'admin' && (
-                          <Badge variant="default" className="text-xs">Admin</Badge>
+                        {(member.role === 'admin' || member.role === 'super_user') && (
+                          <Badge variant="default" className="text-xs">
+                            {member.role === 'super_user' ? 'Super User' : 'Admin'}
+                          </Badge>
                         )}
                         {isSeasonView ? (
                           <Badge variant={currentSeasonRole === 'plačan_član' ? 'default' : 'secondary'} className="text-xs">
                             {currentSeasonRole === 'plačan_član' ? 'Plačan' : 'Neplačan'}
                           </Badge>
                         ) : (
-                          <Badge variant={member.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                            {member.role.replace('_', ' ')}
+                          <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
+                            {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
                           </Badge>
                         )}
                       </div>
