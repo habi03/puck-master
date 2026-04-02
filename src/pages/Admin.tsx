@@ -416,7 +416,7 @@ export default function Admin() {
   };
 
 
-  const handleUpdateRole = async (memberId: string, newRole: "admin" | "plačan_član" | "neplačan_član") => {
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
     setLoading(true);
     try {
       const { error } = await supabase
