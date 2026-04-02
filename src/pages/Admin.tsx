@@ -706,7 +706,7 @@ export default function Admin() {
                 </Card>
               );
             })}
-            ))}
+
           </TabsContent>
 
           <TabsContent value="matches" className="mt-4">
