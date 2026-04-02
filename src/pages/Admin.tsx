@@ -41,6 +41,8 @@ export default function Admin() {
   const [seasons, setSeasons] = useState<any[]>([]);
   const [newSeasonName, setNewSeasonName] = useState("");
   const [seasonDialogOpen, setSeasonDialogOpen] = useState(false);
+  const [memberSeasonId, setMemberSeasonId] = useState<string>("league");
+  const [seasonRoles, setSeasonRoles] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   const matchSchema = z.object({
