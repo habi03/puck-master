@@ -235,6 +235,65 @@ export default function Admin() {
     }
   };
 
+  const fetchSeasonRoles = async (seasonId: string) => {
+    if (seasonId === "league") {
+      setSeasonRoles({});
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from("season_member_roles")
+        .select("user_id, role")
+        .eq("season_id", seasonId)
+        .eq("league_id", currentLeagueId);
+
+      if (error) throw error;
+      const roles: Record<string, string> = {};
+      (data || []).forEach((r: any) => { roles[r.user_id] = r.role; });
+      setSeasonRoles(roles);
+    } catch (error: any) {
+      console.error("Error fetching season roles:", error);
+    }
+  };
+
+  const handleUpdateSeasonRole = async (userId: string, newRole: string) => {
+    if (memberSeasonId === "league") return;
+    setLoading(true);
+    try {
+      const { data: existing } = await supabase
+        .from("season_member_roles")
+        .select("id")
+        .eq("season_id", memberSeasonId)
+        .eq("user_id", userId)
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("season_member_roles")
+          .update({ role: newRole } as any)
+          .eq("season_id", memberSeasonId)
+          .eq("user_id", userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("season_member_roles")
+          .insert({
+            season_id: memberSeasonId,
+            user_id: userId,
+            league_id: currentLeagueId,
+            role: newRole,
+          } as any);
+        if (error) throw error;
+      }
+      toast.success("Sezonska vloga posodobljena");
+      fetchSeasonRoles(memberSeasonId);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateSeason = async () => {
     if (!newSeasonName.trim()) {
       toast.error("Ime sezone je obvezno");
