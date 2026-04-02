@@ -421,7 +421,7 @@ export default function Admin() {
     try {
       const { error } = await supabase
         .from("league_members")
-        .update({ role: newRole })
+        .update({ role: newRole } as any)
         .eq("id", memberId);
 
       if (error) throw error;
