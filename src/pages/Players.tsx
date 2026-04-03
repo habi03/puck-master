@@ -175,8 +175,9 @@ export default function Players() {
           
           const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
-            'plačan_član': 'Plačan član',
-            'neplačan_član': 'Neplačan član'
+            'super_user': 'Super User',
+            'član': 'Član',
+            'poskusni_član': 'Poskusni član',
           };
           
           return {
