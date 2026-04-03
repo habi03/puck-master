@@ -224,10 +224,11 @@ export default function Players() {
     if (!isLeagueAdmin || player.total_ratings === 0) return;
     
     try {
-      // Fetch all raters for this player
+      // Super user sees full ratings, admin sees only rater names
+      const selectFields = isSuperUser ? "rater_id, rating" : "rater_id";
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("player_ratings")
-        .select("rater_id")
+        .select(selectFields)
         .eq("rated_player_id", player.id);
 
       if (ratingsError) throw ratingsError;
@@ -235,13 +236,13 @@ export default function Players() {
       if (!ratingsData || ratingsData.length === 0) {
         setRaters([]);
         setRatersPlayerName(player.full_name);
+        setRatersPlayerId(player.id);
         setRatersDialogOpen(true);
         return;
       }
 
-      const raterIds = ratingsData.map(r => r.rater_id);
+      const raterIds = ratingsData.map((r: any) => r.rater_id);
 
-      // Fetch profiles of raters
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
@@ -249,17 +250,59 @@ export default function Players() {
 
       if (profilesError) throw profilesError;
 
-      const ratersData: Rater[] = (profiles || []).map(p => ({
-        id: p.id,
-        full_name: p.full_name || "Brez imena",
-        avatar_url: p.avatar_url || undefined,
-      }));
+      const ratersData: Rater[] = (profiles || []).map(p => {
+        const ratingEntry = isSuperUser ? ratingsData.find((r: any) => r.rater_id === p.id) : null;
+        return {
+          id: p.id,
+          full_name: p.full_name || "Brez imena",
+          avatar_url: p.avatar_url || undefined,
+          rating: ratingEntry ? (ratingEntry as any).rating : undefined,
+        };
+      });
 
       setRaters(ratersData);
       setRatersPlayerName(player.full_name);
+      setRatersPlayerId(player.id);
       setRatersDialogOpen(true);
     } catch (error) {
       toast.error("Napaka pri nalaganju ocenjevalcev");
+      console.error(error);
+    }
+  };
+
+  const handleDeleteRating = async (raterId: string) => {
+    if (!isSuperUser) return;
+    try {
+      const { error } = await supabase
+        .from("player_ratings")
+        .delete()
+        .eq("rater_id", raterId)
+        .eq("rated_player_id", ratersPlayerId);
+      if (error) throw error;
+      toast.success("Ocena izbrisana");
+      setRatersDialogOpen(false);
+      fetchPlayers();
+    } catch (error) {
+      toast.error("Napaka pri brisanju ocene");
+      console.error(error);
+    }
+  };
+
+  const handleEditRating = async () => {
+    if (!isSuperUser || !editingRater) return;
+    try {
+      const { error } = await supabase
+        .from("player_ratings")
+        .update({ rating: editRatingValue })
+        .eq("rater_id", editingRater.id)
+        .eq("rated_player_id", ratersPlayerId);
+      if (error) throw error;
+      toast.success("Ocena posodobljena");
+      setEditingRater(null);
+      setRatersDialogOpen(false);
+      fetchPlayers();
+    } catch (error) {
+      toast.error("Napaka pri posodabljanju ocene");
       console.error(error);
     }
   };
