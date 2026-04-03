@@ -481,7 +481,7 @@ export default function Players() {
         </Dialog>
 
         {/* Raters Dialog - Admin only */}
-        <Dialog open={ratersDialogOpen} onOpenChange={setRatersDialogOpen}>
+        <Dialog open={ratersDialogOpen} onOpenChange={(open) => { setRatersDialogOpen(open); if (!open) setEditingRater(null); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Ocenjevalci igralca: {ratersPlayerName}</DialogTitle>
@@ -501,9 +501,37 @@ export default function Players() {
                           {rater.full_name[0].toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{rater.full_name}</span>
+                      <span className="text-sm font-medium flex-1">{rater.full_name}</span>
+                      {isSuperUser && rater.rating !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-primary">{Number(rater.rating).toFixed(1)}</span>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setEditingRater(rater); setEditRatingValue(Number(rater.rating)); }}>
+                            <Star className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDeleteRating(rater.id)}>
+                            ✕
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
+                </div>
+              )}
+              {/* Inline edit rating for super user */}
+              {editingRater && (
+                <div className="mt-4 p-3 border rounded-lg space-y-3">
+                  <Label className="text-sm">Uredi oceno za {editingRater.full_name}: {editRatingValue.toFixed(1)}/10</Label>
+                  <Slider
+                    value={[editRatingValue]}
+                    onValueChange={(v) => setEditRatingValue(Math.round(v[0] * 10) / 10)}
+                    min={1}
+                    max={10}
+                    step={0.1}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleEditRating} className="flex-1">Shrani</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">Prekliči</Button>
+                  </div>
                 </div>
               )}
             </div>
