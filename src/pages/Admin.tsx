@@ -23,6 +23,7 @@ export default function Admin() {
   const [user, setUser] = useState<User | null>(null);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperUser, setIsSuperUser] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
