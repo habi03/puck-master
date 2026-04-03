@@ -689,7 +689,7 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="super_user">Super User</SelectItem>
+                          {isSuperUser && <SelectItem value="super_user">Super User</SelectItem>}
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="član">Član</SelectItem>
                           <SelectItem value="poskusni_član">Poskusni član</SelectItem>
