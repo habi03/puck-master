@@ -35,6 +35,7 @@ interface Rater {
   id: string;
   full_name: string;
   avatar_url?: string;
+  rating?: number;
 }
 
 export default function Players() {
@@ -47,9 +48,13 @@ export default function Players() {
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
   const [isLeagueAdmin, setIsLeagueAdmin] = useState(false);
+  const [isSuperUser, setIsSuperUser] = useState(false);
   const [ratersDialogOpen, setRatersDialogOpen] = useState(false);
   const [raters, setRaters] = useState<Rater[]>([]);
   const [ratersPlayerName, setRatersPlayerName] = useState<string>("");
+  const [ratersPlayerId, setRatersPlayerId] = useState<string>("");
+  const [editingRater, setEditingRater] = useState<Rater | null>(null);
+  const [editRatingValue, setEditRatingValue] = useState<number>(5.0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -100,7 +105,8 @@ export default function Players() {
       }
       
       setCurrentLeagueId(leagueId);
-      setIsLeagueAdmin(data.role === 'admin');
+      setIsLeagueAdmin(data.role === 'admin' || data.role === 'super_user');
+      setIsSuperUser(data.role === 'super_user');
     };
     
     if (user) {
@@ -169,8 +175,9 @@ export default function Players() {
           
           const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
-            'plačan_član': 'Plačan član',
-            'neplačan_član': 'Neplačan član'
+            'super_user': 'Super User',
+            'član': 'Član',
+            'poskusni_član': 'Poskusni član',
           };
           
           return {
@@ -217,10 +224,11 @@ export default function Players() {
     if (!isLeagueAdmin || player.total_ratings === 0) return;
     
     try {
-      // Fetch all raters for this player
+      // Super user sees full ratings, admin sees only rater names
+      const selectFields = isSuperUser ? "rater_id, rating" : "rater_id";
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("player_ratings")
-        .select("rater_id")
+        .select(selectFields)
         .eq("rated_player_id", player.id);
 
       if (ratingsError) throw ratingsError;
@@ -228,13 +236,13 @@ export default function Players() {
       if (!ratingsData || ratingsData.length === 0) {
         setRaters([]);
         setRatersPlayerName(player.full_name);
+        setRatersPlayerId(player.id);
         setRatersDialogOpen(true);
         return;
       }
 
-      const raterIds = ratingsData.map(r => r.rater_id);
+      const raterIds = ratingsData.map((r: any) => r.rater_id);
 
-      // Fetch profiles of raters
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
@@ -242,17 +250,59 @@ export default function Players() {
 
       if (profilesError) throw profilesError;
 
-      const ratersData: Rater[] = (profiles || []).map(p => ({
-        id: p.id,
-        full_name: p.full_name || "Brez imena",
-        avatar_url: p.avatar_url || undefined,
-      }));
+      const ratersData: Rater[] = (profiles || []).map(p => {
+        const ratingEntry = isSuperUser ? ratingsData.find((r: any) => r.rater_id === p.id) : null;
+        return {
+          id: p.id,
+          full_name: p.full_name || "Brez imena",
+          avatar_url: p.avatar_url || undefined,
+          rating: ratingEntry ? (ratingEntry as any).rating : undefined,
+        };
+      });
 
       setRaters(ratersData);
       setRatersPlayerName(player.full_name);
+      setRatersPlayerId(player.id);
       setRatersDialogOpen(true);
     } catch (error) {
       toast.error("Napaka pri nalaganju ocenjevalcev");
+      console.error(error);
+    }
+  };
+
+  const handleDeleteRating = async (raterId: string) => {
+    if (!isSuperUser) return;
+    try {
+      const { error } = await supabase
+        .from("player_ratings")
+        .delete()
+        .eq("rater_id", raterId)
+        .eq("rated_player_id", ratersPlayerId);
+      if (error) throw error;
+      toast.success("Ocena izbrisana");
+      setRatersDialogOpen(false);
+      fetchPlayers();
+    } catch (error) {
+      toast.error("Napaka pri brisanju ocene");
+      console.error(error);
+    }
+  };
+
+  const handleEditRating = async () => {
+    if (!isSuperUser || !editingRater) return;
+    try {
+      const { error } = await supabase
+        .from("player_ratings")
+        .update({ rating: editRatingValue })
+        .eq("rater_id", editingRater.id)
+        .eq("rated_player_id", ratersPlayerId);
+      if (error) throw error;
+      toast.success("Ocena posodobljena");
+      setEditingRater(null);
+      setRatersDialogOpen(false);
+      fetchPlayers();
+    } catch (error) {
+      toast.error("Napaka pri posodabljanju ocene");
       console.error(error);
     }
   };
@@ -431,7 +481,7 @@ export default function Players() {
         </Dialog>
 
         {/* Raters Dialog - Admin only */}
-        <Dialog open={ratersDialogOpen} onOpenChange={setRatersDialogOpen}>
+        <Dialog open={ratersDialogOpen} onOpenChange={(open) => { setRatersDialogOpen(open); if (!open) setEditingRater(null); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Ocenjevalci igralca: {ratersPlayerName}</DialogTitle>
@@ -451,9 +501,37 @@ export default function Players() {
                           {rater.full_name[0].toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{rater.full_name}</span>
+                      <span className="text-sm font-medium flex-1">{rater.full_name}</span>
+                      {isSuperUser && rater.rating !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-primary">{Number(rater.rating).toFixed(1)}</span>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setEditingRater(rater); setEditRatingValue(Number(rater.rating)); }}>
+                            <Star className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDeleteRating(rater.id)}>
+                            ✕
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
+                </div>
+              )}
+              {/* Inline edit rating for super user */}
+              {editingRater && (
+                <div className="mt-4 p-3 border rounded-lg space-y-3">
+                  <Label className="text-sm">Uredi oceno za {editingRater.full_name}: {editRatingValue.toFixed(1)}/10</Label>
+                  <Slider
+                    value={[editRatingValue]}
+                    onValueChange={(v) => setEditRatingValue(Math.round(v[0] * 10) / 10)}
+                    min={1}
+                    max={10}
+                    step={0.1}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleEditRating} className="flex-1">Shrani</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">Prekliči</Button>
+                  </div>
                 </div>
               )}
             </div>

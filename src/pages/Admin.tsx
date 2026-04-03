@@ -23,6 +23,7 @@ export default function Admin() {
   const [user, setUser] = useState<User | null>(null);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperUser, setIsSuperUser] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -146,6 +147,7 @@ export default function Admin() {
       if (error) throw error;
       const hasAdminAccess = data?.role === "admin" || data?.role === "super_user";
       setIsAdmin(hasAdminAccess);
+      setIsSuperUser(data?.role === "super_user");
       
       if (!hasAdminAccess) {
         toast.error("Nimate administratorskih pravic");
@@ -687,7 +689,7 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="super_user">Super User</SelectItem>
+                          {isSuperUser && <SelectItem value="super_user">Super User</SelectItem>}
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="član">Član</SelectItem>
                           <SelectItem value="poskusni_član">Poskusni član</SelectItem>
