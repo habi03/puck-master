@@ -48,9 +48,13 @@ export default function Players() {
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
   const [isLeagueAdmin, setIsLeagueAdmin] = useState(false);
+  const [isSuperUser, setIsSuperUser] = useState(false);
   const [ratersDialogOpen, setRatersDialogOpen] = useState(false);
   const [raters, setRaters] = useState<Rater[]>([]);
   const [ratersPlayerName, setRatersPlayerName] = useState<string>("");
+  const [ratersPlayerId, setRatersPlayerId] = useState<string>("");
+  const [editingRater, setEditingRater] = useState<Rater | null>(null);
+  const [editRatingValue, setEditRatingValue] = useState<number>(5.0);
   const navigate = useNavigate();
 
   useEffect(() => {
