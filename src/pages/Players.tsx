@@ -105,7 +105,8 @@ export default function Players() {
       }
       
       setCurrentLeagueId(leagueId);
-      setIsLeagueAdmin(data.role === 'admin');
+      setIsLeagueAdmin(data.role === 'admin' || data.role === 'super_user');
+      setIsSuperUser(data.role === 'super_user');
     };
     
     if (user) {
