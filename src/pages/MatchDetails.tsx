@@ -139,7 +139,7 @@ export default function MatchDetails() {
       }
     } catch (error: any) {
       toast.error("Napaka pri nalaganju tekme");
-      navigate("/");
+      navigate("/league");
     }
   };
 
@@ -597,7 +597,7 @@ export default function MatchDetails() {
       
       <main className="px-4 py-4">
         <Button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/league")}
           variant="ghost"
           size="sm"
           className="mb-4 gap-1"

@@ -55,7 +55,7 @@ export default function Leaderboard() {
     
     const leagueId = localStorage.getItem("currentLeagueId");
     if (!leagueId) {
-      navigate("/leagues");
+      navigate("/");
       return;
     }
 
@@ -69,7 +69,7 @@ export default function Leaderboard() {
     
     if (error || !data) {
       localStorage.removeItem("currentLeagueId");
-      navigate("/leagues");
+      navigate("/");
       return;
     }
 

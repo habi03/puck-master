@@ -114,41 +114,48 @@ export default function Navbar({ user }: NavbarProps) {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-3 mt-6">
-                <Button onClick={() => navigate("/")} variant="outline" className="w-full justify-start">
-                  <Home className="h-4 w-4 mr-2" />
-                  Domov
-                </Button>
+                {currentLeague && (
+                  <>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-2">{currentLeague.name}</p>
+                    <Button onClick={() => navigate("/league")} variant="outline" className="w-full justify-start">
+                      <Home className="h-4 w-4 mr-2" />
+                      Domov lige
+                    </Button>
+                    
+                    <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
+                      <UserCircle className="h-4 w-4 mr-2" />
+                      Profil v ligi
+                    </Button>
+                    
+                    <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      Tekmovalci
+                    </Button>
+                    
+                    <Button onClick={() => navigate("/leaderboard")} variant="outline" className="w-full justify-start">
+                      <Award className="h-4 w-4 mr-2" />
+                      Lestvica
+                    </Button>
+                    
+                    {isAdmin && (
+                      <Button onClick={() => navigate("/admin")} variant="outline" className="w-full justify-start">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin panel
+                      </Button>
+                    )}
+                    
+                    <div className="border-t my-1" />
+                  </>
+                )}
                 
-                <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
-                  <UserCircle className="h-4 w-4 mr-2" />
-                  Profil v ligi
+                <Button onClick={() => navigate("/")} variant="default" className="w-full justify-start">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Moje lige
                 </Button>
 
                 <Button onClick={() => navigate("/global-profile")} variant="outline" className="w-full justify-start">
                   <UserCircle className="h-4 w-4 mr-2" />
                   Moj račun
-                </Button>
-                
-                <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
-                  <Users className="h-4 w-4 mr-2" />
-                  Tekmovalci
-                </Button>
-                
-                <Button onClick={() => navigate("/leaderboard")} variant="outline" className="w-full justify-start">
-                  <Award className="h-4 w-4 mr-2" />
-                  Lestvica
-                </Button>
-                
-                {isAdmin && (
-                  <Button onClick={() => navigate("/admin")} variant="outline" className="w-full justify-start">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Admin panel
-                  </Button>
-                )}
-                
-                <Button onClick={() => navigate("/leagues")} variant="default" className="w-full justify-start">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  Izberi ligo
                 </Button>
                 
                 <SheetClose asChild>

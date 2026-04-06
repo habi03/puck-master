@@ -83,7 +83,7 @@ export default function Players() {
     const validateLeagueMembership = async () => {
       const leagueId = localStorage.getItem("currentLeagueId");
       if (!leagueId) {
-        navigate("/leagues");
+        navigate("/");
         return;
       }
       
@@ -100,7 +100,7 @@ export default function Players() {
       if (error || !data) {
         localStorage.removeItem("currentLeagueId");
         toast.error("Nimate več dostopa do te lige");
-        navigate("/leagues");
+        navigate("/");
         return;
       }
       

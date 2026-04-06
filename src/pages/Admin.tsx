@@ -96,7 +96,7 @@ export default function Admin() {
     const validateLeagueMembership = async () => {
       const leagueId = localStorage.getItem("currentLeagueId");
       if (!leagueId) {
-        navigate("/leagues");
+        navigate("/");
         return;
       }
       
@@ -113,7 +113,7 @@ export default function Admin() {
       if (error || !data) {
         localStorage.removeItem("currentLeagueId");
         toast.error("Nimate več dostopa do te lige");
-        navigate("/leagues");
+        navigate("/");
         return;
       }
       
@@ -151,11 +151,11 @@ export default function Admin() {
       
       if (!hasAdminAccess) {
         toast.error("Nimate administratorskih pravic");
-        navigate("/");
+        navigate("/league");
       }
     } catch (error: any) {
       toast.error("Napaka pri preverjanju pravic");
-      navigate("/");
+      navigate("/league");
     }
   };
 

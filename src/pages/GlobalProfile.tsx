@@ -210,7 +210,7 @@ export default function GlobalProfile() {
 
   const handleEnterLeague = (leagueId: string) => {
     localStorage.setItem("currentLeagueId", leagueId);
-    navigate("/");
+    navigate("/league");
   };
 
   const handleSignOut = async () => {
@@ -244,7 +244,7 @@ export default function GlobalProfile() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/leagues")}>
+            <Button variant="outline" size="sm" onClick={() => navigate("/")}>
               <Trophy className="h-4 w-4 mr-1" />
               Lige
             </Button>
@@ -359,7 +359,7 @@ export default function GlobalProfile() {
             {memberships.length === 0 ? (
               <div className="text-center py-6">
                 <p className="text-muted-foreground text-sm mb-3">Niste član nobene lige.</p>
-                <Button variant="default" onClick={() => navigate("/leagues")}>
+                <Button variant="default" onClick={() => navigate("/")}>
                   <Trophy className="h-4 w-4 mr-2" />
                   Pridruži se ligi
                 </Button>
