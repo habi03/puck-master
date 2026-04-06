@@ -316,7 +316,7 @@ export default function Leagues() {
               </DialogHeader>
               <form onSubmit={handleCreateLeague} className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Ime lige *</Label>
+                  <Label htmlFor="name">Ime lige <span className="text-destructive">•</span></Label>
                   <Input
                     id="name"
                     value={newLeagueName}
@@ -336,7 +336,7 @@ export default function Leagues() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="season-name">Ime prve sezone *</Label>
+                  <Label htmlFor="season-name">Ime prve sezone <span className="text-destructive">•</span></Label>
                   <Input
                     id="season-name"
                     value={newSeasonName}
