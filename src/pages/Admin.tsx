@@ -1131,8 +1131,6 @@ export default function Admin() {
                               LIVE
                             </Badge>
                           )}
-                            </Badge>
-                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           {!season.is_active && (
