@@ -620,7 +620,7 @@ export default function Admin() {
                     <SelectItem value="league">Liga (stalna vloga)</SelectItem>
                     {seasons.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        <span className="flex items-center gap-1.5">{s.name} {s.is_active && <span className="inline-block h-2 w-2 rounded-full bg-destructive animate-pulse" />}</span>
+                        <span className="flex items-center gap-1.5">{s.name} {s.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1126,10 +1126,10 @@ export default function Admin() {
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm">{season.name}</span>
                           {season.is_active && (
-                            <Badge variant="default" className="text-xs gap-1">
-                              <span className="inline-block h-2 w-2 rounded-full bg-white animate-pulse" />
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive">
+                              <span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
                               LIVE
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-1">

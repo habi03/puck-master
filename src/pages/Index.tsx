@@ -229,7 +229,7 @@ export default function Index() {
                 <SelectItem value="all">Vse sezone</SelectItem>
                 {seasons.map((season) => (
                   <SelectItem key={season.id} value={season.id}>
-                    <span className="flex items-center gap-1.5">{season.name} {season.is_active && <span className="inline-block h-2 w-2 rounded-full bg-destructive animate-pulse" />}</span>
+                    <span className="flex items-center gap-1.5">{season.name} {season.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
