@@ -283,7 +283,7 @@ export default function Leagues() {
 
   const handleSelectLeague = (leagueId: string) => {
     localStorage.setItem("currentLeagueId", leagueId);
-    navigate("/");
+    navigate("/league");
   };
 
   const isInLeague = (leagueId: string) => {
