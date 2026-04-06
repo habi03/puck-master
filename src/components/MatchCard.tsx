@@ -1648,7 +1648,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             <SelectContent>
               {seasons.map((season) => (
                 <SelectItem key={season.id} value={season.id}>
-                  {season.name}{season.is_active ? " (aktivna)" : ""}
+                  <span className="flex items-center gap-1.5">{season.name}{season.is_active && <span className="inline-block h-2 w-2 rounded-full bg-destructive animate-pulse" />}</span>
                 </SelectItem>
               ))}
             </SelectContent>

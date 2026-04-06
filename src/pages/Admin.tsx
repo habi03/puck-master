@@ -620,7 +620,7 @@ export default function Admin() {
                     <SelectItem value="league">Liga (stalna vloga)</SelectItem>
                     {seasons.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.name} {s.is_active ? "●" : ""}
+                        <span className="flex items-center gap-1.5">{s.name} {s.is_active && <span className="inline-block h-2 w-2 rounded-full bg-destructive animate-pulse" />}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1126,9 +1126,11 @@ export default function Admin() {
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm">{season.name}</span>
                           {season.is_active && (
-                            <Badge variant="default" className="text-xs">
-                              <Star className="h-3 w-3 mr-1" />
-                              Aktivna
+                            <Badge variant="default" className="text-xs gap-1">
+                              <span className="inline-block h-2 w-2 rounded-full bg-white animate-pulse" />
+                              LIVE
+                            </Badge>
+                          )}
                             </Badge>
                           )}
                         </div>
