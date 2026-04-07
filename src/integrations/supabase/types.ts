@@ -107,6 +107,7 @@ export type Database = {
           points_penalty_loss: number
           points_penalty_win: number
           points_win: number
+          sport_type: string
           team_colors: Json | null
           updated_at: string
         }
@@ -121,6 +122,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          sport_type?: string
           team_colors?: Json | null
           updated_at?: string
         }
@@ -135,6 +137,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          sport_type?: string
           team_colors?: Json | null
           updated_at?: string
         }
@@ -579,6 +582,7 @@ export type Database = {
           has_password: boolean | null
           id: string | null
           name: string | null
+          sport_type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -588,6 +592,7 @@ export type Database = {
           has_password?: never
           id?: string | null
           name?: string | null
+          sport_type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -597,6 +602,7 @@ export type Database = {
           has_password?: never
           id?: string | null
           name?: string | null
+          sport_type?: string | null
           updated_at?: string | null
         }
         Relationships: []

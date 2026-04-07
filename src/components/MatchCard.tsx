@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { getTeamColorStyle, DEFAULT_TEAM_COLORS } from "@/lib/teamColors";
+import { getSportConfig, getPositionLabel, sportHasGoalkeeper, getSportEmoji } from "@/lib/sportConfig";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,6 +75,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [sportType, setSportType] = useState<string>("hokej");
   const [changeSeasonDialogOpen, setChangeSeasonDialogOpen] = useState(false);
   const [seasons, setSeasons] = useState<any[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(match.season_id || "");
@@ -102,8 +104,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
         setTeamColors(leagueAny.team_colors);
       }
+      if (leagueAny?.sport_type) {
+        setSportType(leagueAny.sport_type);
+      }
     } catch {}
   };
+
+  const sportConfig = getSportConfig(sportType);
+  const hasGoalkeeper = sportHasGoalkeeper(sportType);
 
   const checkAdminStatus = async () => {
     try {
@@ -996,8 +1004,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 const active = participants.filter(p => !p.is_absent);
                 const playersCount = active.filter(p => p.position === "igralec").length;
                 const goalkeepersCount = active.filter(p => p.position === "vratar").length;
-                const playersText = `${playersCount}${match.max_players ? `/${match.max_players}` : ''} igralcev`;
-                const goalkeepersText = `${goalkeepersCount}${match.max_goalkeepers ? `/${match.max_goalkeepers}` : ''} vratarjev`;
+                const playersText = `${playersCount}${match.max_players ? `/${match.max_players}` : ''} ${sportConfig.positions.player.toLowerCase()}ev`;
+                if (!hasGoalkeeper) return playersText;
+                const goalkeepersText = `${goalkeepersCount}${match.max_goalkeepers ? `/${match.max_goalkeepers}` : ''} ${(sportConfig.positions.goalkeeper || '').toLowerCase()}jev`;
                 return `${playersText}, ${goalkeepersText}`;
               })()}
             </span>
@@ -1078,8 +1087,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <SelectItem value="igralec">Igralec</SelectItem>
-                    <SelectItem value="vratar">Vratar</SelectItem>
+                    <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
+                    {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
                   </SelectContent>
                 </Select>
                 <Button 
@@ -1246,8 +1255,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="igralec">Igralec</SelectItem>
-                            <SelectItem value="vratar">Vratar</SelectItem>
+                            <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
+                            {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
                           </SelectContent>
                         </Select>
                       )}
@@ -1434,8 +1443,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-background border z-50">
-                        <SelectItem value="igralec">Igralec</SelectItem>
-                        <SelectItem value="vratar">Vratar</SelectItem>
+                        <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
+                        {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
                       </SelectContent>
                     </Select>
                   </div>

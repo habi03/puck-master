@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import { Plus, Users, ArrowRight, Lock, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
+import { ALL_SPORTS, getSportConfig, getSportEmoji, SportType } from "@/lib/sportConfig";
 
 const leagueSchema = z.object({
   name: z.string()
@@ -46,6 +48,7 @@ export default function Leagues() {
   const [newLeaguePassword, setNewLeaguePassword] = useState("");
   const [newSeasonName, setNewSeasonName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSport, setSelectedSport] = useState<SportType>("hokej");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
   const [enteredPassword, setEnteredPassword] = useState("");
@@ -125,7 +128,8 @@ export default function Leagues() {
           description: validatedData.description || null,
           password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
-        })
+          sport_type: selectedSport,
+        } as any)
         .select("id")
         .single();
 
@@ -150,6 +154,7 @@ export default function Leagues() {
       setNewLeagueDesc("");
       setNewLeaguePassword("");
       setNewSeasonName("");
+      setSelectedSport("hokej");
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
@@ -316,6 +321,31 @@ export default function Leagues() {
               </DialogHeader>
               <form onSubmit={handleCreateLeague} className="space-y-3">
                 <div className="space-y-1.5">
+                  <Label>Šport <span className="text-destructive">•</span></Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ALL_SPORTS.map((sport) => {
+                      const config = getSportConfig(sport);
+                      return (
+                        <button
+                          key={sport}
+                          type="button"
+                          onClick={() => setSelectedSport(sport)}
+                          className={`flex items-center gap-2 rounded-lg border-2 p-3 text-left text-sm font-medium transition-colors ${
+                            selectedSport === sport
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card hover:border-muted-foreground/50"
+                          }`}
+                        >
+                          <span className="text-lg">
+                            {sport === "hokej" ? "🏒" : sport === "nogomet" ? "⚽" : sport === "košarka" ? "🏀" : "🏐"}
+                          </span>
+                          <span>{config.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="name">Ime lige <span className="text-destructive">•</span></Label>
                   <Input
                     id="name"
@@ -382,6 +412,7 @@ export default function Leagues() {
                     >
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg flex items-center gap-2">
+                          <span>{getSportEmoji((membership.leagues as any).sport_type)}</span>
                           <span>{membership.leagues.name}</span>
                           {membership.leagues.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
@@ -449,6 +480,7 @@ export default function Leagues() {
                 <Card key={league.id}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
+                      <span>{getSportEmoji((league as any).sport_type)}</span>
                       {league.name}
                       {league.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                     </CardTitle>

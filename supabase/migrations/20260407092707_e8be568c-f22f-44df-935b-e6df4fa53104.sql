@@ -1,0 +1,1 @@
+ALTER TABLE public.leagues ADD COLUMN sport_type text NOT NULL DEFAULT 'hokej';

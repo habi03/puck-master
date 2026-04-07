@@ -1,0 +1,1 @@
+ALTER VIEW public.public_leagues SET (security_invoker = true);
