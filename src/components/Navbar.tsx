@@ -98,7 +98,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Trophy className="h-6 w-6 text-primary flex-shrink-0" />
             <div className="flex flex-col min-w-0">
               <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Hokejska Liga
+                Playta
               </h1>
               {currentLeague && !isOnLeaguesPage && (
                 <span className="text-xs text-muted-foreground truncate">
