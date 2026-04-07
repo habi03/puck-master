@@ -100,7 +100,7 @@ export default function Navbar({ user }: NavbarProps) {
               <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Hokejska Liga
               </h1>
-              {currentLeague && (
+              {currentLeague && !isOnLeaguesPage && (
                 <span className="text-xs text-muted-foreground truncate">
                   {currentLeague.name}
                 </span>
