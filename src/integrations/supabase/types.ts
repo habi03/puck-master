@@ -582,6 +582,7 @@ export type Database = {
           has_password: boolean | null
           id: string | null
           name: string | null
+          sport_type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -591,6 +592,7 @@ export type Database = {
           has_password?: never
           id?: string | null
           name?: string | null
+          sport_type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -600,6 +602,7 @@ export type Database = {
           has_password?: never
           id?: string | null
           name?: string | null
+          sport_type?: string | null
           updated_at?: string | null
         }
         Relationships: []
