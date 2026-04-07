@@ -107,6 +107,7 @@ export type Database = {
           points_penalty_loss: number
           points_penalty_win: number
           points_win: number
+          sport_type: string
           team_colors: Json | null
           updated_at: string
         }
@@ -121,6 +122,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          sport_type?: string
           team_colors?: Json | null
           updated_at?: string
         }
@@ -135,6 +137,7 @@ export type Database = {
           points_penalty_loss?: number
           points_penalty_win?: number
           points_win?: number
+          sport_type?: string
           team_colors?: Json | null
           updated_at?: string
         }
