@@ -48,6 +48,7 @@ export default function Leagues() {
   const [newLeaguePassword, setNewLeaguePassword] = useState("");
   const [newSeasonName, setNewSeasonName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSport, setSelectedSport] = useState<SportType>("hokej");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
   const [enteredPassword, setEnteredPassword] = useState("");
