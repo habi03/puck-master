@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut, Trophy, Menu, Shield, Users, Home, UserCircle, Award } from "lucide-react";
@@ -12,6 +12,8 @@ interface NavbarProps {
 
 export default function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isOnLeaguesPage = location.pathname === "/";
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -98,7 +100,7 @@ export default function Navbar({ user }: NavbarProps) {
               <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Hokejska Liga
               </h1>
-              {currentLeague && (
+              {currentLeague && !isOnLeaguesPage && (
                 <span className="text-xs text-muted-foreground truncate">
                   {currentLeague.name}
                 </span>
@@ -114,7 +116,7 @@ export default function Navbar({ user }: NavbarProps) {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-3 mt-6">
-                {currentLeague && (
+                {currentLeague && !isOnLeaguesPage && (
                   <>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-2">{currentLeague.name}</p>
                     <Button onClick={() => navigate("/league")} variant="outline" className="w-full justify-start">
