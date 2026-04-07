@@ -240,7 +240,7 @@ export default function GlobalProfile() {
           <div className="flex items-center gap-2">
             <Trophy className="h-6 w-6 text-primary" />
             <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Hokejska Liga
+              Playta
             </h1>
           </div>
           <div className="flex items-center gap-2">

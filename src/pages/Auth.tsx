@@ -209,7 +209,7 @@ export default function Auth() {
       <Card className="w-full max-w-sm shadow-lg">
         <CardHeader className="space-y-1 text-center pb-4">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Hokejska Liga
+            Playta
           </CardTitle>
           <CardDescription className="text-sm">
             {isPasswordReset 
