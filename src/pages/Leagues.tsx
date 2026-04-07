@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import { Plus, Users, ArrowRight, Lock, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
+import { ALL_SPORTS, getSportConfig, SportType } from "@/lib/sportConfig";
 
 const leagueSchema = z.object({
   name: z.string()
