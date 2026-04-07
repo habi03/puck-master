@@ -135,3 +135,16 @@ export function getPositionLabel(position: string, sportType?: string): string {
 export function sportHasGoalkeeper(sportType?: string): boolean {
   return getSportConfig(sportType).hasGoalkeeper;
 }
+
+/**
+ * Get emoji for a sport type
+ */
+export function getSportEmoji(sportType?: string): string {
+  const map: Record<string, string> = {
+    hokej: "🏒",
+    nogomet: "⚽",
+    košarka: "🏀",
+    odbojka: "🏐",
+  };
+  return map[sportType || "hokej"] || "🏒";
+}
