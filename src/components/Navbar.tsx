@@ -116,7 +116,7 @@ export default function Navbar({ user }: NavbarProps) {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-3 mt-6">
-                {currentLeague && (
+                {currentLeague && !isOnLeaguesPage && (
                   <>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-2">{currentLeague.name}</p>
                     <Button onClick={() => navigate("/league")} variant="outline" className="w-full justify-start">
