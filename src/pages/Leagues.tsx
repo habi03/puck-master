@@ -154,6 +154,7 @@ export default function Leagues() {
       setNewLeagueDesc("");
       setNewLeaguePassword("");
       setNewSeasonName("");
+      setSelectedSport("hokej");
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
