@@ -128,7 +128,8 @@ export default function Leagues() {
           description: validatedData.description || null,
           password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
-        })
+          sport_type: selectedSport,
+        } as any)
         .select("id")
         .single();
 
