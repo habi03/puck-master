@@ -321,6 +321,31 @@ export default function Leagues() {
               </DialogHeader>
               <form onSubmit={handleCreateLeague} className="space-y-3">
                 <div className="space-y-1.5">
+                  <Label>Šport <span className="text-destructive">•</span></Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ALL_SPORTS.map((sport) => {
+                      const config = getSportConfig(sport);
+                      return (
+                        <button
+                          key={sport}
+                          type="button"
+                          onClick={() => setSelectedSport(sport)}
+                          className={`flex items-center gap-2 rounded-lg border-2 p-3 text-left text-sm font-medium transition-colors ${
+                            selectedSport === sport
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card hover:border-muted-foreground/50"
+                          }`}
+                        >
+                          <span className="text-lg">
+                            {sport === "hokej" ? "🏒" : sport === "nogomet" ? "⚽" : sport === "košarka" ? "🏀" : "🏐"}
+                          </span>
+                          <span>{config.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="name">Ime lige <span className="text-destructive">•</span></Label>
                   <Input
                     id="name"
