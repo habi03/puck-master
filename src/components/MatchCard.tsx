@@ -75,6 +75,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     points_penalty_loss: "1",
   });
   const [teamColors, setTeamColors] = useState<string[]>([...DEFAULT_TEAM_COLORS]);
+  const [sportType, setSportType] = useState<string>("hokej");
   const [changeSeasonDialogOpen, setChangeSeasonDialogOpen] = useState(false);
   const [seasons, setSeasons] = useState<any[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(match.season_id || "");
@@ -103,8 +104,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (leagueAny?.team_colors && Array.isArray(leagueAny.team_colors)) {
         setTeamColors(leagueAny.team_colors);
       }
+      if (leagueAny?.sport_type) {
+        setSportType(leagueAny.sport_type);
+      }
     } catch {}
   };
+
+  const sportConfig = getSportConfig(sportType);
+  const hasGoalkeeper = sportHasGoalkeeper(sportType);
 
   const checkAdminStatus = async () => {
     try {
