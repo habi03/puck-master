@@ -412,6 +412,7 @@ export default function Leagues() {
                     >
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg flex items-center gap-2">
+                          <span>{getSportEmoji((membership.leagues as any).sport_type)}</span>
                           <span>{membership.leagues.name}</span>
                           {membership.leagues.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
@@ -479,6 +480,7 @@ export default function Leagues() {
                 <Card key={league.id}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
+                      <span>{getSportEmoji((league as any).sport_type)}</span>
                       {league.name}
                       {league.has_password && <Lock className="h-4 w-4 text-muted-foreground" />}
                     </CardTitle>
