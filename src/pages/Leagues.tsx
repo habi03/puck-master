@@ -47,11 +47,19 @@ export default function Leagues() {
   const [newLeagueDesc, setNewLeagueDesc] = useState("");
   const [newLeaguePassword, setNewLeaguePassword] = useState("");
   const [newSeasonName, setNewSeasonName] = useState("");
+  const [newLeagueCity, setNewLeagueCity] = useState("");
+  const [newLeagueCountry, setNewLeagueCountry] = useState("Slovenija");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSport, setSelectedSport] = useState<SportType>("hokej");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
   const [enteredPassword, setEnteredPassword] = useState("");
+  
+  // Filters
+  const [filterSport, setFilterSport] = useState<string>("all");
+  const [filterCity, setFilterCity] = useState<string>("all");
+  const [filterCountry, setFilterCountry] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
