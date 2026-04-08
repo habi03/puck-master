@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Users, ArrowRight, Lock, Trash2 } from "lucide-react";
+import { Plus, Users, ArrowRight, Lock, Trash2, Search, Filter, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,11 +47,19 @@ export default function Leagues() {
   const [newLeagueDesc, setNewLeagueDesc] = useState("");
   const [newLeaguePassword, setNewLeaguePassword] = useState("");
   const [newSeasonName, setNewSeasonName] = useState("");
+  const [newLeagueCity, setNewLeagueCity] = useState("");
+  const [newLeagueCountry, setNewLeagueCountry] = useState("Slovenija");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSport, setSelectedSport] = useState<SportType>("hokej");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
   const [enteredPassword, setEnteredPassword] = useState("");
+  
+  // Filters
+  const [filterSport, setFilterSport] = useState<string>("all");
+  const [filterCity, setFilterCity] = useState<string>("all");
+  const [filterCountry, setFilterCountry] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -129,6 +137,8 @@ export default function Leagues() {
           password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
           sport_type: selectedSport,
+          city: newLeagueCity.trim() || null,
+          country: newLeagueCountry.trim() || 'Slovenija',
         } as any)
         .select("id")
         .single();
@@ -154,7 +164,10 @@ export default function Leagues() {
       setNewLeagueDesc("");
       setNewLeaguePassword("");
       setNewSeasonName("");
+      setNewLeagueCity("");
+      setNewLeagueCountry("Slovenija");
       setSelectedSport("hokej");
+      setDialogOpen(false);
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
@@ -295,6 +308,24 @@ export default function Leagues() {
     return myLeagues.some(ml => ml.league_id === leagueId);
   };
 
+  // Compute unique cities and countries for filter options
+  const uniqueCities = [...new Set(leagues.map((l: any) => l.city).filter(Boolean))].sort();
+  const uniqueCountries = [...new Set(leagues.map((l: any) => l.country).filter(Boolean))].sort();
+
+  // Filtered leagues
+  const filteredLeagues = leagues.filter((league: any) => {
+    if (filterSport !== "all" && league.sport_type !== filterSport) return false;
+    if (filterCity !== "all" && league.city !== filterCity) return false;
+    if (filterCountry !== "all" && league.country !== filterCountry) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = (league.name || "").toLowerCase();
+      const desc = (league.description || "").toLowerCase();
+      if (!name.includes(q) && !desc.includes(q)) return false;
+    }
+    return true;
+  });
+
   if (!user) return null;
 
   return (
@@ -377,6 +408,26 @@ export default function Leagues() {
                   <p className="text-xs text-muted-foreground">
                     Vsaka liga potrebuje vsaj eno sezono za ustvarjanje tekem.
                   </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="league-city">Kraj</Label>
+                    <Input
+                      id="league-city"
+                      value={newLeagueCity}
+                      onChange={(e) => setNewLeagueCity(e.target.value)}
+                      placeholder="Npr. Ljubljana"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="league-country">Država</Label>
+                    <Input
+                      id="league-country"
+                      value={newLeagueCountry}
+                      onChange={(e) => setNewLeagueCountry(e.target.value)}
+                      placeholder="Npr. Slovenija"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="league-password">Geslo (neobvezno)</Label>
@@ -470,13 +521,70 @@ export default function Leagues() {
 
         <div>
           <h3 className="text-sm font-semibold mb-3 text-muted-foreground">VSE LIGE</h3>
+          
+          {/* Search & Filters */}
+          <div className="mb-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Išči lige..."
+                className="pl-9"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Select value={filterSport} onValueChange={setFilterSport}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Šport" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Vsi športi</SelectItem>
+                  {ALL_SPORTS.map((sport) => (
+                    <SelectItem key={sport} value={sport}>
+                      {getSportEmoji(sport)} {getSportConfig(sport).label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {uniqueCountries.length > 0 && (
+                <Select value={filterCountry} onValueChange={setFilterCountry}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="Država" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Vse države</SelectItem>
+                    {uniqueCountries.map((country) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {uniqueCities.length > 0 && (
+                <Select value={filterCity} onValueChange={setFilterCity}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="Kraj" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Vsi kraji</SelectItem>
+                    {uniqueCities.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-2">
-            {leagues.length === 0 ? (
+            {filteredLeagues.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
-                Trenutno ni nobene lige. Ustvarite prvo!
+                {leagues.length === 0 ? "Trenutno ni nobene lige. Ustvarite prvo!" : "Nobena liga ne ustreza filtrom."}
               </p>
             ) : (
-              leagues.map((league) => (
+              filteredLeagues.map((league) => (
                 <Card key={league.id}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -486,6 +594,12 @@ export default function Leagues() {
                     </CardTitle>
                     {league.description && (
                       <CardDescription className="text-xs">{league.description}</CardDescription>
+                    )}
+                    {((league as any).city || (league as any).country) && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{[(league as any).city, (league as any).country].filter(Boolean).join(", ")}</span>
+                      </div>
                     )}
                   </CardHeader>
                   <CardFooter className="pt-3">
