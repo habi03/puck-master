@@ -14,6 +14,7 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, lang, setLang } = useI18n();
   const isOnLeaguesPage = location.pathname === "/";
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
