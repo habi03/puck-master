@@ -308,6 +308,24 @@ export default function Leagues() {
     return myLeagues.some(ml => ml.league_id === leagueId);
   };
 
+  // Compute unique cities and countries for filter options
+  const uniqueCities = [...new Set(leagues.map((l: any) => l.city).filter(Boolean))].sort();
+  const uniqueCountries = [...new Set(leagues.map((l: any) => l.country).filter(Boolean))].sort();
+
+  // Filtered leagues
+  const filteredLeagues = leagues.filter((league: any) => {
+    if (filterSport !== "all" && league.sport_type !== filterSport) return false;
+    if (filterCity !== "all" && league.city !== filterCity) return false;
+    if (filterCountry !== "all" && league.country !== filterCountry) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = (league.name || "").toLowerCase();
+      const desc = (league.description || "").toLowerCase();
+      if (!name.includes(q) && !desc.includes(q)) return false;
+    }
+    return true;
+  });
+
   if (!user) return null;
 
   return (
