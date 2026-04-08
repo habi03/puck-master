@@ -164,7 +164,10 @@ export default function Leagues() {
       setNewLeagueDesc("");
       setNewLeaguePassword("");
       setNewSeasonName("");
+      setNewLeagueCity("");
+      setNewLeagueCountry("Slovenija");
       setSelectedSport("hokej");
+      setDialogOpen(false);
       setDialogOpen(false);
       fetchLeagues();
       fetchMyLeagues();
