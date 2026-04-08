@@ -521,10 +521,67 @@ export default function Leagues() {
 
         <div>
           <h3 className="text-sm font-semibold mb-3 text-muted-foreground">VSE LIGE</h3>
+          
+          {/* Search & Filters */}
+          <div className="mb-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Išči lige..."
+                className="pl-9"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Select value={filterSport} onValueChange={setFilterSport}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Šport" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Vsi športi</SelectItem>
+                  {ALL_SPORTS.map((sport) => (
+                    <SelectItem key={sport} value={sport}>
+                      {getSportEmoji(sport)} {getSportConfig(sport).label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {uniqueCountries.length > 0 && (
+                <Select value={filterCountry} onValueChange={setFilterCountry}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="Država" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Vse države</SelectItem>
+                    {uniqueCountries.map((country) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {uniqueCities.length > 0 && (
+                <Select value={filterCity} onValueChange={setFilterCity}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="Kraj" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Vsi kraji</SelectItem>
+                    {uniqueCities.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-2">
-            {leagues.length === 0 ? (
+            {filteredLeagues.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
-                Trenutno ni nobene lige. Ustvarite prvo!
+                {leagues.length === 0 ? "Trenutno ni nobene lige. Ustvarite prvo!" : "Nobena liga ne ustreza filtrom."}
               </p>
             ) : (
               leagues.map((league) => (
