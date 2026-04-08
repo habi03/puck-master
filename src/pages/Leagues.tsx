@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -309,11 +309,11 @@ export default function Leagues() {
   };
 
   // Compute unique cities and countries for filter options
-  const uniqueCities = [...new Set(leagues.map((l: any) => l.city).filter(Boolean))].sort();
-  const uniqueCountries = [...new Set(leagues.map((l: any) => l.country).filter(Boolean))].sort();
+  const uniqueCities = useMemo(() => [...new Set(leagues.map((l: any) => l.city).filter(Boolean))].sort(), [leagues]);
+  const uniqueCountries = useMemo(() => [...new Set(leagues.map((l: any) => l.country).filter(Boolean))].sort(), [leagues]);
 
   // Filtered leagues
-  const filteredLeagues = leagues.filter((league: any) => {
+  const filteredLeagues = useMemo(() => leagues.filter((league: any) => {
     if (filterSport !== "all" && league.sport_type !== filterSport) return false;
     if (filterCity !== "all" && league.city !== filterCity) return false;
     if (filterCountry !== "all" && league.country !== filterCountry) return false;
@@ -324,7 +324,7 @@ export default function Leagues() {
       if (!name.includes(q) && !desc.includes(q)) return false;
     }
     return true;
-  });
+  }), [leagues, filterSport, filterCity, filterCountry, searchQuery]);
 
   if (!user) return null;
 
