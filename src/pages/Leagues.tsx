@@ -584,7 +584,7 @@ export default function Leagues() {
                 {leagues.length === 0 ? "Trenutno ni nobene lige. Ustvarite prvo!" : "Nobena liga ne ustreza filtrom."}
               </p>
             ) : (
-              leagues.map((league) => (
+              filteredLeagues.map((league) => (
                 <Card key={league.id}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -594,6 +594,12 @@ export default function Leagues() {
                     </CardTitle>
                     {league.description && (
                       <CardDescription className="text-xs">{league.description}</CardDescription>
+                    )}
+                    {((league as any).city || (league as any).country) && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{[(league as any).city, (league as any).country].filter(Boolean).join(", ")}</span>
+                      </div>
                     )}
                   </CardHeader>
                   <CardFooter className="pt-3">
