@@ -97,6 +97,8 @@ export type Database = {
       }
       leagues: {
         Row: {
+          city: string | null
+          country: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -112,6 +114,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -127,6 +131,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          city?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -576,6 +582,8 @@ export type Database = {
     Views: {
       public_leagues: {
         Row: {
+          city: string | null
+          country: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -586,6 +594,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -596,6 +606,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
