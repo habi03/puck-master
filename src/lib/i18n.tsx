@@ -433,7 +433,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
     const entry = translations[key];
     if (!entry) return key;
-    let text = entry[lang] || entry["si"] || key;
+    let text: string = entry[lang] || entry["si"] || key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         text = text.replace(`{${k}}`, String(v));
