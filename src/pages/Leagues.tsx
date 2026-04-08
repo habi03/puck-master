@@ -391,6 +391,26 @@ export default function Leagues() {
                     Vsaka liga potrebuje vsaj eno sezono za ustvarjanje tekem.
                   </p>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="league-city">Kraj</Label>
+                    <Input
+                      id="league-city"
+                      value={newLeagueCity}
+                      onChange={(e) => setNewLeagueCity(e.target.value)}
+                      placeholder="Npr. Ljubljana"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="league-country">Država</Label>
+                    <Input
+                      id="league-country"
+                      value={newLeagueCountry}
+                      onChange={(e) => setNewLeagueCountry(e.target.value)}
+                      placeholder="Npr. Slovenija"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="league-password">Geslo (neobvezno)</Label>
                   <Input
