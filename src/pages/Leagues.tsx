@@ -137,6 +137,8 @@ export default function Leagues() {
           password: newLeaguePassword && newLeaguePassword.trim() !== '' ? newLeaguePassword : null,
           created_by: user?.id,
           sport_type: selectedSport,
+          city: newLeagueCity.trim() || null,
+          country: newLeagueCountry.trim() || 'Slovenija',
         } as any)
         .select("id")
         .single();
