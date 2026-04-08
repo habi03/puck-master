@@ -5,6 +5,7 @@ import { LogOut, Trophy, Menu, Shield, Users, Home, UserCircle, Award } from "lu
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { useI18n, Language } from "@/lib/i18n";
 
 interface NavbarProps {
   user: any;
