@@ -5,7 +5,6 @@ import { LogOut, Trophy, Menu, Shield, Users, Home, UserCircle, Award } from "lu
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { useI18n, Language } from "@/lib/i18n";
 
 interface NavbarProps {
   user: any;
@@ -14,7 +13,6 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, lang, setLang } = useI18n();
   const isOnLeaguesPage = location.pathname === "/";
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -84,19 +82,13 @@ export default function Navbar({ user }: NavbarProps) {
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error(t("nav.signOutError"));
+      toast.error("Napaka pri odjavi");
     } else {
       localStorage.removeItem("currentLeagueId");
-      toast.success(t("nav.signOutSuccess"));
+      toast.success("Uspešna odjava");
       navigate("/auth");
     }
   };
-
-  const langOptions: { code: Language; label: string }[] = [
-    { code: "si", label: "SI" },
-    { code: "en", label: "EN" },
-    { code: "de", label: "DE" },
-  ];
 
   return (
     <nav className="border-b bg-card shadow-sm">
@@ -124,48 +116,33 @@ export default function Navbar({ user }: NavbarProps) {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-3 mt-6">
-                {/* Language Selector */}
-                <div className="flex items-center justify-center gap-1 mb-2">
-                  {langOptions.map((opt) => (
-                    <Button
-                      key={opt.code}
-                      variant={lang === opt.code ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 text-xs font-bold"
-                      onClick={() => setLang(opt.code)}
-                    >
-                      {opt.label}
-                    </Button>
-                  ))}
-                </div>
-
                 {currentLeague && !isOnLeaguesPage && (
                   <>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-2">{currentLeague.name}</p>
                     <Button onClick={() => navigate("/league")} variant="outline" className="w-full justify-start">
                       <Home className="h-4 w-4 mr-2" />
-                      {t("nav.leagueHome")}
+                      Domov lige
                     </Button>
                     
                     <Button onClick={() => navigate("/profile")} variant="outline" className="w-full justify-start">
                       <UserCircle className="h-4 w-4 mr-2" />
-                      {t("nav.leagueProfile")}
+                      Profil v ligi
                     </Button>
                     
                     <Button onClick={() => navigate("/players")} variant="outline" className="w-full justify-start">
                       <Users className="h-4 w-4 mr-2" />
-                      {t("nav.players")}
+                      Tekmovalci
                     </Button>
                     
                     <Button onClick={() => navigate("/leaderboard")} variant="outline" className="w-full justify-start">
                       <Award className="h-4 w-4 mr-2" />
-                      {t("nav.leaderboard")}
+                      Lestvica
                     </Button>
                     
                     {isAdmin && (
                       <Button onClick={() => navigate("/admin")} variant="outline" className="w-full justify-start">
                         <Shield className="h-4 w-4 mr-2" />
-                        {t("nav.adminPanel")}
+                        Admin panel
                       </Button>
                     )}
                     
@@ -175,18 +152,18 @@ export default function Navbar({ user }: NavbarProps) {
                 
                 <Button onClick={() => navigate("/")} variant="default" className="w-full justify-start">
                   <Trophy className="h-4 w-4 mr-2" />
-                  {t("nav.myLeagues")}
+                  Moje lige
                 </Button>
 
                 <Button onClick={() => navigate("/global-profile")} variant="outline" className="w-full justify-start">
                   <UserCircle className="h-4 w-4 mr-2" />
-                  {t("nav.myAccount")}
+                  Moj račun
                 </Button>
                 
                 <SheetClose asChild>
                   <Button onClick={handleSignOut} variant="destructive" className="w-full justify-start">
                     <LogOut className="h-4 w-4 mr-2" />
-                    {t("nav.signOut")}
+                    Odjava
                   </Button>
                 </SheetClose>
               </div>
