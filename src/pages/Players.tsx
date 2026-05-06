@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useI18n } from "@/lib/i18n";
 
 interface PlayerWithRating {
   id: string;
@@ -39,6 +40,7 @@ interface Rater {
 }
 
 export default function Players() {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<PlayerWithRating[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
@@ -342,16 +344,16 @@ export default function Players() {
       
       <main className="px-4 py-4">
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-1">Tekmovalci</h2>
+          <h2 className="text-xl font-bold mb-1">{t("players.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Ocenite vaše soigralce
+            {t("players.subtitle")}
           </p>
         </div>
 
         <div className="space-y-3">
           {players.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
-              Ni tekmovalcev v tej ligi.
+              {t("players.noPlayers")}
             </p>
           ) : (
             players.map((player) => (
@@ -398,12 +400,12 @@ export default function Players() {
                   <div className="flex items-center justify-between gap-2">
                     {player.myRating && (
                       <span className="text-xs text-muted-foreground">
-                        Vaša ocena: {player.myRating}/10
+                        {t("players.yourRating")}: {player.myRating}/10
                       </span>
                     )}
                     {player.id === user.id ? (
                       <span className="text-xs text-muted-foreground ml-auto italic">
-                        To ste vi
+                        {t("players.itsYou")}
                       </span>
                     ) : (
                       <Dialog open={dialogOpen && selectedPlayer?.id === player.id} onOpenChange={setDialogOpen}>
@@ -414,18 +416,18 @@ export default function Players() {
                             variant={player.myRating ? "outline" : "default"}
                             className="ml-auto"
                           >
-                            {player.myRating ? "Uredi oceno" : "Oceni"}
+                            {player.myRating ? t("players.editRating") : t("players.rate")}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              Oceni igralca: {selectedPlayer?.full_name}
+                              {t("players.ratePlayer", { name: selectedPlayer?.full_name || "" })}
                             </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label>Ocena: {rating.toFixed(1)}/10</Label>
+                              <Label>{t("players.rating")}: {rating.toFixed(1)}/10</Label>
                               <Slider
                                 value={[rating]}
                                 onValueChange={(value) => setRating(Math.round(value[0] * 10) / 10)}
@@ -435,12 +437,12 @@ export default function Players() {
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>1.0 - Najslabše</span>
-                                <span>10.0 - Najboljše</span>
+                                <span>1.0 - {t("players.worst")}</span>
+                                <span>10.0 - {t("players.best")}</span>
                               </div>
                             </div>
                             <Button onClick={submitRating} className="w-full">
-                              Shrani oceno
+                              {t("players.saveRating")}
                             </Button>
                           </div>
                         </DialogContent>
@@ -472,7 +474,7 @@ export default function Players() {
                 )}
                 {selectedAvatar?.birth_date && (
                   <p className="text-sm text-muted-foreground">
-                    Rojstvo: {new Date(selectedAvatar.birth_date).toLocaleDateString('sl-SI')}
+                    {t("players.birth")}: {new Date(selectedAvatar.birth_date).toLocaleDateString('sl-SI')}
                   </p>
                 )}
               </div>
@@ -484,12 +486,12 @@ export default function Players() {
         <Dialog open={ratersDialogOpen} onOpenChange={(open) => { setRatersDialogOpen(open); if (!open) setEditingRater(null); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Ocenjevalci igralca: {ratersPlayerName}</DialogTitle>
+              <DialogTitle>{t("players.raters", { name: ratersPlayerName })}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               {raters.length === 0 ? (
                 <p className="text-center text-muted-foreground text-sm">
-                  Ta igralec še nima ocen.
+                  {t("players.noRatings")}
                 </p>
               ) : (
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto">
@@ -520,7 +522,7 @@ export default function Players() {
               {/* Inline edit rating for super user */}
               {editingRater && (
                 <div className="mt-4 p-3 border rounded-lg space-y-3">
-                  <Label className="text-sm">Uredi oceno za {editingRater.full_name}: {editRatingValue.toFixed(1)}/10</Label>
+                  <Label className="text-sm">{t("players.editRatingFor", { name: editingRater.full_name })}: {editRatingValue.toFixed(1)}/10</Label>
                   <Slider
                     value={[editRatingValue]}
                     onValueChange={(v) => setEditRatingValue(Math.round(v[0] * 10) / 10)}
@@ -529,8 +531,8 @@ export default function Players() {
                     step={0.1}
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleEditRating} className="flex-1">Shrani</Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">Prekliči</Button>
+                    <Button size="sm" onClick={handleEditRating} className="flex-1">{t("common.save")}</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">{t("common.cancel")}</Button>
                   </div>
                 </div>
               )}

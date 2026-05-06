@@ -15,18 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const authSchema = z.object({
-  email: z.string().email({ message: "Neveljaven email naslov" }),
-  password: z.string()
-    .min(8, { message: "Geslo mora biti dolgo vsaj 8 znakov" }),
-  fullName: z.string()
-    .min(2, { message: "Ime mora biti dolgo vsaj 2 znaka" })
-    .max(100, { message: "Ime je predolgo (max 100 znakov)" })
-    .optional(),
-});
+import { useI18n } from "@/lib/i18n";
 
 export default function Auth() {
+  const { t } = useI18n();
+  const authSchema = z.object({
+    email: z.string().email({ message: t("auth.invalidEmail") }),
+    password: z.string().min(8, { message: t("auth.passwordMin") }),
+    fullName: z.string()
+      .min(2, { message: t("auth.nameMin") })
+      .max(100, { message: t("auth.nameTooLong") })
+      .optional(),
+  });
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -89,7 +89,7 @@ export default function Auth() {
         });
 
         if (error) throw error;
-        toast.success("Uspešna prijava!");
+        toast.success(t("auth.loginSuccess"));
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -104,7 +104,7 @@ export default function Auth() {
         });
 
         if (error) throw error;
-        toast.success("Uspešna registracija! Dobrodošli!");
+        toast.success(t("auth.registerSuccess"));
         navigate("/");
       }
     } catch (error: any) {
@@ -113,9 +113,9 @@ export default function Auth() {
           toast.error(err.message);
         });
       } else if (error.message?.includes("already registered")) {
-        toast.error("Ta email je že registriran. Prosim prijavite se.");
+        toast.error(t("auth.alreadyRegistered"));
       } else {
-        toast.error(error.message || "Prišlo je do napake");
+        toast.error(error.message || t("auth.error"));
       }
     } finally {
       setLoading(false);
@@ -132,14 +132,14 @@ export default function Auth() {
     
     if (timeSinceLastReset < cooldownTime) {
       const remainingSeconds = Math.ceil((cooldownTime - timeSinceLastReset) / 1000);
-      toast.error(`Prosim počakajte ${remainingSeconds} sekund pred novo zahtevo`);
+      toast.error(t("auth.waitCooldown", { seconds: remainingSeconds }));
       return;
     }
     
     setLoading(true);
 
     try {
-      const emailSchema = z.string().email({ message: "Neveljaven email naslov" });
+      const emailSchema = z.string().email({ message: t("auth.invalidEmail") });
       emailSchema.parse(resetEmail);
 
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
@@ -149,7 +149,7 @@ export default function Auth() {
       if (error) throw error;
       
       setLastResetTime(now);
-      toast.success("Povezava poslana! Prosim uporabite NAJNOVEJŠI email. Prejšnje povezave ne bodo delovale.", {
+      toast.success(t("auth.resetLinkSent"), {
         duration: 6000,
       });
       setShowResetDialog(false);
@@ -160,7 +160,7 @@ export default function Auth() {
           toast.error(err.message);
         });
       } else {
-        toast.error(error.message || "Prišlo je do napake");
+        toast.error(error.message || t("auth.error"));
       }
     } finally {
       setLoading(false);
@@ -171,12 +171,12 @@ export default function Auth() {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
-      toast.error("Gesli se ne ujemata");
+      toast.error(t("auth.passwordsDontMatch"));
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Geslo mora biti dolgo vsaj 8 znakov");
+      toast.error(t("auth.passwordMinLength"));
       return;
     }
 
@@ -189,7 +189,7 @@ export default function Auth() {
 
       if (error) throw error;
       
-      toast.success("Geslo uspešno posodobljeno! Sedaj se lahko prijavite.");
+      toast.success(t("auth.passwordUpdated"));
       setIsPasswordReset(false);
       setNewPassword("");
       setConfirmPassword("");
@@ -197,7 +197,7 @@ export default function Auth() {
       // Clear the hash from URL
       window.history.replaceState(null, "", window.location.pathname);
     } catch (error: any) {
-      toast.error(error.message || "Prišlo je do napake");
+      toast.error(error.message || t("auth.error"));
     } finally {
       setLoading(false);
     }
@@ -213,15 +213,15 @@ export default function Auth() {
           </CardTitle>
           <CardDescription className="text-sm">
             {isPasswordReset 
-              ? "Nastavite novo geslo" 
-              : isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
+              ? t("auth.setNewPassword") 
+              : isLogin ? t("auth.loginSubtitle") : t("auth.registerSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isPasswordReset ? (
             <form onSubmit={handleUpdatePassword} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="newPassword" className="text-sm">Novo geslo</Label>
+                <Label htmlFor="newPassword" className="text-sm">{t("auth.newPassword")}</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -232,7 +232,7 @@ export default function Auth() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword" className="text-sm">Potrdite geslo</Label>
+                <Label htmlFor="confirmPassword" className="text-sm">{t("auth.confirmPassword")}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -243,7 +243,7 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Posodabljanje..." : "Posodobi geslo"}
+                {loading ? t("auth.updating") : t("auth.updatePassword")}
               </Button>
               <button
                 type="button"
@@ -254,7 +254,7 @@ export default function Auth() {
                 }}
                 className="text-primary hover:underline transition-all text-xs w-full mt-2"
               >
-                Nazaj na prijavo
+                {t("auth.backToLogin")}
               </button>
             </form>
           ) : (
@@ -262,7 +262,7 @@ export default function Auth() {
               <form onSubmit={handleAuth} className="space-y-3">
               {!isLogin && (
               <div className="space-y-1.5">
-                <Label htmlFor="fullName" className="text-sm">Polno ime</Label>
+                <Label htmlFor="fullName" className="text-sm">{t("auth.fullName")}</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -274,7 +274,7 @@ export default function Auth() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Label htmlFor="email" className="text-sm">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -285,18 +285,18 @@ export default function Auth() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm">Geslo</Label>
+              <Label htmlFor="password" className="text-sm">{t("auth.password")}</Label>
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Minimalno 8 znakov"
+                    placeholder={t("auth.minChars")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Nalaganje..." : isLogin ? "Prijava" : "Registracija"}
+              {loading ? t("auth.loading") : isLogin ? t("auth.login") : t("auth.register")}
             </Button>
           </form>
           <div className="mt-3 text-center text-xs space-y-2">
@@ -307,21 +307,21 @@ export default function Auth() {
                     type="button"
                     className="text-primary hover:underline transition-all block w-full"
                   >
-                    Pozabljeno geslo?
+                    {t("auth.forgotPassword")}
                   </button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Ponastavitev gesla</DialogTitle>
+                    <DialogTitle>{t("auth.resetTitle")}</DialogTitle>
                     <DialogDescription>
-                      Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
+                      {t("auth.resetDesc")}
                       <br /><br />
-                      <strong>Pomembno:</strong> Uporabite vedno NAJNOVEJŠI email. Prejšnje povezave ne bodo več delovale.
+                      <strong>{t("auth.resetImportant")}</strong>
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handlePasswordReset} className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="resetEmail" className="text-sm">Email</Label>
+                      <Label htmlFor="resetEmail" className="text-sm">{t("auth.email")}</Label>
                       <Input
                         id="resetEmail"
                         type="email"
@@ -332,7 +332,7 @@ export default function Auth() {
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Pošiljanje..." : "Pošlji povezavo"}
+                      {loading ? t("auth.sending") : t("auth.sendLink")}
                     </Button>
                   </form>
                 </DialogContent>
@@ -344,8 +344,8 @@ export default function Auth() {
               className="text-primary hover:underline transition-all"
             >
               {isLogin
-                ? "Nimate računa? Registrirajte se"
-                : "Že imate račun? Prijavite se"}
+                ? t("auth.noAccount")
+                : t("auth.hasAccount")}
               </button>
             </div>
             </>
