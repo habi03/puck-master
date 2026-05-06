@@ -213,15 +213,15 @@ export default function Auth() {
           </CardTitle>
           <CardDescription className="text-sm">
             {isPasswordReset 
-              ? "Nastavite novo geslo" 
-              : isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
+              ? t("auth.setNewPassword") 
+              : isLogin ? t("auth.loginSubtitle") : t("auth.registerSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isPasswordReset ? (
             <form onSubmit={handleUpdatePassword} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="newPassword" className="text-sm">Novo geslo</Label>
+                <Label htmlFor="newPassword" className="text-sm">{t("auth.newPassword")}</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -232,7 +232,7 @@ export default function Auth() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword" className="text-sm">Potrdite geslo</Label>
+                <Label htmlFor="confirmPassword" className="text-sm">{t("auth.confirmPassword")}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -243,7 +243,7 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Posodabljanje..." : "Posodobi geslo"}
+                {loading ? t("auth.updating") : t("auth.updatePassword")}
               </Button>
               <button
                 type="button"
@@ -254,7 +254,7 @@ export default function Auth() {
                 }}
                 className="text-primary hover:underline transition-all text-xs w-full mt-2"
               >
-                Nazaj na prijavo
+                {t("auth.backToLogin")}
               </button>
             </form>
           ) : (
