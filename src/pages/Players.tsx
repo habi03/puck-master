@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useI18n } from "@/lib/i18n";
 
 interface PlayerWithRating {
   id: string;
@@ -39,6 +40,7 @@ interface Rater {
 }
 
 export default function Players() {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<PlayerWithRating[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
