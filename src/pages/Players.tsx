@@ -344,16 +344,16 @@ export default function Players() {
       
       <main className="px-4 py-4">
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-1">Tekmovalci</h2>
+          <h2 className="text-xl font-bold mb-1">{t("players.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Ocenite vaše soigralce
+            {t("players.subtitle")}
           </p>
         </div>
 
         <div className="space-y-3">
           {players.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
-              Ni tekmovalcev v tej ligi.
+              {t("players.noPlayers")}
             </p>
           ) : (
             players.map((player) => (
