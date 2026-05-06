@@ -7,8 +7,10 @@ import MatchCard from "@/components/MatchCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export default function Index() {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<any>(null);
