@@ -486,12 +486,12 @@ export default function Players() {
         <Dialog open={ratersDialogOpen} onOpenChange={(open) => { setRatersDialogOpen(open); if (!open) setEditingRater(null); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Ocenjevalci igralca: {ratersPlayerName}</DialogTitle>
+              <DialogTitle>{t("players.raters", { name: ratersPlayerName })}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               {raters.length === 0 ? (
                 <p className="text-center text-muted-foreground text-sm">
-                  Ta igralec še nima ocen.
+                  {t("players.noRatings")}
                 </p>
               ) : (
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto">
@@ -522,7 +522,7 @@ export default function Players() {
               {/* Inline edit rating for super user */}
               {editingRater && (
                 <div className="mt-4 p-3 border rounded-lg space-y-3">
-                  <Label className="text-sm">Uredi oceno za {editingRater.full_name}: {editRatingValue.toFixed(1)}/10</Label>
+                  <Label className="text-sm">{t("players.editRatingFor", { name: editingRater.full_name })}: {editRatingValue.toFixed(1)}/10</Label>
                   <Slider
                     value={[editRatingValue]}
                     onValueChange={(v) => setEditRatingValue(Math.round(v[0] * 10) / 10)}
@@ -531,8 +531,8 @@ export default function Players() {
                     step={0.1}
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleEditRating} className="flex-1">Shrani</Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">Prekliči</Button>
+                    <Button size="sm" onClick={handleEditRating} className="flex-1">{t("common.save")}</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingRater(null)} className="flex-1">{t("common.cancel")}</Button>
                   </div>
                 </div>
               )}
