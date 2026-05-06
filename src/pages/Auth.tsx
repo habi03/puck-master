@@ -262,7 +262,7 @@ export default function Auth() {
               <form onSubmit={handleAuth} className="space-y-3">
               {!isLogin && (
               <div className="space-y-1.5">
-                <Label htmlFor="fullName" className="text-sm">Polno ime</Label>
+                <Label htmlFor="fullName" className="text-sm">{t("auth.fullName")}</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -274,7 +274,7 @@ export default function Auth() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Label htmlFor="email" className="text-sm">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -285,18 +285,18 @@ export default function Auth() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm">Geslo</Label>
+              <Label htmlFor="password" className="text-sm">{t("auth.password")}</Label>
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Minimalno 8 znakov"
+                    placeholder={t("auth.minChars")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Nalaganje..." : isLogin ? "Prijava" : "Registracija"}
+              {loading ? t("auth.loading") : isLogin ? t("auth.login") : t("auth.register")}
             </Button>
           </form>
           <div className="mt-3 text-center text-xs space-y-2">
@@ -307,21 +307,21 @@ export default function Auth() {
                     type="button"
                     className="text-primary hover:underline transition-all block w-full"
                   >
-                    Pozabljeno geslo?
+                    {t("auth.forgotPassword")}
                   </button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Ponastavitev gesla</DialogTitle>
+                    <DialogTitle>{t("auth.resetTitle")}</DialogTitle>
                     <DialogDescription>
-                      Vnesite svoj email naslov in poslali vam bomo povezavo za ponastavitev gesla.
+                      {t("auth.resetDesc")}
                       <br /><br />
-                      <strong>Pomembno:</strong> Uporabite vedno NAJNOVEJŠI email. Prejšnje povezave ne bodo več delovale.
+                      <strong>{t("auth.resetImportant")}</strong>
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handlePasswordReset} className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="resetEmail" className="text-sm">Email</Label>
+                      <Label htmlFor="resetEmail" className="text-sm">{t("auth.email")}</Label>
                       <Input
                         id="resetEmail"
                         type="email"
@@ -332,7 +332,7 @@ export default function Auth() {
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Pošiljanje..." : "Pošlji povezavo"}
+                      {loading ? t("auth.sending") : t("auth.sendLink")}
                     </Button>
                   </form>
                 </DialogContent>
@@ -344,8 +344,8 @@ export default function Auth() {
               className="text-primary hover:underline transition-all"
             >
               {isLogin
-                ? "Nimate računa? Registrirajte se"
-                : "Že imate račun? Prijavite se"}
+                ? t("auth.noAccount")
+                : t("auth.hasAccount")}
               </button>
             </div>
             </>
