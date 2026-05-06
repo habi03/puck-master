@@ -214,10 +214,10 @@ export default function Index() {
       <main className="px-4 py-4">
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-1">
-            Dobrodošli, {profile.full_name || user.email?.split('@')[0]}!
+            {t("index.welcome", { name: profile.full_name || user.email?.split('@')[0] || "" })}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Vloga: <span className="font-semibold capitalize">{currentMembership.role.replace('_', ' ')}</span>
+            {t("index.role")}: <span className="font-semibold capitalize">{currentMembership.role.replace('_', ' ')}</span>
           </p>
         </div>
 
@@ -225,10 +225,10 @@ export default function Index() {
           <div className="mb-4">
             <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Izberi sezono" />
+                <SelectValue placeholder={t("index.selectSeason")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Vse sezone</SelectItem>
+                <SelectItem value="all">{t("index.allSeasons")}</SelectItem>
                 {seasons.map((season) => (
                   <SelectItem key={season.id} value={season.id}>
                     <span className="flex items-center gap-1.5">{season.name} {season.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
@@ -241,14 +241,14 @@ export default function Index() {
 
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="upcoming">Prihajajoče tekme</TabsTrigger>
-            <TabsTrigger value="completed">Zaključene tekme</TabsTrigger>
+            <TabsTrigger value="upcoming">{t("index.upcoming")}</TabsTrigger>
+            <TabsTrigger value="completed">{t("index.completed")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
             {matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                Trenutno ni razpisanih prihajajučih tekem.
+                {t("index.noUpcoming")}
               </p>
             ) : (
               matches.filter(m => !m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).map((match) => (
@@ -266,7 +266,7 @@ export default function Index() {
           <TabsContent value="completed" className="space-y-3">
             {matches.filter(m => m.is_completed && (selectedSeasonId === "all" || (m as any).season_id === selectedSeasonId)).length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                Ni še zaključenih tekem.
+                {t("index.noCompleted")}
               </p>
             ) : (
               matches
