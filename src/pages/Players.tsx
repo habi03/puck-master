@@ -474,7 +474,7 @@ export default function Players() {
                 )}
                 {selectedAvatar?.birth_date && (
                   <p className="text-sm text-muted-foreground">
-                    Rojstvo: {new Date(selectedAvatar.birth_date).toLocaleDateString('sl-SI')}
+                    {t("players.birth")}: {new Date(selectedAvatar.birth_date).toLocaleDateString('sl-SI')}
                   </p>
                 )}
               </div>
