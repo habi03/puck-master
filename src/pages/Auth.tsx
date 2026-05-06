@@ -132,14 +132,14 @@ export default function Auth() {
     
     if (timeSinceLastReset < cooldownTime) {
       const remainingSeconds = Math.ceil((cooldownTime - timeSinceLastReset) / 1000);
-      toast.error(`Prosim počakajte ${remainingSeconds} sekund pred novo zahtevo`);
+      toast.error(t("auth.waitCooldown", { seconds: remainingSeconds }));
       return;
     }
     
     setLoading(true);
 
     try {
-      const emailSchema = z.string().email({ message: "Neveljaven email naslov" });
+      const emailSchema = z.string().email({ message: t("auth.invalidEmail") });
       emailSchema.parse(resetEmail);
 
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
@@ -149,7 +149,7 @@ export default function Auth() {
       if (error) throw error;
       
       setLastResetTime(now);
-      toast.success("Povezava poslana! Prosim uporabite NAJNOVEJŠI email. Prejšnje povezave ne bodo delovale.", {
+      toast.success(t("auth.resetLinkSent"), {
         duration: 6000,
       });
       setShowResetDialog(false);
@@ -160,7 +160,7 @@ export default function Auth() {
           toast.error(err.message);
         });
       } else {
-        toast.error(error.message || "Prišlo je do napake");
+        toast.error(error.message || t("auth.error"));
       }
     } finally {
       setLoading(false);
