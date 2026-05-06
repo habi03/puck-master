@@ -15,18 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const authSchema = z.object({
-  email: z.string().email({ message: "Neveljaven email naslov" }),
-  password: z.string()
-    .min(8, { message: "Geslo mora biti dolgo vsaj 8 znakov" }),
-  fullName: z.string()
-    .min(2, { message: "Ime mora biti dolgo vsaj 2 znaka" })
-    .max(100, { message: "Ime je predolgo (max 100 znakov)" })
-    .optional(),
-});
+import { useI18n } from "@/lib/i18n";
 
 export default function Auth() {
+  const { t } = useI18n();
+  const authSchema = z.object({
+    email: z.string().email({ message: t("auth.invalidEmail") }),
+    password: z.string().min(8, { message: t("auth.passwordMin") }),
+    fullName: z.string()
+      .min(2, { message: t("auth.nameMin") })
+      .max(100, { message: t("auth.nameTooLong") })
+      .optional(),
+  });
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
