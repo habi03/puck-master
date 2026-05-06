@@ -400,12 +400,12 @@ export default function Players() {
                   <div className="flex items-center justify-between gap-2">
                     {player.myRating && (
                       <span className="text-xs text-muted-foreground">
-                        Vaša ocena: {player.myRating}/10
+                        {t("players.yourRating")}: {player.myRating}/10
                       </span>
                     )}
                     {player.id === user.id ? (
                       <span className="text-xs text-muted-foreground ml-auto italic">
-                        To ste vi
+                        {t("players.itsYou")}
                       </span>
                     ) : (
                       <Dialog open={dialogOpen && selectedPlayer?.id === player.id} onOpenChange={setDialogOpen}>
@@ -416,18 +416,18 @@ export default function Players() {
                             variant={player.myRating ? "outline" : "default"}
                             className="ml-auto"
                           >
-                            {player.myRating ? "Uredi oceno" : "Oceni"}
+                            {player.myRating ? t("players.editRating") : t("players.rate")}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              Oceni igralca: {selectedPlayer?.full_name}
+                              {t("players.ratePlayer", { name: selectedPlayer?.full_name || "" })}
                             </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label>Ocena: {rating.toFixed(1)}/10</Label>
+                              <Label>{t("players.rating")}: {rating.toFixed(1)}/10</Label>
                               <Slider
                                 value={[rating]}
                                 onValueChange={(value) => setRating(Math.round(value[0] * 10) / 10)}
@@ -437,12 +437,12 @@ export default function Players() {
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>1.0 - Najslabše</span>
-                                <span>10.0 - Najboljše</span>
+                                <span>1.0 - {t("players.worst")}</span>
+                                <span>10.0 - {t("players.best")}</span>
                               </div>
                             </div>
                             <Button onClick={submitRating} className="w-full">
-                              Shrani oceno
+                              {t("players.saveRating")}
                             </Button>
                           </div>
                         </DialogContent>
