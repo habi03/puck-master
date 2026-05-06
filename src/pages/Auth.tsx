@@ -89,7 +89,7 @@ export default function Auth() {
         });
 
         if (error) throw error;
-        toast.success("Uspešna prijava!");
+        toast.success(t("auth.loginSuccess"));
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -104,7 +104,7 @@ export default function Auth() {
         });
 
         if (error) throw error;
-        toast.success("Uspešna registracija! Dobrodošli!");
+        toast.success(t("auth.registerSuccess"));
         navigate("/");
       }
     } catch (error: any) {
@@ -113,9 +113,9 @@ export default function Auth() {
           toast.error(err.message);
         });
       } else if (error.message?.includes("already registered")) {
-        toast.error("Ta email je že registriran. Prosim prijavite se.");
+        toast.error(t("auth.alreadyRegistered"));
       } else {
-        toast.error(error.message || "Prišlo je do napake");
+        toast.error(error.message || t("auth.error"));
       }
     } finally {
       setLoading(false);
