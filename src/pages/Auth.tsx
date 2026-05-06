@@ -171,12 +171,12 @@ export default function Auth() {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
-      toast.error("Gesli se ne ujemata");
+      toast.error(t("auth.passwordsDontMatch"));
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Geslo mora biti dolgo vsaj 8 znakov");
+      toast.error(t("auth.passwordMinLength"));
       return;
     }
 
@@ -189,7 +189,7 @@ export default function Auth() {
 
       if (error) throw error;
       
-      toast.success("Geslo uspešno posodobljeno! Sedaj se lahko prijavite.");
+      toast.success(t("auth.passwordUpdated"));
       setIsPasswordReset(false);
       setNewPassword("");
       setConfirmPassword("");
@@ -197,7 +197,7 @@ export default function Auth() {
       // Clear the hash from URL
       window.history.replaceState(null, "", window.location.pathname);
     } catch (error: any) {
-      toast.error(error.message || "Prišlo je do napake");
+      toast.error(error.message || t("auth.error"));
     } finally {
       setLoading(false);
     }
