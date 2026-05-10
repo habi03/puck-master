@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
 import { ALL_SPORTS, getSportConfig, getSportEmoji, SportType } from "@/lib/sportConfig";
+import { useI18n } from "@/lib/i18n";
 
 const leagueSchema = z.object({
   name: z.string()
@@ -61,6 +62,7 @@ export default function Leagues() {
   const [filterCountry, setFilterCountry] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -97,7 +99,7 @@ export default function Leagues() {
       if (error) throw error;
       setLeagues(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju lig");
+      toast.error(t("common.error"));
     }
   };
 
@@ -111,7 +113,7 @@ export default function Leagues() {
       if (error) throw error;
       setMyLeagues(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju vaših lig");
+      toast.error(t("common.error"));
     }
   };
 
@@ -156,10 +158,10 @@ export default function Leagues() {
 
       if (seasonError) {
         console.error("Error creating season:", seasonError);
-        toast.error("Liga ustvarjena, a napaka pri ustvarjanju sezone");
+        toast.error(t("common.error"));
       }
 
-      toast.success("Liga uspešno ustvarjena!");
+      toast.success(t("leagues.leagueCreated"));
       setNewLeagueName("");
       setNewLeagueDesc("");
       setNewLeaguePassword("");
@@ -177,7 +179,7 @@ export default function Leagues() {
           toast.error(err.message);
         });
       } else {
-        toast.error(error.message || "Napaka pri ustvarjanju lige");
+        toast.error(error.message || t("common.error"));
       }
     } finally {
       setLoading(false);
@@ -206,7 +208,7 @@ export default function Leagues() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        toast.error("Prosim, prijavite se");
+        toast.error(t("common.error"));
         navigate("/auth");
         return;
       }
@@ -219,23 +221,23 @@ export default function Leagues() {
       });
 
       if (error) {
-        toast.error("Napaka pri pridružitvi v ligo");
+        toast.error(t("common.error"));
         return;
       }
 
       if (result.error) {
-        toast.error("Napačno geslo ali liga ni dostopna");
+        toast.error(t("common.error"));
         return;
       }
 
-      toast.success("Uspešno ste se pridružili ligi!");
+      toast.success(t("leagues.joinedSuccess"));
       setPasswordDialogOpen(false);
       setEnteredPassword("");
       
       await fetchMyLeagues();
       await fetchLeagues();
     } catch (error) {
-      toast.error("Napaka pri pridružitvi v ligo");
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -248,7 +250,7 @@ export default function Leagues() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        toast.error("Prosim, prijavite se");
+        toast.error(t("common.error"));
         navigate("/auth");
         return;
       }
@@ -261,7 +263,7 @@ export default function Leagues() {
       });
 
       if (error) {
-        toast.error("Napaka pri pridružitvi v ligo");
+        toast.error(t("common.error"));
         return;
       }
 
@@ -270,11 +272,11 @@ export default function Leagues() {
         return;
       }
 
-      toast.success("Uspešno ste se pridružili ligi!");
+      toast.success(t("leagues.joinedSuccess"));
       await fetchMyLeagues();
       await fetchLeagues();
     } catch (error: any) {
-      toast.error(error.message || "Napaka pri pridružitvi v ligo");
+      toast.error(error.message || t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -289,11 +291,11 @@ export default function Leagues() {
         .eq("id", leagueId);
 
       if (error) throw error;
-      toast.success("Liga uspešno izbrisana!");
+      toast.success(t("leagues.leagueDeleted"));
       fetchLeagues();
       fetchMyLeagues();
     } catch (error: any) {
-      toast.error("Napaka pri brisanju lige");
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -335,24 +337,24 @@ export default function Leagues() {
       <main className="px-4 py-4">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold">Lige</h2>
-            <p className="text-sm text-muted-foreground">Izberite ligo ali ustvarite novo</p>
+            <h2 className="text-xl font-bold">{t("nav.myLeagues")}</h2>
+            <p className="text-sm text-muted-foreground">{t("leagues.createDesc")}</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Nova liga
+                {t("leagues.newLeague")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ustvari novo ligo</DialogTitle>
-                <DialogDescription>Ustvarite novo ligo in postanite njen administrator</DialogDescription>
+                <DialogTitle>{t("leagues.createTitle")}</DialogTitle>
+                <DialogDescription>{t("leagues.createDesc")}</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateLeague} className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Šport <span className="text-destructive">•</span></Label>
+                  <Label>{t("leagues.sport")} <span className="text-destructive">•</span></Label>
                   <div className="grid grid-cols-2 gap-2">
                     {ALL_SPORTS.map((sport) => {
                       const config = getSportConfig(sport);
@@ -377,7 +379,7 @@ export default function Leagues() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Ime lige <span className="text-destructive">•</span></Label>
+                  <Label htmlFor="name">{t("leagues.leagueName")} <span className="text-destructive">•</span></Label>
                   <Input
                     id="name"
                     value={newLeagueName}
@@ -387,17 +389,17 @@ export default function Leagues() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="description">Opis</Label>
+                  <Label htmlFor="description">{t("leagues.description")}</Label>
                   <Textarea
                     id="description"
                     value={newLeagueDesc}
                     onChange={(e) => setNewLeagueDesc(e.target.value)}
-                    placeholder="Kratek opis lige..."
+                    placeholder=""
                     rows={3}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="season-name">Ime prve sezone <span className="text-destructive">•</span></Label>
+                  <Label htmlFor="season-name">{t("leagues.seasonName")} <span className="text-destructive">•</span></Label>
                   <Input
                     id="season-name"
                     value={newSeasonName}
@@ -405,13 +407,10 @@ export default function Leagues() {
                     placeholder="Npr. Sezona 2025/26"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Vsaka liga potrebuje vsaj eno sezono za ustvarjanje tekem.
-                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="league-city">Kraj</Label>
+                    <Label htmlFor="league-city">{t("leagues.city")}</Label>
                     <Input
                       id="league-city"
                       value={newLeagueCity}
@@ -420,7 +419,7 @@ export default function Leagues() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="league-country">Država</Label>
+                    <Label htmlFor="league-country">{t("leagues.country")}</Label>
                     <Input
                       id="league-country"
                       value={newLeagueCountry}
@@ -430,20 +429,17 @@ export default function Leagues() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="league-password">Geslo (neobvezno)</Label>
+                  <Label htmlFor="league-password">{t("leagues.password")}</Label>
                   <Input
                     id="league-password"
                     type="password"
                     value={newLeaguePassword}
                     onChange={(e) => setNewLeaguePassword(e.target.value)}
-                    placeholder="Minimalno 8 znakov"
+                    placeholder={t("auth.minChars")}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Pustite prazno za javno ligo. Mora vsebovati vsaj 8 znakov.
-                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Ustvarjam..." : "Ustvari ligo"}
+                  {loading ? t("leagues.creating") : t("leagues.createLeague")}
                 </Button>
               </form>
             </DialogContent>
@@ -452,7 +448,7 @@ export default function Leagues() {
 
         {myLeagues.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold mb-3 text-muted-foreground">VAŠE LIGE</h3>
+            <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{t("leagues.yourLeagues")}</h3>
             <div className="space-y-2">
               {myLeagues.map((membership) => (
                 <Card key={membership.id}>
@@ -475,7 +471,7 @@ export default function Leagues() {
                       <CardContent className="pb-3">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Users className="h-3 w-3" />
-                          <span className="capitalize">Vaša vloga: {membership.role.replace('_', ' ')}</span>
+                          <span className="capitalize">{t("index.role")}: {membership.role.replace('_', ' ')}</span>
                         </div>
                       </CardContent>
                     </div>
@@ -490,14 +486,13 @@ export default function Leagues() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Izbriši ligo?</AlertDialogTitle>
+                              <AlertDialogTitle>{t("leagues.delete")}?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Ali ste prepričani, da želite izbrisati ligo "{membership.leagues.name}"? 
-                                Ta akcija je nepovratna in bodo izbrisani vsi podatki, tekme in rezultati.
+                                {t("leagues.deleteConfirm")}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Prekliči</AlertDialogCancel>
+                              <AlertDialogCancel>{t("leagues.cancel")}</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -505,7 +500,7 @@ export default function Leagues() {
                                 }}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                Izbriši
+                                {t("leagues.delete")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -520,7 +515,7 @@ export default function Leagues() {
         )}
 
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-muted-foreground">VSE LIGE</h3>
+          <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{t("leagues.allLeagues")}</h3>
           
           {/* Search & Filters */}
           <div className="mb-4 space-y-3">
@@ -529,17 +524,17 @@ export default function Leagues() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Išči lige..."
+                placeholder={t("leagues.search")}
                 className="pl-9"
               />
             </div>
             <div className="flex flex-wrap gap-2">
               <Select value={filterSport} onValueChange={setFilterSport}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Šport" />
+                  <SelectValue placeholder={t("leagues.sport")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Vsi športi</SelectItem>
+                  <SelectItem value="all">{t("leagues.allSports")}</SelectItem>
                   {ALL_SPORTS.map((sport) => (
                     <SelectItem key={sport} value={sport}>
                       {getSportEmoji(sport)} {getSportConfig(sport).label}
@@ -551,10 +546,10 @@ export default function Leagues() {
               {uniqueCountries.length > 0 && (
                 <Select value={filterCountry} onValueChange={setFilterCountry}>
                   <SelectTrigger className="w-[140px] h-8 text-xs">
-                    <SelectValue placeholder="Država" />
+                    <SelectValue placeholder={t("leagues.country")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Vse države</SelectItem>
+                    <SelectItem value="all">{t("leagues.allCountries")}</SelectItem>
                     {uniqueCountries.map((country) => (
                       <SelectItem key={country} value={country}>{country}</SelectItem>
                     ))}
@@ -565,10 +560,10 @@ export default function Leagues() {
               {uniqueCities.length > 0 && (
                 <Select value={filterCity} onValueChange={setFilterCity}>
                   <SelectTrigger className="w-[140px] h-8 text-xs">
-                    <SelectValue placeholder="Kraj" />
+                    <SelectValue placeholder={t("leagues.city")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Vsi kraji</SelectItem>
+                    <SelectItem value="all">{t("leagues.allCities")}</SelectItem>
                     {uniqueCities.map((city) => (
                       <SelectItem key={city} value={city}>{city}</SelectItem>
                     ))}
@@ -581,7 +576,7 @@ export default function Leagues() {
           <div className="space-y-2">
             {filteredLeagues.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
-                {leagues.length === 0 ? "Trenutno ni nobene lige. Ustvarite prvo!" : "Nobena liga ne ustreza filtrom."}
+                {leagues.length === 0 ? t("leagues.noLeaguesYet") : t("leagues.noMatchFilter")}
               </p>
             ) : (
               filteredLeagues.map((league) => (
@@ -610,7 +605,7 @@ export default function Leagues() {
                         className="w-full"
                         size="sm"
                       >
-                        Odpri ligo
+                        {t("leagues.enter")}
                       </Button>
                     ) : (
                       <Button 
@@ -622,10 +617,10 @@ export default function Leagues() {
                         {league.has_password ? (
                           <>
                             <Lock className="h-4 w-4 mr-2" />
-                            Pridruži se
+                            {t("leagues.join")}
                           </>
                         ) : (
-                          "Pridruži se"
+                          t("leagues.join")
                         )}
                       </Button>
                     )}
@@ -640,20 +635,20 @@ export default function Leagues() {
         <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Vnesi geslo</DialogTitle>
+              <DialogTitle>{t("leagues.enterPassword")}</DialogTitle>
               <DialogDescription>
-                Liga "{selectedLeague?.name}" je zaščitena z geslom.
+                {t("leagues.passwordRequired")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="password">Geslo</Label>
+                <Label htmlFor="password">{t("auth.password")}</Label>
                 <Input
                   id="password"
                   type="password"
                   value={enteredPassword}
                   onChange={(e) => setEnteredPassword(e.target.value)}
-                  placeholder="Vnesite geslo"
+                  placeholder={t("leagues.enterPassword")}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handlePasswordSubmit();
@@ -662,7 +657,7 @@ export default function Leagues() {
                 />
               </div>
               <Button onClick={handlePasswordSubmit} className="w-full" disabled={!enteredPassword}>
-                Potrdi
+                {t("common.save")}
               </Button>
             </div>
           </DialogContent>

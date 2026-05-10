@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { User, Trophy, Target, Calendar, Beer, Shield, Award, TrendingUp, BarChart3 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useI18n } from "@/lib/i18n";
 
 interface Season {
   id: string;
@@ -30,6 +31,7 @@ const emptyStats: Stats = { matchesPlayed: 0, wins: 0, goals: 0, beersBrought: 0
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
@@ -107,7 +109,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
-      toast.error("Napaka pri nalaganju profila");
+      toast.error(t("common.error"));
     }
   };
 
@@ -285,9 +287,9 @@ export default function Profile() {
   };
 
   const roleMap: Record<string, string> = {
-    admin: "Admin",
-    plačan_član: "Plačan član",
-    neplačan_član: "Neplačan član",
+    admin: t("role.admin"),
+    plačan_član: t("role.paidMember"),
+    neplačan_član: t("role.unpaidMember"),
   };
 
   if (!user || !profile || !membership) return null;
@@ -300,7 +302,7 @@ export default function Profile() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <User className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Profil v ligi</h1>
+          <h1 className="text-2xl font-bold">{t("profile.title")}</h1>
         </div>
 
         {/* Profile overview */}
@@ -308,7 +310,7 @@ export default function Profile() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Uporabnik"} />
+                <AvatarImage src={profile.avatar_url} alt={profile.full_name || t("common.user")} />
                 <AvatarFallback className="text-xl">
                   {profile.full_name ? profile.full_name[0].toUpperCase() : profile.email[0].toUpperCase()}
                 </AvatarFallback>
@@ -336,15 +338,15 @@ export default function Profile() {
                   <Trophy className="h-5 w-5 text-primary" />
                   {leagueName}
                 </CardTitle>
-                <CardDescription>Vaša statistika v tej ligi</CardDescription>
+                <CardDescription>{t("profile.yourStats")}</CardDescription>
               </div>
               {seasons.length > 0 && (
                 <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
                   <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Sezona" />
+                    <SelectValue placeholder={t("index.selectSeason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Vse sezone</SelectItem>
+                    <SelectItem value="all">{t("index.allSeasons")}</SelectItem>
                     {seasons.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.name} {s.is_active ? "●" : ""}
@@ -357,14 +359,14 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <StatItem icon={<Calendar className="h-4 w-4 text-primary" />} label="Tekme" value={stats.matchesPlayed} />
-              <StatItem icon={<Award className="h-4 w-4 text-accent" />} label="Zmage" value={stats.wins} />
-              <StatItem icon={<Target className="h-4 w-4 text-secondary" />} label="Goli" value={stats.goals} />
-              <StatItem icon={<TrendingUp className="h-4 w-4 text-primary" />} label="Točke" value={stats.totalPoints} />
-              <StatItem icon={<Beer className="h-4 w-4 text-accent" />} label="Pijače" value={stats.beersBrought} />
+              <StatItem icon={<Calendar className="h-4 w-4 text-primary" />} label={t("profile.matches")} value={stats.matchesPlayed} />
+              <StatItem icon={<Award className="h-4 w-4 text-accent" />} label={t("profile.wins")} value={stats.wins} />
+              <StatItem icon={<Target className="h-4 w-4 text-secondary" />} label={t("profile.goals")} value={stats.goals} />
+              <StatItem icon={<TrendingUp className="h-4 w-4 text-primary" />} label={t("profile.points")} value={stats.totalPoints} />
+              <StatItem icon={<Beer className="h-4 w-4 text-accent" />} label={t("profile.drinks")} value={stats.beersBrought} />
               <StatItem
                 icon={<Trophy className="h-4 w-4 text-secondary" />}
-                label="Ocena"
+                label={t("profile.rating")}
                 value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "–"}
               />
             </div>
@@ -377,9 +379,9 @@ export default function Profile() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                Napredek po sezonah
+                {t("profile.seasonProgress")}
               </CardTitle>
-              <CardDescription>Primerjava vaše statistike skozi sezone</CardDescription>
+              <CardDescription>{t("profile.seasonCompare")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -396,10 +398,10 @@ export default function Profile() {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="totalPoints" name="Točke" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="matchesPlayed" name="Tekme" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="wins" name="Zmage" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="goals" name="Goli" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalPoints" name={t("profile.points")} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="matchesPlayed" name={t("profile.matches")} fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="wins" name={t("profile.wins")} fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="goals" name={t("profile.goals")} fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -413,17 +415,17 @@ export default function Profile() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Shield className="h-5 w-5" />
-              Dovoljenja
+              {t("profile.permissions")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
-              <PermissionRow label="Prijava na tekme" allowed={true} />
-              <PermissionRow label="Ogled lestvice" allowed={true} />
-              <PermissionRow label="Ocenjevanje igralcev" allowed={true} />
-              <PermissionRow label="Upravljanje tekem" allowed={membership.role === "admin"} />
-              <PermissionRow label="Upravljanje članov" allowed={membership.role === "admin"} />
-              <PermissionRow label="Nastavitve lige" allowed={membership.role === "admin"} />
+              <PermissionRow label={t("profile.matchSignup")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.viewLeaderboard")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.ratingPlayers")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.manageMatches")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.manageMembers")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.leagueSettings")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
             </div>
           </CardContent>
         </Card>
@@ -444,12 +446,12 @@ function StatItem({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
-function PermissionRow({ label, allowed }: { label: string; allowed: boolean }) {
+function PermissionRow({ label, allowed, yes, no }: { label: string; allowed: boolean; yes: string; no: string }) {
   return (
     <div className="flex items-center justify-between py-1">
       <span className="text-muted-foreground">{label}</span>
       <Badge variant={allowed ? "default" : "outline"} className="text-xs">
-        {allowed ? "Da" : "Ne"}
+        {allowed ? yes : no}
       </Badge>
     </div>
   );
