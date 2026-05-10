@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Award, Target, UserCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
 
 interface LeaderboardEntry {
   player_id: string;
@@ -28,6 +29,7 @@ interface ScoringConfig {
 
 export default function Leaderboard() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [user, setUser] = useState<any>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -212,7 +214,7 @@ export default function Leaderboard() {
         if (!leaderboardMap.has(key)) {
           leaderboardMap.set(key, {
             player_id: participant.player_id,
-            player_name: profile?.full_name || "Neznano ime",
+            player_name: profile?.full_name || t("lb.unknownName"),
             position: participant.position,
             attendance: 0,
             wins: 0,
@@ -318,41 +320,41 @@ export default function Leaderboard() {
               </div>
               <div className="text-center flex-shrink-0">
                 <p className="font-bold text-lg text-primary">{entry.total_points}</p>
-                <p className="text-xs text-muted-foreground">Točke</p>
+                <p className="text-xs text-muted-foreground">{t("profile.points")}</p>
               </div>
             </div>
             
             <div className="flex items-center justify-between gap-2 pt-2 border-t text-xs">
               <div className="text-center">
                 <p className="font-semibold">{entry.attendance}</p>
-                <p className="text-muted-foreground">Prisotnosti</p>
+                <p className="text-muted-foreground">{t("lb.attendances")}</p>
               </div>
               <div className="text-center">
                 <p className="font-semibold">{entry.wins}</p>
-                <p className="text-muted-foreground">Zmage</p>
+                <p className="text-muted-foreground">{t("lb.wins")}</p>
               </div>
               {entry.position === "igralec" && (
                 <div className="text-center">
                   <p className="font-semibold">{entry.goals_for}</p>
-                  <p className="text-muted-foreground">Goli ekipe</p>
+                  <p className="text-muted-foreground">{t("lb.teamGoals")}</p>
                 </div>
               )}
               {entry.position === "vratar" && (
                 <div className="text-center">
                   <p className="font-semibold">{entry.goals_against}</p>
-                  <p className="text-muted-foreground">Prejeti goli</p>
+                  <p className="text-muted-foreground">{t("lb.goalsConceded")}</p>
                 </div>
               )}
               <div className="text-center">
                 <p className="font-semibold">🍺 {entry.beers_brought}</p>
-                <p className="text-muted-foreground">Pivo</p>
+                <p className="text-muted-foreground">{t("lb.beer")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
       {entries.length === 0 && (
-        <p className="text-center text-muted-foreground py-8">Ni podatkov</p>
+        <p className="text-center text-muted-foreground py-8">{t("lb.noData")}</p>
       )}
     </div>
   );
@@ -371,20 +373,20 @@ export default function Leaderboard() {
             >
               <div className="flex items-center gap-2">
                 <Trophy className="h-6 w-6 text-primary" />
-                Lestvica
+                {t("lb.title")}
               </div>
               {showScoring ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
             </CardTitle>
             {showScoring && (
               <p className="text-sm text-muted-foreground mt-2 pt-2 border-t">
-                <strong>Točkovanje:</strong><br />
-                • Prisotnost: {scoring.points_attendance} {scoring.points_attendance === 1 ? "točka" : "točke"}<br />
-                • Zmaga v rednem delu: +{scoring.points_win} {scoring.points_win === 1 ? "točka" : "točke"}<br />
-                • Zmaga po kazenskih strelih: +{scoring.points_penalty_win} {scoring.points_penalty_win === 1 ? "točka" : "točki"}<br />
-                • Poraz po kazenskih strelih: +{scoring.points_penalty_loss} {scoring.points_penalty_loss === 1 ? "točka" : "točka"}<br /><br />
-                <strong>Pri izenačenih točkah:</strong><br />
-                • Igralci: več golov ekipe<br />
-                • Vratarji: manj prejetih golov
+                <strong>{t("lb.scoring")}:</strong><br />
+                • {t("lb.attendance")}: {scoring.points_attendance} {scoring.points_attendance === 1 ? t("lb.point") : t("lb.points")}<br />
+                • {t("lb.regulationWin")}: +{scoring.points_win} {scoring.points_win === 1 ? t("lb.point") : t("lb.points")}<br />
+                • {t("lb.penaltyWin")}: +{scoring.points_penalty_win} {scoring.points_penalty_win === 1 ? t("lb.point") : t("lb.points")}<br />
+                • {t("lb.penaltyLoss")}: +{scoring.points_penalty_loss} {scoring.points_penalty_loss === 1 ? t("lb.point") : t("lb.points")}<br /><br />
+                <strong>{t("lb.tiebreaker")}:</strong><br />
+                • {t("lb.playersMoreGoals")}<br />
+                • {t("lb.gkFewerGoals")}
               </p>
             )}
           </CardHeader>
@@ -394,10 +396,10 @@ export default function Leaderboard() {
           <div className="mb-4">
             <Select value={selectedSeasonId} onValueChange={handleSeasonChange}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Izberi sezono" />
+                <SelectValue placeholder={t("index.selectSeason")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Vse sezone</SelectItem>
+                <SelectItem value="all">{t("index.allSeasons")}</SelectItem>
                 {seasons.map((season) => (
                   <SelectItem key={season.id} value={season.id}>
                     <span className="flex items-center gap-1.5">{season.name} {season.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
@@ -412,21 +414,21 @@ export default function Leaderboard() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all">
               <Award className="h-4 w-4 mr-2" />
-              Vsi
+              {t("lb.all")}
             </TabsTrigger>
             <TabsTrigger value="players">
               <UserCircle className="h-4 w-4 mr-2" />
-              Igralci
+              {t("lb.playersTab")}
             </TabsTrigger>
             <TabsTrigger value="goalkeepers">
               <Target className="h-4 w-4 mr-2" />
-              Vratarji
+              {t("lb.goalkeepersTab")}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="all" className="mt-4">
             {loading ? (
-              <p className="text-center text-muted-foreground py-8">Nalaganje...</p>
+              <p className="text-center text-muted-foreground py-8">{t("common.loading")}</p>
             ) : (
               renderLeaderboardTable(combined)
             )}
@@ -434,7 +436,7 @@ export default function Leaderboard() {
           
           <TabsContent value="players" className="mt-4">
             {loading ? (
-              <p className="text-center text-muted-foreground py-8">Nalaganje...</p>
+              <p className="text-center text-muted-foreground py-8">{t("common.loading")}</p>
             ) : (
               renderLeaderboardTable(players)
             )}
@@ -442,7 +444,7 @@ export default function Leaderboard() {
           
           <TabsContent value="goalkeepers" className="mt-4">
             {loading ? (
-              <p className="text-center text-muted-foreground py-8">Nalaganje...</p>
+              <p className="text-center text-muted-foreground py-8">{t("common.loading")}</p>
             ) : (
               renderLeaderboardTable(goalkeepers)
             )}
