@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { User, Upload, LogOut, Trophy, Shield, ArrowRight, KeyRound } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface LeagueMembership {
   id: string;
@@ -22,6 +23,7 @@ interface LeagueMembership {
 
 export default function GlobalProfile() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -90,7 +92,7 @@ export default function GlobalProfile() {
         id: m.id,
         league_id: m.league_id,
         role: m.role,
-        league_name: m.leagues?.name || "Neznana liga",
+        league_name: m.leagues?.name || t("gp.unknownLeague"),
         is_creator: m.leagues?.created_by === userId,
       }));
       setMemberships(mapped);
@@ -113,9 +115,9 @@ export default function GlobalProfile() {
         })
         .eq("id", user.id);
       if (error) throw error;
-      toast.success("Profil uspešno posodobljen");
+      toast.success(t("gp.profileUpdated"));
     } catch {
-      toast.error("Napaka pri posodabljanju profila");
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -152,9 +154,9 @@ export default function GlobalProfile() {
         .eq("id", user.id);
       if (updateError) throw updateError;
 
-      toast.success("Profilna slika uspešno naložena");
+      toast.success(t("gp.avatarUploaded"));
     } catch (error: any) {
-      toast.error(error.message || "Napaka pri nalaganju slike");
+      toast.error(error.message || t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -176,10 +178,10 @@ export default function GlobalProfile() {
         localStorage.removeItem("currentLeagueId");
       }
 
-      toast.success(`Uspešno ste se izpisali iz lige "${membership.league_name}"`);
+      toast.success(t("gp.leftLeague", { name: membership.league_name }));
       fetchMemberships(user.id);
     } catch {
-      toast.error("Napaka pri izpisu iz lige");
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -187,22 +189,22 @@ export default function GlobalProfile() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Gesli se ne ujemata");
+      toast.error(t("gp.passwordsDontMatch"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("Geslo mora biti dolgo vsaj 6 znakov");
+      toast.error(t("gp.passwordMinLength"));
       return;
     }
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast.success("Geslo uspešno spremenjeno");
+      toast.success(t("gp.passwordChanged"));
       setNewPassword("");
       setConfirmPassword("");
     } catch {
-      toast.error("Napaka pri spreminjanju gesla");
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -217,17 +219,17 @@ export default function GlobalProfile() {
     const { error } = await supabase.auth.signOut();
     if (!error) {
       localStorage.removeItem("currentLeagueId");
-      toast.success("Uspešna odjava");
+      toast.success(t("nav.signOutSuccess"));
       navigate("/auth");
     } else {
-      toast.error("Napaka pri odjavi");
+      toast.error(t("nav.signOutError"));
     }
   };
 
   const roleMap: Record<string, string> = {
-    admin: "Admin",
-    plačan_član: "Plačan član",
-    neplačan_član: "Neplačan član",
+    admin: t("role.admin"),
+    plačan_član: t("role.paidMember"),
+    neplačan_član: t("role.unpaidMember"),
   };
 
   if (!user) return null;
@@ -246,7 +248,7 @@ export default function GlobalProfile() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => navigate("/")}>
               <Trophy className="h-4 w-4 mr-1" />
-              Lige
+              {t("gp.leaguesBtn")}
             </Button>
             <Button variant="destructive" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
@@ -259,20 +261,20 @@ export default function GlobalProfile() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <User className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Moj Profil</h1>
+          <h1 className="text-2xl font-bold">{t("gp.title")}</h1>
         </div>
 
         {/* Profile Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Osebni podatki</CardTitle>
-            <CardDescription>Posodobite svoje podatke</CardDescription>
+            <CardTitle>{t("gp.personalData")}</CardTitle>
+            <CardDescription>{t("gp.updateData")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Avatar */}
             <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={avatarUrl} alt={fullName || "Uporabnik"} />
+                <AvatarImage src={avatarUrl} alt={fullName || t("common.user")} />
                 <AvatarFallback className="text-2xl">
                   {fullName ? fullName[0].toUpperCase() : email[0]?.toUpperCase()}
                 </AvatarFallback>
@@ -286,7 +288,7 @@ export default function GlobalProfile() {
                   onClick={() => document.getElementById("avatar-upload")?.click()}
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {uploading ? "Nalagam..." : "Naloži profilno sliko"}
+                  {uploading ? t("gp.uploading") : t("gp.uploadAvatar")}
                 </Button>
                 <Input
                   id="avatar-upload"
@@ -296,42 +298,42 @@ export default function GlobalProfile() {
                   disabled={uploading}
                   className="hidden"
                 />
-                <p className="text-xs text-muted-foreground">PNG, JPG ali WEBP (max. 5MB)</p>
+                <p className="text-xs text-muted-foreground">{t("gp.imageFormats")}</p>
               </div>
             </div>
 
             <Separator />
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input id="email" type="email" value={email} disabled className="bg-muted" />
-              <p className="text-xs text-muted-foreground">Emaila ni mogoče spremeniti</p>
+              <p className="text-xs text-muted-foreground">{t("gp.emailCantChange")}</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Polno ime</Label>
+              <Label htmlFor="fullName">{t("gp.fullName")}</Label>
               <Input
                 id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Vnesite svoje ime"
+                placeholder={t("gp.enterName")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Kraj</Label>
+              <Label htmlFor="location">{t("gp.location")}</Label>
               <Input
                 id="location"
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Vnesite svoj kraj"
+                placeholder={t("gp.enterLocation")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="birthDate">Datum rojstva</Label>
+              <Label htmlFor="birthDate">{t("gp.birthDate")}</Label>
               <Input
                 id="birthDate"
                 type="date"
@@ -341,7 +343,7 @@ export default function GlobalProfile() {
             </div>
 
             <Button onClick={handleUpdateProfile} disabled={loading} className="w-full">
-              {loading ? "Shranjujem..." : "Shrani spremembe"}
+              {loading ? t("gp.saving") : t("gp.saveChanges")}
             </Button>
           </CardContent>
         </Card>
@@ -351,17 +353,17 @@ export default function GlobalProfile() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary" />
-              Moje lige
+              {t("gp.leagues")}
             </CardTitle>
-            <CardDescription>Lige, v katerih ste član</CardDescription>
+            <CardDescription>{t("gp.leaguesDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {memberships.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-muted-foreground text-sm mb-3">Niste član nobene lige.</p>
+                <p className="text-muted-foreground text-sm mb-3">{t("gp.noLeagues")}</p>
                 <Button variant="default" onClick={() => navigate("/")}>
                   <Trophy className="h-4 w-4 mr-2" />
-                  Pridruži se ligi
+                  {t("gp.joinLeague")}
                 </Button>
               </div>
             ) : (
@@ -399,19 +401,18 @@ export default function GlobalProfile() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Izpis iz lige</AlertDialogTitle>
+                              <AlertDialogTitle>{t("gp.leaveLeague")}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Ali ste prepričani, da se želite izpisati iz lige "{m.league_name}"?
-                                Ta akcija je nepovratna.
+                                {t("gp.leaveConfirm", { name: m.league_name })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Prekliči</AlertDialogCancel>
+                              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleLeaveLeague(m)}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                Izpiši se
+                                {t("gp.leaveBtn")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -432,29 +433,29 @@ export default function GlobalProfile() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5" />
-              Spremeni geslo
+              {t("gp.changePassword")}
             </CardTitle>
-            <CardDescription>Nastavite novo geslo za svoj račun</CardDescription>
+            <CardDescription>{t("gp.changePasswordDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="newPassword">Novo geslo</Label>
+              <Label htmlFor="newPassword">{t("gp.newPassword")}</Label>
               <Input
                 id="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Vnesite novo geslo"
+                placeholder={t("gp.enterNewPassword")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Potrdi novo geslo</Label>
+              <Label htmlFor="confirmPassword">{t("gp.confirmNewPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Ponovno vnesite novo geslo"
+                placeholder={t("gp.reenterPassword")}
               />
             </div>
             <Button
@@ -463,7 +464,7 @@ export default function GlobalProfile() {
               className="w-full"
               variant="secondary"
             >
-              {loading ? "Spreminjam..." : "Spremeni geslo"}
+              {loading ? t("gp.changing") : t("gp.changePasswordBtn")}
             </Button>
           </CardContent>
         </Card>
