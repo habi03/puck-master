@@ -613,11 +613,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleSignUp = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena - prijave so zaprte");
+      toast.error(t("match.signupsClosedCompleted"));
       return;
     }
     if (match.signups_locked) {
-      toast.error("Prijave so zaklenjene");
+      toast.error(t("match.signupsLockedError"));
       return;
     }
     // Check position-specific limits (exclude absent)
@@ -627,17 +627,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     
     if (position === "igralec") {
       if (match.max_players && playersCount >= match.max_players) {
-        toast.error(`Doseženo maksimalno število igralcev (${match.max_players})`);
+        toast.error(t("match.maxPlayersReached", { max: match.max_players }));
         return;
       }
     } else if (position === "vratar") {
       if (match.max_goalkeepers && goalkeepersCount >= match.max_goalkeepers) {
-        toast.error(`Doseženo maksimalno število vratarjev (${match.max_goalkeepers})`);
+        toast.error(t("match.maxGkReached", { max: match.max_goalkeepers }));
         return;
       }
       // Also check the team limit
       if (goalkeepersCount >= match.number_of_teams) {
-        toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih (en vratar na ekipo)`);
+        toast.error(t("match.allGkSlotsFilled", { n: match.number_of_teams }));
         return;
       }
     }
