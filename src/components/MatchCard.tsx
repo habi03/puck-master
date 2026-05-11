@@ -561,7 +561,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       const newPlayers = selectedPlayers.filter(p => !existingPlayerIds.includes(p.id));
 
       if (newPlayers.length === 0) {
-        toast.error("Vsi izbrani igralci so že prijavljeni");
+        toast.error(t("match.allAlreadySignedUp"));
         setLoading(false);
         return;
       }
