@@ -793,7 +793,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Uspešno ste se odjavili");
+      toast.success(t("match.signOutSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
