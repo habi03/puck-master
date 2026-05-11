@@ -825,7 +825,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success("Označeni ste kot odsotni");
+      toast.success(t("match.markedAbsentSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
