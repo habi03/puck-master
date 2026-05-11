@@ -1481,17 +1481,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Nastavi lokacijo</DialogTitle>
+            <DialogTitle>{t("match.locationTitle")}</DialogTitle>
             <DialogDescription>
-              Vnesite lokacijo ali igrišče tekme.
+              {t("match.locationDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="location">Lokacija</Label>
+              <Label htmlFor="location">{t("match.locationLabel")}</Label>
               <Input
                 id="location"
-                placeholder="npr. Športni park, Igrišče pri šoli..."
+                placeholder={t("match.locationPlaceholder")}
                 value={locationValue}
                 onChange={(e) => setLocationValue(e.target.value)}
               />
@@ -1499,10 +1499,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setLocationDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveLocation} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
