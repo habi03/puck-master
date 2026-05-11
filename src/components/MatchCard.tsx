@@ -1121,7 +1121,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             ) : isMarkedAbsent ? (
               <>
                 <Badge variant="destructive" className="w-full justify-center py-1.5 text-xs">
-                  Označeni kot odsotni
+                  {t("match.markedAbsent")}
                 </Badge>
                 <Button 
                   onClick={(e) => {
@@ -1132,13 +1132,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   variant="outline"
                   className="w-full"
                 >
-                  Prekliči odsotnost
+                  {t("match.cancelAbsent")}
                 </Button>
               </>
             ) : (
               <>
                 <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-                  Prijavljeni kot: {userParticipation.position}
+                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player })}
                 </Badge>
                 
                 {!userParticipation.brings_beer && !beerBringer && (
