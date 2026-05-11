@@ -186,7 +186,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       setSeasons(data || []);
     } catch {
-      toast.error("Napaka pri nalaganju sezon");
+      toast.error(t("match.loadSeasonsError"));
     }
   };
 
