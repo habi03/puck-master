@@ -1396,7 +1396,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setRemovePlayersDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -1404,7 +1404,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 onClick={handleRemoveSelectedPlayers}
                 disabled={loading || playersToRemove.length === 0}
               >
-                {loading ? "Odstranjujem..." : `Odstrani (${playersToRemove.length})`}
+                {loading ? t("match.removing") : `${t("match.remove")} (${playersToRemove.length})`}
               </Button>
             </div>
           )}
