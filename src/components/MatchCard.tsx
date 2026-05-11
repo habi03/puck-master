@@ -836,7 +836,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleCancelAbsent = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena");
+      toast.error(t("match.matchCompleted"));
       return;
     }
     
