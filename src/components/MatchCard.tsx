@@ -143,7 +143,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       setLeagueMembers(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju članov");
+      toast.error(t("match.loadMembersError"));
     }
   };
 
