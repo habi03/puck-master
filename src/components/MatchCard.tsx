@@ -495,7 +495,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       }
       setScoringDialogOpen(true);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju točkovanja");
+      toast.error(t("match.loadScoringError"));
     }
   };
 
