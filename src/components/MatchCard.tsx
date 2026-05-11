@@ -1047,7 +1047,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           
           {isCompleted && (
             <div className="pt-2 border-t mt-2 space-y-2">
-              <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
+              <div className="text-xs font-semibold mb-2 text-muted-foreground">{t("match.resultLabel")}</div>
               <div className="flex gap-3 justify-center">
                 {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
                   const result = matchResults.find(r => r.team_number === teamNum);
