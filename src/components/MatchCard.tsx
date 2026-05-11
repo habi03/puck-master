@@ -1588,14 +1588,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={scoringDialogOpen} onOpenChange={setScoringDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Nastavi točkovanje</DialogTitle>
+            <DialogTitle>{t("match.scoringTitle")}</DialogTitle>
             <DialogDescription>
-              Določite koliko točk se dodeli za posamezne dogodke v ligi.
+              {t("match.scoringDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="points-attendance">Prisotnost na tekmi</Label>
+              <Label htmlFor="points-attendance">{t("match.attendancePoints")}</Label>
               <Input
                 id="points-attendance"
                 type="number"
@@ -1605,7 +1605,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-win">Zmaga (redni del)</Label>
+              <Label htmlFor="points-win">{t("match.winRegulation")}</Label>
               <Input
                 id="points-win"
                 type="number"
@@ -1615,7 +1615,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-penalty-win">Zmaga po kazenskih strelih</Label>
+              <Label htmlFor="points-penalty-win">{t("match.winPenalty")}</Label>
               <Input
                 id="points-penalty-win"
                 type="number"
@@ -1625,7 +1625,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-penalty-loss">Poraz po kazenskih strelih</Label>
+              <Label htmlFor="points-penalty-loss">{t("match.lossPenalty")}</Label>
               <Input
                 id="points-penalty-loss"
                 type="number"
@@ -1637,10 +1637,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setScoringDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveScoring} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
