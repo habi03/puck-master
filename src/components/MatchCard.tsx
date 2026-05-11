@@ -1241,7 +1241,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {member.profiles?.full_name || member.profiles?.email || "Neznano ime"}
+                            {member.profiles?.full_name || member.profiles?.email || t("match.unknownName")}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {member.profiles?.email}
