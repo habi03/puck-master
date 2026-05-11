@@ -1152,7 +1152,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     className="w-full"
                   >
                     <Beer className="h-4 w-4 mr-2" />
-                    JAZ PRINESEM PIVO
+                    {t("match.bringBeer")}
                   </Button>
                 )}
                 
