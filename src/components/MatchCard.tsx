@@ -1415,16 +1415,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={changePositionDialogOpen} onOpenChange={setChangePositionDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Spremeni pozicije igralcev</DialogTitle>
+            <DialogTitle>{t("match.changePositionsTitle")}</DialogTitle>
             <DialogDescription>
-              Spremenite pozicije igralcev (igralec / vratar).
+              {t("match.changePositionsDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             {participants.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Na tekmo ni prijavljen noben igralec.
+                {t("match.noPlayersOnMatch")}
               </p>
             ) : (
               <div className="space-y-2">
