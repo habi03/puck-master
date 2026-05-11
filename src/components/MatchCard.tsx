@@ -1435,7 +1435,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">
-                        {participant.profiles?.full_name || participant.profiles?.email || "Neznano ime"}
+                        {participant.profiles?.full_name || participant.profiles?.email || t("match.unknownName")}
                       </p>
                     </div>
                     <Select
