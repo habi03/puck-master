@@ -1181,7 +1181,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserMinus className="h-4 w-4 mr-2" />
-                  Odjavi se
+                  {t("match.signOut")}
                 </Button>
               </>
             )
