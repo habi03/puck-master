@@ -46,6 +46,8 @@ interface MatchCardProps {
 
 export default function MatchCard({ match, currentUser, participants, onUpdate }: MatchCardProps) {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
+  const dateLocale = lang === "en" ? enUS : lang === "de" ? de : sl;
   const [position, setPosition] = useState<"igralec" | "vratar">("igralec");
   const [loading, setLoading] = useState(false);
   const [matchResults, setMatchResults] = useState<any[]>([]);
