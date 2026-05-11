@@ -1200,7 +1200,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               navigate(`/match/${match.id}`);
             }}
           >
-            Podrobnosti
+            {t("match.details")}
             <ChevronRight className="h-3 w-3" />
           </Button>
         </CardFooter>
