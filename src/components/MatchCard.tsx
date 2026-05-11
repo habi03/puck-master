@@ -936,54 +936,54 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <>
                         <DropdownMenuItem onClick={handleOpenAddPlayers}>
                           <UserPlus className="h-4 w-4 mr-2" />
-                          Dodaj igralce
+                          {t("match.addPlayers")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenEdit}>
                           <Pencil className="h-4 w-4 mr-2" />
-                          Uredi datum/uro
+                          {t("match.editDateTime")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenRemovePlayers}>
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Odstrani igralce
+                          {t("match.removePlayers")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenChangePosition}>
                           <RefreshCw className="h-4 w-4 mr-2" />
-                          Spremeni pozicije
+                          {t("match.changePositions")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleToggleSignupsLocked}>
                           {match.signups_locked ? (
                             <>
                               <Unlock className="h-4 w-4 mr-2" />
-                              Odkleni prijave
+                              {t("match.unlockSignups")}
                             </>
                           ) : (
                             <>
                               <Lock className="h-4 w-4 mr-2" />
-                              Zakleni prijave
+                              {t("match.lockSignups")}
                             </>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenLocation}>
                           <MapPin className="h-4 w-4 mr-2" />
-                          Nastavi lokacijo
+                          {t("match.setLocation")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenMaxParticipants}>
                           <UsersRound className="h-4 w-4 mr-2" />
-                          Omeji prijave
+                          {t("match.limitSignups")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenNotes}>
                           <FileText className="h-4 w-4 mr-2" />
-                          Dodaj opombo
+                          {t("match.addNote")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenScoring}>
                           <Settings className="h-4 w-4 mr-2" />
-                          Nastavi točkovanje
+                          {t("match.setScoring")}
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuItem onClick={handleOpenChangeSeason}>
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Premakni v sezono
+                      {t("match.moveToSeason")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
