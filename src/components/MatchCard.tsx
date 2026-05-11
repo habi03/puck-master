@@ -1463,14 +1463,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setChangePositionDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleSavePositionChanges}
                 disabled={loading}
               >
-                {loading ? "Shranjujem..." : "Shrani"}
+                {loading ? t("md.saving") : t("common.save")}
               </Button>
             </div>
           )}
