@@ -1512,30 +1512,30 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={maxParticipantsDialogOpen} onOpenChange={setMaxParticipantsDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Omeji število prijav</DialogTitle>
+            <DialogTitle>{t("match.limitTitle")}</DialogTitle>
             <DialogDescription>
-              Nastavite maksimalno število igralcev in vratarjev. Pustite prazno za brez omejitve.
+              {t("match.limitDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="max-players">Maksimalno igralcev</Label>
+              <Label htmlFor="max-players">{t("match.maxPlayers")}</Label>
               <Input
                 id="max-players"
                 type="number"
                 min="1"
-                placeholder="Brez omejitve"
+                placeholder={t("match.noLimit")}
                 value={maxPlayersValue}
                 onChange={(e) => setMaxPlayersValue(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max-goalkeepers">Maksimalno vratarjev</Label>
+              <Label htmlFor="max-goalkeepers">{t("match.maxGoalkeepers")}</Label>
               <Input
                 id="max-goalkeepers"
                 type="number"
                 min="1"
-                placeholder="Brez omejitve"
+                placeholder={t("match.noLimit")}
                 value={maxGoalkeepersValue}
                 onChange={(e) => setMaxGoalkeepersValue(e.target.value)}
               />
@@ -1543,10 +1543,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setMaxParticipantsDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveMaxParticipants} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
