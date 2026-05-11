@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { sl } from "date-fns/locale";
+import { sl, enUS, de } from "date-fns/locale";
+import { useI18n } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
@@ -45,6 +46,8 @@ interface MatchCardProps {
 
 export default function MatchCard({ match, currentUser, participants, onUpdate }: MatchCardProps) {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
+  const dateLocale = lang === "en" ? enUS : lang === "de" ? de : sl;
   const [position, setPosition] = useState<"igralec" | "vratar">("igralec");
   const [loading, setLoading] = useState(false);
   const [matchResults, setMatchResults] = useState<any[]>([]);
@@ -140,7 +143,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       setLeagueMembers(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju članov");
+      toast.error(t("match.loadMembersError"));
     }
   };
 
@@ -183,7 +186,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       if (error) throw error;
       setSeasons(data || []);
     } catch {
-      toast.error("Napaka pri nalaganju sezon");
+      toast.error(t("match.loadSeasonsError"));
     }
   };
 
@@ -203,11 +206,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .update({ season_id: selectedSeasonId })
         .eq("id", match.id);
       if (error) throw error;
-      toast.success("Tekma prestavljena v drugo sezono");
+      toast.success(t("match.movedToSeason"));
       setChangeSeasonDialogOpen(false);
       onUpdate();
     } catch {
-      toast.error("Napaka pri spreminjanju sezone");
+      toast.error(t("match.changeSeasonError"));
     } finally {
       setLoading(false);
     }
@@ -239,7 +242,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Tekma uspešno posodobljena");
+      toast.success(t("match.matchUpdated"));
       setEditDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -492,7 +495,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       }
       setScoringDialogOpen(true);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju točkovanja");
+      toast.error(t("match.loadScoringError"));
     }
   };
 
@@ -518,7 +521,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Točkovanje za tekmo shranjeno");
+      toast.success(t("match.scoringSavedMatch"));
       setScoringDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -547,7 +550,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleAddSelectedPlayers = async () => {
     if (selectedPlayers.length === 0) {
-      toast.error("Izberite vsaj enega igralca");
+      toast.error(t("match.selectAtLeastOne"));
       return;
     }
 
@@ -558,7 +561,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       const newPlayers = selectedPlayers.filter(p => !existingPlayerIds.includes(p.id));
 
       if (newPlayers.length === 0) {
-        toast.error("Vsi izbrani igralci so že prijavljeni");
+        toast.error(t("match.allAlreadySignedUp"));
         setLoading(false);
         return;
       }
@@ -597,7 +600,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       if (error) throw error;
 
-      toast.success(`Uspešno dodanih ${newPlayers.length} igralcev`);
+      toast.success(t("match.playersAdded", { count: newPlayers.length }));
       setAddPlayersDialogOpen(false);
       setSelectedPlayers([]);
       onUpdate();
@@ -610,11 +613,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleSignUp = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena - prijave so zaprte");
+      toast.error(t("match.signupsClosedCompleted"));
       return;
     }
     if (match.signups_locked) {
-      toast.error("Prijave so zaklenjene");
+      toast.error(t("match.signupsLockedError"));
       return;
     }
     // Check position-specific limits (exclude absent)
@@ -624,17 +627,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
     
     if (position === "igralec") {
       if (match.max_players && playersCount >= match.max_players) {
-        toast.error(`Doseženo maksimalno število igralcev (${match.max_players})`);
+        toast.error(t("match.maxPlayersReached", { max: match.max_players }));
         return;
       }
     } else if (position === "vratar") {
       if (match.max_goalkeepers && goalkeepersCount >= match.max_goalkeepers) {
-        toast.error(`Doseženo maksimalno število vratarjev (${match.max_goalkeepers})`);
+        toast.error(t("match.maxGkReached", { max: match.max_goalkeepers }));
         return;
       }
       // Also check the team limit
       if (goalkeepersCount >= match.number_of_teams) {
-        toast.error(`Vseh ${match.number_of_teams} mest za vratarje je že zasedenih (en vratar na ekipo)`);
+        toast.error(t("match.allGkSlotsFilled", { n: match.number_of_teams }));
         return;
       }
     }
@@ -767,7 +770,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success(`Uspešno ste se prijavili kot ${position}`);
+      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? sportConfig.positions.goalkeeper || "" : sportConfig.positions.player }));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -778,7 +781,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleSignOut = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena - odjave niso mogoče");
+      toast.error(t("match.signoutNotPossible"));
       return;
     }
     
@@ -790,7 +793,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Uspešno ste se odjavili");
+      toast.success(t("match.signOutSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -801,11 +804,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleMarkAbsent = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena");
+      toast.error(t("match.matchCompleted"));
       return;
     }
     if (match.signups_locked) {
-      toast.error("Prijave so zaklenjene");
+      toast.error(t("match.signupsLockedError"));
       return;
     }
     
@@ -822,7 +825,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success("Označeni ste kot odsotni");
+      toast.success(t("match.markedAbsentSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -833,7 +836,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleCancelAbsent = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena");
+      toast.error(t("match.matchCompleted"));
       return;
     }
     
@@ -845,7 +848,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Preklic odsotnosti");
+      toast.success(t("match.cancelAbsentSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -856,7 +859,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleBringBeer = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena");
+      toast.error(t("match.matchCompleted"));
       return;
     }
     
@@ -868,7 +871,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Hvala! 🍺");
+      toast.success(t("match.thanksBeer"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -879,7 +882,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleCancelBeer = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena");
+      toast.error(t("match.matchCompleted"));
       return;
     }
     
@@ -891,7 +894,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Preklic piva");
+      toast.success(t("match.cancelBeerSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -903,7 +906,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const beerBringer = participants.filter(p => !p.is_absent).find(p => p.brings_beer);
 
   const matchDate = new Date(match.match_date);
-  const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: sl });
+  const formattedDate = format(matchDate, "EEEE, d. MMMM yyyy", { locale: dateLocale });
 
   // Filter members who are not already participants
   const availableMembers = leagueMembers.filter(
@@ -915,11 +918,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-lg gap-2">
-            <span className="shrink-0">Tekma</span>
+            <span className="shrink-0">{t("match.match")}</span>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
-              <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
+              <Badge variant="secondary" className="text-xs">{match.number_of_teams} {t("match.teamsLabel")}</Badge>
               {isCompleted && (
-                <Badge variant="default" className="text-xs">Zaključena</Badge>
+                <Badge variant="default" className="text-xs">{t("match.completed")}</Badge>
               )}
               {isAdmin && (
                 <DropdownMenu>
@@ -933,54 +936,54 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                       <>
                         <DropdownMenuItem onClick={handleOpenAddPlayers}>
                           <UserPlus className="h-4 w-4 mr-2" />
-                          Dodaj igralce
+                          {t("match.addPlayers")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenEdit}>
                           <Pencil className="h-4 w-4 mr-2" />
-                          Uredi datum/uro
+                          {t("match.editDateTime")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenRemovePlayers}>
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Odstrani igralce
+                          {t("match.removePlayers")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenChangePosition}>
                           <RefreshCw className="h-4 w-4 mr-2" />
-                          Spremeni pozicije
+                          {t("match.changePositions")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleToggleSignupsLocked}>
                           {match.signups_locked ? (
                             <>
                               <Unlock className="h-4 w-4 mr-2" />
-                              Odkleni prijave
+                              {t("match.unlockSignups")}
                             </>
                           ) : (
                             <>
                               <Lock className="h-4 w-4 mr-2" />
-                              Zakleni prijave
+                              {t("match.lockSignups")}
                             </>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenLocation}>
                           <MapPin className="h-4 w-4 mr-2" />
-                          Nastavi lokacijo
+                          {t("match.setLocation")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenMaxParticipants}>
                           <UsersRound className="h-4 w-4 mr-2" />
-                          Omeji prijave
+                          {t("match.limitSignups")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenNotes}>
                           <FileText className="h-4 w-4 mr-2" />
-                          Dodaj opombo
+                          {t("match.addNote")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenScoring}>
                           <Settings className="h-4 w-4 mr-2" />
-                          Nastavi točkovanje
+                          {t("match.setScoring")}
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuItem onClick={handleOpenChangeSeason}>
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Premakni v sezono
+                      {t("match.moveToSeason")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1022,7 +1025,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           {match.signups_locked && !isCompleted && (
             <div className="flex items-center gap-2 text-sm text-destructive">
               <Lock className="h-4 w-4 flex-shrink-0" />
-              <span className="text-xs font-medium">Prijave zaklenjene</span>
+              <span className="text-xs font-medium">{t("match.signupsLocked")}</span>
             </div>
           )}
           
@@ -1037,21 +1040,21 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             <div className="flex items-center gap-2 text-sm text-primary">
               <Beer className="h-4 w-4 flex-shrink-0" />
               <span className="text-xs font-semibold">
-                Pivo: {currentUser.id === beerBringer.player_id ? 'Ti' : (beerBringer.profiles?.full_name || 'Nekdo')}
+                {t("match.beer")}: {currentUser.id === beerBringer.player_id ? t("match.you") : (beerBringer.profiles?.full_name || t("match.someone"))}
               </span>
             </div>
           )}
           
           {isCompleted && (
             <div className="pt-2 border-t mt-2 space-y-2">
-              <div className="text-xs font-semibold mb-2 text-muted-foreground">Rezultat:</div>
+              <div className="text-xs font-semibold mb-2 text-muted-foreground">{t("match.resultLabel")}</div>
               <div className="flex gap-3 justify-center">
                 {Array.from({ length: match.number_of_teams }, (_, i) => i + 1).map((teamNum) => {
                   const result = matchResults.find(r => r.team_number === teamNum);
                   const goals = result?.goals_scored || 0;
                   return (
                     <div key={teamNum} className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border" style={getTeamColorStyle(teamNum, teamColors)}>
-                      <span className="text-xs font-semibold">Ekipa {teamNum}</span>
+                      <span className="text-xs font-semibold">{t("match.team")} {teamNum}</span>
                       <div className="text-2xl font-bold">
                         {goals}
                       </div>
@@ -1064,7 +1067,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               </div>
               {matchResults.length > 0 && matchResults[0].win_type && (
                 <div className="text-center text-xs text-muted-foreground mt-2">
-                  {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+                  {matchResults[0].win_type === "regulation" ? t("match.regulation") : t("match.penaltyShootout")}
                 </div>
               )}
             </div>
@@ -1100,7 +1103,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Prijavi se
+                  {t("match.signUp")}
                 </Button>
                 <Button 
                   onClick={(e) => {
@@ -1112,13 +1115,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserMinus className="h-4 w-4 mr-2" />
-                  Odsoten
+                  {t("match.absent")}
                 </Button>
               </div>
             ) : isMarkedAbsent ? (
               <>
                 <Badge variant="destructive" className="w-full justify-center py-1.5 text-xs">
-                  Označeni kot odsotni
+                  {t("match.markedAbsent")}
                 </Badge>
                 <Button 
                   onClick={(e) => {
@@ -1129,13 +1132,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   variant="outline"
                   className="w-full"
                 >
-                  Prekliči odsotnost
+                  {t("match.cancelAbsent")}
                 </Button>
               </>
             ) : (
               <>
                 <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-                  Prijavljeni kot: {userParticipation.position}
+                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player })}
                 </Badge>
                 
                 {!userParticipation.brings_beer && !beerBringer && (
@@ -1149,7 +1152,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     className="w-full"
                   >
                     <Beer className="h-4 w-4 mr-2" />
-                    JAZ PRINESEM PIVO
+                    {t("match.bringBeer")}
                   </Button>
                 )}
                 
@@ -1164,7 +1167,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     className="w-full"
                   >
                     <Beer className="h-4 w-4 mr-2" />
-                    PREKLIČI PIVO
+                    {t("match.cancelBeer")}
                   </Button>
                 )}
                 
@@ -1178,13 +1181,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserMinus className="h-4 w-4 mr-2" />
-                  Odjavi se
+                  {t("match.signOut")}
                 </Button>
               </>
             )
           ) : (
             <Badge variant="secondary" className="w-full justify-center py-2 text-xs">
-              Prijave zaprte - tekma zaključena
+              {t("match.closedCompleted")}
             </Badge>
           )}
           
@@ -1197,7 +1200,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               navigate(`/match/${match.id}`);
             }}
           >
-            Podrobnosti
+            {t("match.details")}
             <ChevronRight className="h-3 w-3" />
           </Button>
         </CardFooter>
@@ -1207,16 +1210,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={addPlayersDialogOpen} onOpenChange={setAddPlayersDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Dodaj igralce na tekmo</DialogTitle>
+            <DialogTitle>{t("match.addPlayersTitle")}</DialogTitle>
             <DialogDescription>
-              Izberite igralce, ki jih želite ročno dodati na tekmo.
+              {t("match.addPlayersDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             {availableMembers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Vsi člani lige so že prijavljeni na tekmo.
+                {t("match.allSignedUp")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -1238,7 +1241,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {member.profiles?.full_name || member.profiles?.email || "Neznano ime"}
+                            {member.profiles?.full_name || member.profiles?.email || t("match.unknownName")}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {member.profiles?.email}
@@ -1274,14 +1277,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setAddPlayersDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleAddSelectedPlayers}
                 disabled={loading || selectedPlayers.length === 0}
               >
-                {loading ? "Dodajam..." : `Dodaj (${selectedPlayers.length})`}
+                {loading ? t("match.adding") : `${t("match.add")} (${selectedPlayers.length})`}
               </Button>
             </div>
           )}
@@ -1292,15 +1295,15 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Uredi tekmo</DialogTitle>
+            <DialogTitle>{t("match.editMatch")}</DialogTitle>
             <DialogDescription>
-              Spremenite datum in uro tekme.
+              {t("match.changeDateTime")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-date">Datum</Label>
+              <Label htmlFor="edit-date">{t("match.date")}</Label>
               <Input
                 id="edit-date"
                 type="date"
@@ -1309,7 +1312,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-time">Ura</Label>
+              <Label htmlFor="edit-time">{t("match.time")}</Label>
               <Input
                 id="edit-time"
                 type="time"
@@ -1325,14 +1328,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               className="flex-1"
               onClick={() => setEditDialogOpen(false)}
             >
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button
               className="flex-1"
               onClick={handleUpdateMatch}
               disabled={loading}
             >
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -1342,16 +1345,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={removePlayersDialogOpen} onOpenChange={setRemovePlayersDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Odstrani igralce s tekme</DialogTitle>
+            <DialogTitle>{t("match.removePlayersTitle")}</DialogTitle>
             <DialogDescription>
-              Izberite igralce, ki jih želite odstraniti s tekme.
+              {t("match.removePlayersDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             {participants.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Na tekmo ni prijavljen noben igralec.
+                {t("match.noPlayersOnMatch")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -1372,10 +1375,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {participant.profiles?.full_name || participant.profiles?.email || "Neznano ime"}
+                            {participant.profiles?.full_name || participant.profiles?.email || t("match.unknownName")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {participant.position === "vratar" ? "Vratar" : "Igralec"}
+                            {participant.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player}
                           </p>
                         </div>
                       </div>
@@ -1393,7 +1396,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setRemovePlayersDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -1401,7 +1404,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 onClick={handleRemoveSelectedPlayers}
                 disabled={loading || playersToRemove.length === 0}
               >
-                {loading ? "Odstranjujem..." : `Odstrani (${playersToRemove.length})`}
+                {loading ? t("match.removing") : `${t("match.remove")} (${playersToRemove.length})`}
               </Button>
             </div>
           )}
@@ -1412,16 +1415,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={changePositionDialogOpen} onOpenChange={setChangePositionDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Spremeni pozicije igralcev</DialogTitle>
+            <DialogTitle>{t("match.changePositionsTitle")}</DialogTitle>
             <DialogDescription>
-              Spremenite pozicije igralcev (igralec / vratar).
+              {t("match.changePositionsDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             {participants.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Na tekmo ni prijavljen noben igralec.
+                {t("match.noPlayersOnMatch")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -1432,7 +1435,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">
-                        {participant.profiles?.full_name || participant.profiles?.email || "Neznano ime"}
+                        {participant.profiles?.full_name || participant.profiles?.email || t("match.unknownName")}
                       </p>
                     </div>
                     <Select
@@ -1460,14 +1463,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setChangePositionDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleSavePositionChanges}
                 disabled={loading}
               >
-                {loading ? "Shranjujem..." : "Shrani"}
+                {loading ? t("md.saving") : t("common.save")}
               </Button>
             </div>
           )}
@@ -1478,17 +1481,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Nastavi lokacijo</DialogTitle>
+            <DialogTitle>{t("match.locationTitle")}</DialogTitle>
             <DialogDescription>
-              Vnesite lokacijo ali igrišče tekme.
+              {t("match.locationDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="location">Lokacija</Label>
+              <Label htmlFor="location">{t("match.locationLabel")}</Label>
               <Input
                 id="location"
-                placeholder="npr. Športni park, Igrišče pri šoli..."
+                placeholder={t("match.locationPlaceholder")}
                 value={locationValue}
                 onChange={(e) => setLocationValue(e.target.value)}
               />
@@ -1496,10 +1499,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setLocationDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveLocation} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -1509,30 +1512,30 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={maxParticipantsDialogOpen} onOpenChange={setMaxParticipantsDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Omeji število prijav</DialogTitle>
+            <DialogTitle>{t("match.limitTitle")}</DialogTitle>
             <DialogDescription>
-              Nastavite maksimalno število igralcev in vratarjev. Pustite prazno za brez omejitve.
+              {t("match.limitDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="max-players">Maksimalno igralcev</Label>
+              <Label htmlFor="max-players">{t("match.maxPlayers")}</Label>
               <Input
                 id="max-players"
                 type="number"
                 min="1"
-                placeholder="Brez omejitve"
+                placeholder={t("match.noLimit")}
                 value={maxPlayersValue}
                 onChange={(e) => setMaxPlayersValue(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max-goalkeepers">Maksimalno vratarjev</Label>
+              <Label htmlFor="max-goalkeepers">{t("match.maxGoalkeepers")}</Label>
               <Input
                 id="max-goalkeepers"
                 type="number"
                 min="1"
-                placeholder="Brez omejitve"
+                placeholder={t("match.noLimit")}
                 value={maxGoalkeepersValue}
                 onChange={(e) => setMaxGoalkeepersValue(e.target.value)}
               />
@@ -1540,10 +1543,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setMaxParticipantsDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveMaxParticipants} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -1553,17 +1556,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Dodaj opombo</DialogTitle>
+            <DialogTitle>{t("match.noteTitle")}</DialogTitle>
             <DialogDescription>
-              Dodajte zapisek ali komentar k tekmi.
+              {t("match.noteDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">Opomba</Label>
+              <Label htmlFor="notes">{t("match.noteLabel")}</Label>
               <Textarea
                 id="notes"
-                placeholder="npr. Prinesite športno opremo, tekma bo v dvorani..."
+                placeholder={t("match.notePlaceholder")}
                 value={notesValue}
                 onChange={(e) => setNotesValue(e.target.value)}
                 rows={4}
@@ -1572,10 +1575,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setNotesDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveNotes} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -1585,14 +1588,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={scoringDialogOpen} onOpenChange={setScoringDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Nastavi točkovanje</DialogTitle>
+            <DialogTitle>{t("match.scoringTitle")}</DialogTitle>
             <DialogDescription>
-              Določite koliko točk se dodeli za posamezne dogodke v ligi.
+              {t("match.scoringDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="points-attendance">Prisotnost na tekmi</Label>
+              <Label htmlFor="points-attendance">{t("match.attendancePoints")}</Label>
               <Input
                 id="points-attendance"
                 type="number"
@@ -1602,7 +1605,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-win">Zmaga (redni del)</Label>
+              <Label htmlFor="points-win">{t("match.winRegulation")}</Label>
               <Input
                 id="points-win"
                 type="number"
@@ -1612,7 +1615,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-penalty-win">Zmaga po kazenskih strelih</Label>
+              <Label htmlFor="points-penalty-win">{t("match.winPenalty")}</Label>
               <Input
                 id="points-penalty-win"
                 type="number"
@@ -1622,7 +1625,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-penalty-loss">Poraz po kazenskih strelih</Label>
+              <Label htmlFor="points-penalty-loss">{t("match.lossPenalty")}</Label>
               <Input
                 id="points-penalty-loss"
                 type="number"
@@ -1634,10 +1637,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setScoringDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveScoring} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -1647,12 +1650,12 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={changeSeasonDialogOpen} onOpenChange={setChangeSeasonDialogOpen}>
         <DialogContent onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Premakni tekmo v drugo sezono</DialogTitle>
-            <DialogDescription>Izberi sezono, v katero želiš premakniti tekmo.</DialogDescription>
+            <DialogTitle>{t("match.moveSeasonTitle")}</DialogTitle>
+            <DialogDescription>{t("match.moveSeasonDesc")}</DialogDescription>
           </DialogHeader>
           <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
             <SelectTrigger>
-              <SelectValue placeholder="Izberi sezono" />
+              <SelectValue placeholder={t("match.selectSeason")} />
             </SelectTrigger>
             <SelectContent>
               {seasons.map((season) => (
@@ -1664,10 +1667,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </Select>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setChangeSeasonDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveSeasonChange} disabled={loading || !selectedSeasonId}>
-              {loading ? "Shranjujem..." : "Premakni"}
+              {loading ? t("md.saving") : t("match.move")}
             </Button>
           </div>
         </DialogContent>
