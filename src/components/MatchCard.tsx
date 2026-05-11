@@ -770,7 +770,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success(`Uspešno ste se prijavili kot ${position}`);
+      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? sportConfig.positions.goalkeeper || "" : sportConfig.positions.player }));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
