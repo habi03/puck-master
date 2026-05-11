@@ -1328,14 +1328,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               className="flex-1"
               onClick={() => setEditDialogOpen(false)}
             >
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button
               className="flex-1"
               onClick={handleUpdateMatch}
               disabled={loading}
             >
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
