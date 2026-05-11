@@ -1210,9 +1210,9 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={addPlayersDialogOpen} onOpenChange={setAddPlayersDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Dodaj igralce na tekmo</DialogTitle>
+            <DialogTitle>{t("match.addPlayersTitle")}</DialogTitle>
             <DialogDescription>
-              Izberite igralce, ki jih želite ročno dodati na tekmo.
+              {t("match.addPlayersDesc")}
             </DialogDescription>
           </DialogHeader>
           
