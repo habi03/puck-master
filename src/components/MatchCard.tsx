@@ -521,7 +521,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Točkovanje za tekmo shranjeno");
+      toast.success(t("match.scoringSavedMatch"));
       setScoringDialogOpen(false);
       onUpdate();
     } catch (error: any) {
