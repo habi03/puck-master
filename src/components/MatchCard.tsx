@@ -1295,15 +1295,15 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Uredi tekmo</DialogTitle>
+            <DialogTitle>{t("match.editMatch")}</DialogTitle>
             <DialogDescription>
-              Spremenite datum in uro tekme.
+              {t("match.changeDateTime")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-date">Datum</Label>
+              <Label htmlFor="edit-date">{t("match.date")}</Label>
               <Input
                 id="edit-date"
                 type="date"
@@ -1312,7 +1312,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-time">Ura</Label>
+              <Label htmlFor="edit-time">{t("match.time")}</Label>
               <Input
                 id="edit-time"
                 type="time"
