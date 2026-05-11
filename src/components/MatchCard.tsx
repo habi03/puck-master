@@ -600,7 +600,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       if (error) throw error;
 
-      toast.success(`Uspešno dodanih ${newPlayers.length} igralcev`);
+      toast.success(t("match.playersAdded", { count: newPlayers.length }));
       setAddPlayersDialogOpen(false);
       setSelectedPlayers([]);
       onUpdate();
