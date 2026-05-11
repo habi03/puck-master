@@ -1650,12 +1650,12 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={changeSeasonDialogOpen} onOpenChange={setChangeSeasonDialogOpen}>
         <DialogContent onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Premakni tekmo v drugo sezono</DialogTitle>
-            <DialogDescription>Izberi sezono, v katero želiš premakniti tekmo.</DialogDescription>
+            <DialogTitle>{t("match.moveSeasonTitle")}</DialogTitle>
+            <DialogDescription>{t("match.moveSeasonDesc")}</DialogDescription>
           </DialogHeader>
           <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
             <SelectTrigger>
-              <SelectValue placeholder="Izberi sezono" />
+              <SelectValue placeholder={t("match.selectSeason")} />
             </SelectTrigger>
             <SelectContent>
               {seasons.map((season) => (
@@ -1667,10 +1667,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </Select>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setChangeSeasonDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveSeasonChange} disabled={loading || !selectedSeasonId}>
-              {loading ? "Shranjujem..." : "Premakni"}
+              {loading ? t("md.saving") : t("match.move")}
             </Button>
           </div>
         </DialogContent>
