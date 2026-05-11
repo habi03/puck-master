@@ -1219,7 +1219,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           <ScrollArea className="max-h-[60vh] pr-4">
             {availableMembers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Vsi člani lige so že prijavljeni na tekmo.
+                {t("match.allSignedUp")}
               </p>
             ) : (
               <div className="space-y-2">
