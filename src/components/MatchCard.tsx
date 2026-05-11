@@ -1025,7 +1025,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           {match.signups_locked && !isCompleted && (
             <div className="flex items-center gap-2 text-sm text-destructive">
               <Lock className="h-4 w-4 flex-shrink-0" />
-              <span className="text-xs font-medium">Prijave zaklenjene</span>
+              <span className="text-xs font-medium">{t("match.signupsLocked")}</span>
             </div>
           )}
           
