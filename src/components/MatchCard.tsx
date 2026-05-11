@@ -781,7 +781,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleSignOut = async () => {
     if (isCompleted) {
-      toast.error("Tekma je zaključena - odjave niso mogoče");
+      toast.error(t("match.signoutNotPossible"));
       return;
     }
     
