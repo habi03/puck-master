@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Users, UserPlus, UserMinus, ChevronRight, Beer, MoreVertical, Check, Pencil, Trash2, RefreshCw, Lock, Unlock, MapPin, UsersRound, FileText, Settings, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { sl } from "date-fns/locale";
+import { sl, enUS, de } from "date-fns/locale";
+import { useI18n } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
