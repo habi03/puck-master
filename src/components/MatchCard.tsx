@@ -1556,17 +1556,17 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Dodaj opombo</DialogTitle>
+            <DialogTitle>{t("match.noteTitle")}</DialogTitle>
             <DialogDescription>
-              Dodajte zapisek ali komentar k tekmi.
+              {t("match.noteDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">Opomba</Label>
+              <Label htmlFor="notes">{t("match.noteLabel")}</Label>
               <Textarea
                 id="notes"
-                placeholder="npr. Prinesite športno opremo, tekma bo v dvorani..."
+                placeholder={t("match.notePlaceholder")}
                 value={notesValue}
                 onChange={(e) => setNotesValue(e.target.value)}
                 rows={4}
@@ -1575,10 +1575,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setNotesDialogOpen(false)}>
-              Prekliči
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSaveNotes} disabled={loading}>
-              {loading ? "Shranjujem..." : "Shrani"}
+              {loading ? t("md.saving") : t("common.save")}
             </Button>
           </div>
         </DialogContent>
