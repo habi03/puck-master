@@ -871,7 +871,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Hvala! 🍺");
+      toast.success(t("match.thanksBeer"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
