@@ -918,11 +918,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/match/${match.id}`)}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-lg gap-2">
-            <span className="shrink-0">Tekma</span>
+            <span className="shrink-0">{t("match.match")}</span>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
-              <Badge variant="secondary" className="text-xs">{match.number_of_teams} ekipe</Badge>
+              <Badge variant="secondary" className="text-xs">{match.number_of_teams} {t("match.teamsLabel")}</Badge>
               {isCompleted && (
-                <Badge variant="default" className="text-xs">Zaključena</Badge>
+                <Badge variant="default" className="text-xs">{t("match.completed")}</Badge>
               )}
               {isAdmin && (
                 <DropdownMenu>
