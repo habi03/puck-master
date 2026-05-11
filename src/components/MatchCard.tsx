@@ -1067,7 +1067,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
               </div>
               {matchResults.length > 0 && matchResults[0].win_type && (
                 <div className="text-center text-xs text-muted-foreground mt-2">
-                  {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+                  {matchResults[0].win_type === "regulation" ? t("match.regulation") : t("match.penaltyShootout")}
                 </div>
               )}
             </div>
