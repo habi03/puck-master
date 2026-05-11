@@ -1103,7 +1103,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Prijavi se
+                  {t("match.signUp")}
                 </Button>
                 <Button 
                   onClick={(e) => {
@@ -1115,7 +1115,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   className="w-full"
                 >
                   <UserMinus className="h-4 w-4 mr-2" />
-                  Odsoten
+                  {t("match.absent")}
                 </Button>
               </div>
             ) : isMarkedAbsent ? (
