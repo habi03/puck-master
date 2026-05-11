@@ -848,7 +848,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", userParticipation.id);
 
       if (error) throw error;
-      toast.success("Preklic odsotnosti");
+      toast.success(t("match.cancelAbsentSuccess"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
