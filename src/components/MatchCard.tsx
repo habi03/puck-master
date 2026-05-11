@@ -206,11 +206,11 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .update({ season_id: selectedSeasonId })
         .eq("id", match.id);
       if (error) throw error;
-      toast.success("Tekma prestavljena v drugo sezono");
+      toast.success(t("match.movedToSeason"));
       setChangeSeasonDialogOpen(false);
       onUpdate();
     } catch {
-      toast.error("Napaka pri spreminjanju sezone");
+      toast.error(t("match.changeSeasonError"));
     } finally {
       setLoading(false);
     }
