@@ -550,7 +550,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleAddSelectedPlayers = async () => {
     if (selectedPlayers.length === 0) {
-      toast.error("Izberite vsaj enega igralca");
+      toast.error(t("match.selectAtLeastOne"));
       return;
     }
 
