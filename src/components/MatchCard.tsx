@@ -1345,16 +1345,16 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       <Dialog open={removePlayersDialogOpen} onOpenChange={setRemovePlayersDialogOpen}>
         <DialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Odstrani igralce s tekme</DialogTitle>
+            <DialogTitle>{t("match.removePlayersTitle")}</DialogTitle>
             <DialogDescription>
-              Izberite igralce, ki jih želite odstraniti s tekme.
+              {t("match.removePlayersDesc")}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             {participants.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Na tekmo ni prijavljen noben igralec.
+                {t("match.noPlayersOnMatch")}
               </p>
             ) : (
               <div className="space-y-2">
