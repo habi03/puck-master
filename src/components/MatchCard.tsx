@@ -1187,7 +1187,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             )
           ) : (
             <Badge variant="secondary" className="w-full justify-center py-2 text-xs">
-              Prijave zaprte - tekma zaključena
+              {t("match.closedCompleted")}
             </Badge>
           )}
           
