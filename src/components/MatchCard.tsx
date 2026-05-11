@@ -1054,7 +1054,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                   const goals = result?.goals_scored || 0;
                   return (
                     <div key={teamNum} className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border" style={getTeamColorStyle(teamNum, teamColors)}>
-                      <span className="text-xs font-semibold">Ekipa {teamNum}</span>
+                      <span className="text-xs font-semibold">{t("match.team")} {teamNum}</span>
                       <div className="text-2xl font-bold">
                         {goals}
                       </div>
