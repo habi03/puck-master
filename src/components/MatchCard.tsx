@@ -1277,14 +1277,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 className="flex-1"
                 onClick={() => setAddPlayersDialogOpen(false)}
               >
-                Prekliči
+                {t("common.cancel")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleAddSelectedPlayers}
                 disabled={loading || selectedPlayers.length === 0}
               >
-                {loading ? "Dodajam..." : `Dodaj (${selectedPlayers.length})`}
+                {loading ? t("match.adding") : `${t("match.add")} (${selectedPlayers.length})`}
               </Button>
             </div>
           )}
