@@ -906,7 +906,7 @@ export default function Admin() {
               <CardContent className="space-y-4">
                 {leaguePassword && (
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium mb-1">Trenutno geslo:</p>
+                    <p className="text-sm font-medium mb-1">{t("admin.currentPassword")}:</p>
                     <p className="text-sm text-muted-foreground font-mono">{leaguePassword}</p>
                   </div>
                 )}
