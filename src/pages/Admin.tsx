@@ -962,7 +962,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_win">Zmaga (redni del)</Label>
+                    <Label htmlFor="points_win">{t("admin.winRegulation")}</Label>
                     <Input
                       id="points_win"
                       type="number"
