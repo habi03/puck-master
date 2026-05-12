@@ -632,7 +632,7 @@ export default function Admin() {
 
             {memberSeasonId !== "league" && (
               <div className="text-xs text-muted-foreground p-2 rounded-lg bg-muted/50 border mb-2">
-                Urejate plačilni status za sezono: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
+                {t("admin.editingPayment")}: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
               </div>
             )}
 
