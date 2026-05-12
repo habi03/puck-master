@@ -1119,7 +1119,7 @@ export default function Admin() {
 
                 {seasons.length === 0 ? (
                   <p className="text-center text-sm text-muted-foreground py-4">
-                    Ni še nobene sezone. Ustvarite prvo sezono.
+                    {t("admin.noSeasons")}
                   </p>
                 ) : (
                   <div className="space-y-2">
