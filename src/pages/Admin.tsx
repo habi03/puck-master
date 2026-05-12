@@ -519,11 +519,11 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success(newPassword ? "Geslo nastavljeno" : "Geslo odstranjeno");
+      toast.success(newPassword ? t("admin.passwordSet") : t("admin.passwordRemoved"));
       setLeaguePassword(newPassword || "");
       setNewPassword("");
     } catch (error: any) {
-      toast.error("Napaka pri posodabljanju gesla");
+      toast.error(t("admin.errorPassword"));
     } finally {
       setLoading(false);
     }
