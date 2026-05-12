@@ -982,7 +982,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_penalty_loss">Poraz (penali)</Label>
+                    <Label htmlFor="points_penalty_loss">{t("admin.lossPenalty")}</Label>
                     <Input
                       id="points_penalty_loss"
                       type="number"
