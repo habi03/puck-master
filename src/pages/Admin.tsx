@@ -824,7 +824,7 @@ export default function Admin() {
                           className="flex-1 gap-1"
                         >
                           <Pencil className="h-3 w-3" />
-                          Uredi
+                          {t("admin.editBtn")}
                         </Button>
                         <Button
                           onClick={() => handleDeleteMatch(match.id)}
@@ -833,7 +833,7 @@ export default function Admin() {
                           size="sm"
                           className="flex-1"
                         >
-                          Izbriši
+                          {t("admin.deleteBtn")}
                         </Button>
                       </div>
                     </CardContent>
