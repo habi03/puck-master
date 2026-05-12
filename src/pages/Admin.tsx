@@ -972,7 +972,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_penalty_win">Zmaga (penali)</Label>
+                    <Label htmlFor="points_penalty_win">{t("admin.winPenalty")}</Label>
                     <Input
                       id="points_penalty_win"
                       type="number"
