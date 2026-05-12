@@ -140,7 +140,7 @@ export default function MatchDetails() {
         setTeamColors(leagueAny.team_colors);
       }
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju tekme");
+      toast.error(t("md.errorMatchLoad"));
       navigate("/league");
     }
   };
@@ -196,7 +196,7 @@ export default function MatchDetails() {
       
       setParticipants(sorted as Participant[]);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju igralcev");
+      toast.error(t("md.errorPlayersLoad"));
     }
   };
 
@@ -455,10 +455,10 @@ export default function MatchDetails() {
       
       if (algoError) console.error("Error saving algorithm:", algoError);
       
-      toast.success("Ekipe uspešno razporejene");
+      toast.success(t("md.teamsDistributed"));
       fetchParticipants();
     } catch (error: any) {
-      toast.error("Napaka pri razporejanju ekip");
+      toast.error(t("md.errorDistribute"));
     } finally {
       setLoading(false);
     }
@@ -482,10 +482,10 @@ export default function MatchDetails() {
         .eq("id", matchId);
       
       setUsedAlgorithm(null);
-      toast.success("Ekipe počiščene");
+      toast.success(t("md.teamsCleared"));
       fetchParticipants();
     } catch (error: any) {
-      toast.error("Napaka pri čiščenju ekip");
+      toast.error(t("md.errorClear"));
     } finally {
       setLoading(false);
     }
@@ -522,13 +522,13 @@ export default function MatchDetails() {
       
       if (matchError) throw matchError;
 
-      toast.success("Rezultati shranjeni - tekma zaključena");
+      toast.success(t("md.resultsSaved"));
       setResultsDialogOpen(false);
       setTeamGoals({});
       fetchMatch();
       fetchMatchResults();
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju rezultatov");
+      toast.error(t("md.errorResultsSave"));
     } finally {
       setLoading(false);
     }
@@ -550,7 +550,7 @@ export default function MatchDetails() {
       
       if (matchError) throw matchError;
 
-      toast.success("Rezultati preklicani - tekma ponovno odprta");
+      toast.success(t("md.resultsCancelled"));
       
       // Clear state
       setTeamGoals({});
@@ -559,7 +559,7 @@ export default function MatchDetails() {
       fetchMatch();
       fetchMatchResults();
     } catch (error: any) {
-      toast.error("Napaka pri preklicu rezultatov");
+      toast.error(t("md.errorResultsCancel"));
       console.error(error);
     } finally {
       setLoading(false);
@@ -887,10 +887,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -950,10 +950,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -1023,10 +1023,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -1088,10 +1088,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
