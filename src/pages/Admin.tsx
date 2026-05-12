@@ -595,28 +595,28 @@ export default function Admin() {
         <div className="mb-6">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Admin Panel
+            {t("admin.title")}
           </h2>
-          <p className="text-sm text-muted-foreground">Upravljanje lige in članov</p>
+          <p className="text-sm text-muted-foreground">{t("admin.subtitle")}</p>
         </div>
 
         <Tabs defaultValue="members" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="members">Člani</TabsTrigger>
-            <TabsTrigger value="matches">Tekme</TabsTrigger>
-            <TabsTrigger value="settings">Nastavitve</TabsTrigger>
+            <TabsTrigger value="members">{t("admin.members")}</TabsTrigger>
+            <TabsTrigger value="matches">{t("admin.matches")}</TabsTrigger>
+            <TabsTrigger value="settings">{t("admin.settings")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>{members.length} članov v ligi</span>
+                <span>{members.length} {t("admin.membersInLeague")}</span>
               </div>
               {seasons.length > 0 && (
                 <Select value={memberSeasonId} onValueChange={(v) => { setMemberSeasonId(v); fetchSeasonRoles(v); }}>
                   <SelectTrigger className="w-[170px]">
-                    <SelectValue placeholder="Izberi sezono" />
+                    <SelectValue placeholder={t("admin.selectSeason")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="league">Liga (stalna vloga)</SelectItem>
