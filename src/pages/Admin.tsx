@@ -789,7 +789,7 @@ export default function Admin() {
                       />
                       
                       <Button type="submit" className="w-full" size="sm" disabled={loading}>
-                        Ustvari tekmo
+                        {t("admin.createMatchBtn")}
                       </Button>
                     </form>
                   </Form>
