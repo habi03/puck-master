@@ -751,7 +751,7 @@ export default function Admin() {
                         name="match_date"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Datum</FormLabel>
+                            <FormLabel className="text-xs">{t("match.date")}</FormLabel>
                             <FormControl>
                               <Input type="date" {...field} className="text-sm" />
                             </FormControl>
