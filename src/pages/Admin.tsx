@@ -1142,7 +1142,7 @@ export default function Admin() {
                               variant="outline"
                               size="sm"
                             >
-                              Aktiviraj
+                              {t("admin.activate")}
                             </Button>
                           )}
                           <Button
