@@ -429,7 +429,7 @@ export default function Admin() {
         .eq("id", memberId);
 
       if (error) throw error;
-      toast.success("Vloga uspešno posodobljena");
+      toast.success(t("admin.roleUpdated"));
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message);
