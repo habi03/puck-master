@@ -738,9 +738,9 @@ export default function Admin() {
                 </DialogTrigger>
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
-                    <DialogTitle className="text-base">Ustvari novo tekmo</DialogTitle>
+                    <DialogTitle className="text-base">{t("admin.createMatch")}</DialogTitle>
                     <DialogDescription className="text-xs">
-                      Dodaj novo tekmo v ligo
+                      {t("admin.createMatchDesc")}
                     </DialogDescription>
                   </DialogHeader>
                   
