@@ -447,7 +447,7 @@ export default function Admin() {
         .eq("id", memberId);
 
       if (error) throw error;
-      toast.success("Član odstranjen iz lige");
+      toast.success(t("admin.memberRemoved"));
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message);
