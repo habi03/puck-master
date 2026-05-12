@@ -677,8 +677,8 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="plačan_član">Plačan član</SelectItem>
-                          <SelectItem value="neplačan_član">Neplačan član</SelectItem>
+                          <SelectItem value="plačan_član">{t("admin.paidMember")}</SelectItem>
+                          <SelectItem value="neplačan_član">{t("admin.unpaidMember")}</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
