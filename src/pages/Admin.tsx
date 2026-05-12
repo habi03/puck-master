@@ -799,7 +799,7 @@ export default function Admin() {
 
             {matches.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
-                Ni še nobene tekme
+                {t("admin.noMatches")}
               </p>
             ) : (
               <div className="space-y-2">
