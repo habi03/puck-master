@@ -845,9 +845,9 @@ export default function Admin() {
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
               <DialogContent className="max-w-sm">
                 <DialogHeader>
-                  <DialogTitle className="text-base">Uredi tekmo</DialogTitle>
+                  <DialogTitle className="text-base">{t("admin.editMatch")}</DialogTitle>
                   <DialogDescription className="text-xs">
-                    Spremeni datum in uro tekme
+                    {t("admin.editMatchDesc")}
                   </DialogDescription>
                 </DialogHeader>
                 
