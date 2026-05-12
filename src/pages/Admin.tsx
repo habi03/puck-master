@@ -152,11 +152,11 @@ export default function Admin() {
       setIsSuperUser(data?.role === "super_user");
       
       if (!hasAdminAccess) {
-        toast.error("Nimate administratorskih pravic");
+        toast.error(t("admin.noAdminRights"));
         navigate("/league");
       }
     } catch (error: any) {
-      toast.error("Napaka pri preverjanju pravic");
+      toast.error(t("admin.errorChecking"));
       navigate("/league");
     }
   };
