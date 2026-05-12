@@ -913,19 +913,19 @@ export default function Admin() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">
-                    {leaguePassword ? "Novo geslo" : "Nastavi geslo"}
+                    {leaguePassword ? t("admin.newPassword") : t("admin.setPassword")}
                   </Label>
                   <Input
                     id="newPassword"
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={leaguePassword ? "Vnesite novo geslo ali pustite prazno za odstranitev" : "Vnesite geslo za ligo"}
+                    placeholder={leaguePassword ? t("admin.passwordPlaceholderUpdate") : t("admin.passwordPlaceholderSet")}
                   />
                   <p className="text-xs text-muted-foreground">
                     {leaguePassword 
-                      ? "Pustite prazno, če želite odstraniti geslo"
-                      : "Liga bo po nastavitvi gesla zaščitena"
+                      ? t("admin.passwordHelperRemove")
+                      : t("admin.passwordHelperSet")
                     }
                   </p>
                 </div>
@@ -935,7 +935,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : leaguePassword ? "Posodobi geslo" : "Nastavi geslo"}
+                  {loading ? t("admin.savingBtn") : leaguePassword ? t("admin.updatePassword") : t("admin.setPassword")}
                 </Button>
               </CardContent>
             </Card>
