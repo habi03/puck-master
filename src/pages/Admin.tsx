@@ -882,7 +882,7 @@ export default function Admin() {
                     />
                     
                     <Button type="submit" className="w-full" size="sm" disabled={loading}>
-                      {loading ? "Shranjujem..." : "Shrani spremembe"}
+                      {loading ? t("admin.savingBtn") : t("admin.saveChangesBtn")}
                     </Button>
                   </form>
                 </Form>
