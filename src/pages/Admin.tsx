@@ -806,14 +806,14 @@ export default function Admin() {
                 {matches.map((match) => (
                   <Card key={match.id}>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Tekma</CardTitle>
+                      <CardTitle className="text-base">{t("admin.matchTitle")}</CardTitle>
                       <CardDescription className="text-xs">
-                        {new Date(match.match_date).toLocaleDateString('sl-SI')} ob {match.match_time.slice(0, 5)}
+                        {t("admin.matchDateAt", { date: new Date(match.match_date).toLocaleDateString(), time: match.match_time.slice(0, 5) })}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        Število ekip: {match.number_of_teams}
+                        {t("admin.teamCount", { n: match.number_of_teams })}
                       </p>
                       <div className="flex gap-2">
                         <Button
