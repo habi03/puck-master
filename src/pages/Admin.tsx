@@ -236,7 +236,7 @@ export default function Admin() {
       if (error) throw error;
       setSeasons(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju sezon");
+      toast.error(t("admin.errorSeasons"));
     }
   };
 
