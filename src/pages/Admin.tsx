@@ -187,7 +187,7 @@ export default function Admin() {
       if (error) throw error;
       setMatches(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju tekem");
+      toast.error(t("admin.errorMatches"));
     }
   };
 
