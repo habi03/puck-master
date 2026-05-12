@@ -897,10 +897,10 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="h-5 w-5" />
-                  Geslo lige
+                  {t("admin.leaguePassword")}
                 </CardTitle>
                 <CardDescription>
-                  Zaščitite ligo z geslom. Samo uporabniki, ki poznajo geslo, se bodo lahko pridružili.
+                  {t("admin.leaguePasswordDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
