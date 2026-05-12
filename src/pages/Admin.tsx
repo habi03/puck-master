@@ -394,9 +394,9 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success("Default točkovanje shranjeno");
+      toast.success(t("admin.saveScoring"));
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju točkovanja");
+      toast.error(t("admin.errorScoring"));
     } finally {
       setLoading(false);
     }
