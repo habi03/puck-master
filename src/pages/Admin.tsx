@@ -355,7 +355,7 @@ export default function Admin() {
   };
 
   const handleDeleteSeason = async (seasonId: string) => {
-    if (!confirm("Ali ste prepričani? Tekme v tej sezoni bodo ostale brez sezone.")) return;
+    if (!confirm(t("admin.deleteSeasonConfirm"))) return;
     setLoading(true);
     try {
       const { error } = await supabase
