@@ -18,8 +18,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useI18n } from "@/lib/i18n";
 
 export default function Admin() {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
