@@ -691,10 +691,10 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {isSuperUser && <SelectItem value="super_user">Super User</SelectItem>}
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="član">Član</SelectItem>
-                          <SelectItem value="poskusni_član">Poskusni član</SelectItem>
+                          {isSuperUser && <SelectItem value="super_user">{t("role.superUser")}</SelectItem>}
+                          <SelectItem value="admin">{t("role.admin")}</SelectItem>
+                          <SelectItem value="član">{t("role.member")}</SelectItem>
+                          <SelectItem value="poskusni_član">{t("role.trialMember")}</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
