@@ -290,7 +290,7 @@ export default function Admin() {
           } as any);
         if (error) throw error;
       }
-      toast.success("Sezonska vloga posodobljena");
+      toast.success(t("admin.seasonRoleUpdated"));
       fetchSeasonRoles(memberSeasonId);
     } catch (error: any) {
       toast.error(error.message);
