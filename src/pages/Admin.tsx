@@ -114,7 +114,7 @@ export default function Admin() {
       
       if (error || !data) {
         localStorage.removeItem("currentLeagueId");
-        toast.error("Nimate več dostopa do te lige");
+        toast.error(t("index.noAccessLeague"));
         navigate("/");
         return;
       }
