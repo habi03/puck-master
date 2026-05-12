@@ -542,10 +542,10 @@ export default function Admin() {
         .eq("id", matchId);
 
       if (error) throw error;
-      toast.success("Tekma uspešno izbrisana");
+      toast.success(t("admin.matchDeleted"));
       fetchMatches();
     } catch (error: any) {
-      toast.error("Napaka pri brisanju tekme");
+      toast.error(t("admin.errorMatchDelete"));
     } finally {
       setLoading(false);
     }
