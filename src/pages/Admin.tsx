@@ -646,20 +646,20 @@ export default function Admin() {
                 <Card key={member.id}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
-                      <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
+                      <span>{member.profiles?.full_name || member.profiles?.email || t("admin.unknownName")}</span>
                       <div className="flex gap-1">
                         {isSeasonView ? (
                           <>
                             <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
-                              {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
+                              {member.role === 'super_user' ? t("role.superUser") : member.role === 'admin' ? t("role.admin") : member.role === 'član' ? t("role.member") : member.role === 'poskusni_član' ? t("role.trialMember") : member.role.replace('_', ' ')}
                             </Badge>
                             <Badge variant={currentSeasonRole === 'plačan_član' ? 'default' : 'secondary'} className="text-xs">
-                              {currentSeasonRole === 'plačan_član' ? 'Plačan' : 'Neplačan'}
+                              {currentSeasonRole === 'plačan_član' ? t("admin.paid") : t("admin.unpaid")}
                             </Badge>
                           </>
                         ) : (
                           <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
-                            {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
+                            {member.role === 'super_user' ? t("role.superUser") : member.role === 'admin' ? t("role.admin") : member.role === 'član' ? t("role.member") : member.role === 'poskusni_član' ? t("role.trialMember") : member.role.replace('_', ' ')}
                           </Badge>
                         )}
                       </div>
