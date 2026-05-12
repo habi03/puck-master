@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Users, Shield, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useI18n } from "@/lib/i18n";
 
 type Match = {
   id: string;
