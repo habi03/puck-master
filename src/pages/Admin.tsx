@@ -707,7 +707,7 @@ export default function Admin() {
                         size="sm"
                         className="w-full"
                       >
-                        Odstrani iz lige
+                        {t("admin.removeFromLeague")}
                       </Button>
                     )}
                   </CardContent>
