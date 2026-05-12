@@ -779,7 +779,7 @@ export default function Admin() {
                         name="number_of_teams"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Število ekip</FormLabel>
+                            <FormLabel className="text-xs">{t("admin.numTeams")}</FormLabel>
                             <FormControl>
                               <Input type="number" min="2" max="10" {...field} className="text-sm" />
                             </FormControl>
