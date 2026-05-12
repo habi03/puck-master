@@ -411,9 +411,9 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success("Barve ekip shranjene");
+      toast.success(t("admin.saveColors"));
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju barv");
+      toast.error(t("admin.errorColors"));
     } finally {
       setLoading(false);
     }
