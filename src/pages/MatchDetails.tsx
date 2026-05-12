@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Users, Shield, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useI18n } from "@/lib/i18n";
 
 type Match = {
   id: string;
@@ -43,6 +44,7 @@ type Participant = {
 };
 
 export default function MatchDetails() {
+  const { t } = useI18n();
   const { matchId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -138,7 +140,7 @@ export default function MatchDetails() {
         setTeamColors(leagueAny.team_colors);
       }
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju tekme");
+      toast.error(t("md.errorMatchLoad"));
       navigate("/league");
     }
   };
@@ -194,7 +196,7 @@ export default function MatchDetails() {
       
       setParticipants(sorted as Participant[]);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju igralcev");
+      toast.error(t("md.errorPlayersLoad"));
     }
   };
 
@@ -453,10 +455,10 @@ export default function MatchDetails() {
       
       if (algoError) console.error("Error saving algorithm:", algoError);
       
-      toast.success("Ekipe uspešno razporejene");
+      toast.success(t("md.teamsDistributed"));
       fetchParticipants();
     } catch (error: any) {
-      toast.error("Napaka pri razporejanju ekip");
+      toast.error(t("md.errorDistribute"));
     } finally {
       setLoading(false);
     }
@@ -480,10 +482,10 @@ export default function MatchDetails() {
         .eq("id", matchId);
       
       setUsedAlgorithm(null);
-      toast.success("Ekipe počiščene");
+      toast.success(t("md.teamsCleared"));
       fetchParticipants();
     } catch (error: any) {
-      toast.error("Napaka pri čiščenju ekip");
+      toast.error(t("md.errorClear"));
     } finally {
       setLoading(false);
     }
@@ -520,13 +522,13 @@ export default function MatchDetails() {
       
       if (matchError) throw matchError;
 
-      toast.success("Rezultati shranjeni - tekma zaključena");
+      toast.success(t("md.resultsSaved"));
       setResultsDialogOpen(false);
       setTeamGoals({});
       fetchMatch();
       fetchMatchResults();
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju rezultatov");
+      toast.error(t("md.errorResultsSave"));
     } finally {
       setLoading(false);
     }
@@ -548,7 +550,7 @@ export default function MatchDetails() {
       
       if (matchError) throw matchError;
 
-      toast.success("Rezultati preklicani - tekma ponovno odprta");
+      toast.success(t("md.resultsCancelled"));
       
       // Clear state
       setTeamGoals({});
@@ -557,7 +559,7 @@ export default function MatchDetails() {
       fetchMatch();
       fetchMatchResults();
     } catch (error: any) {
-      toast.error("Napaka pri preklicu rezultatov");
+      toast.error(t("md.errorResultsCancel"));
       console.error(error);
     } finally {
       setLoading(false);
@@ -610,7 +612,7 @@ export default function MatchDetails() {
           <h2 className="text-lg font-bold flex items-center gap-2">
             Tekma {new Date(match.match_date).toLocaleDateString('sl-SI')}
             {match.is_completed && (
-              <Badge variant="secondary" className="text-xs">Zaključena</Badge>
+              <Badge variant="secondary" className="text-xs">{t("md.completed")}</Badge>
             )}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -633,7 +635,7 @@ export default function MatchDetails() {
                   const goals = result?.goals_scored || 0;
                   return (
                     <div key={teamNum} className="flex flex-col items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Ekipa {teamNum}</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t("md.team")} {teamNum}</span>
                       <div className="text-5xl font-bold text-primary">
                         {goals}
                       </div>
@@ -646,7 +648,7 @@ export default function MatchDetails() {
               </div>
               {matchResults.length > 0 && matchResults[0].win_type && (
                 <div className="text-center text-sm text-muted-foreground border-t pt-3">
-                  {matchResults[0].win_type === "regulation" ? "Redni del" : "Kazenski streli"}
+                  {matchResults[0].win_type === "regulation" ? t("md.regulationWin") : t("md.penaltyWin")}
                 </div>
               )}
             </CardContent>
@@ -665,18 +667,18 @@ export default function MatchDetails() {
             <CardContent className="space-y-2">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">
-                  Algoritem razporejanja
+                  {t("md.distributionAlgorithm")}
                 </label>
                 <Select value={algorithm} onValueChange={(v: "serpentine" | "abba" | "first-last" | "greedy" | "dp") => setAlgorithm(v)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="serpentine">Serpentine (Kača)</SelectItem>
+                    <SelectItem value="serpentine">{t("md.algoSerpentine")}</SelectItem>
                     <SelectItem value="abba">ABBA</SelectItem>
-                    <SelectItem value="first-last">Prvi-Zadnji</SelectItem>
-                    <SelectItem value="greedy">Greedy balansiranje</SelectItem>
-                    <SelectItem value="dp">DP optimalen (počasen)</SelectItem>
+                    <SelectItem value="first-last">{t("md.algoFirstLast")}</SelectItem>
+                    <SelectItem value="greedy">{t("md.algoGreedy")}</SelectItem>
+                    <SelectItem value="dp">{t("md.algoDp")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -707,19 +709,19 @@ export default function MatchDetails() {
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full gap-2 mb-2">
                 <Target className="h-4 w-4" />
-                {match.is_completed ? "Uredi rezultate" : "Vnesi rezultat tekme"}
+                {match.is_completed ? t("md.editResults") : t("md.enterResults")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{match.is_completed ? "Uredi rezultate tekme" : "Vnos rezultata tekme"}</DialogTitle>
+                <DialogTitle>{match.is_completed ? t("md.editResultsTitle") : t("md.enterResultsTitle")}</DialogTitle>
                 <DialogDescription>
-                  {match.is_completed ? "Posodobi število golov za vsako ekipo" : "Vnesi število golov za vsako ekipo"}
+                  {match.is_completed ? t("md.editResultsDesc") : t("md.enterResultsDesc")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="mb-4 p-4 border rounded-lg bg-muted/50">
-                <Label className="text-sm font-semibold mb-3 block">Način zmage:</Label>
+                <Label className="text-sm font-semibold mb-3 block">{t("md.winMethodLabel")}</Label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -730,7 +732,7 @@ export default function MatchDetails() {
                       onChange={(e) => setWinType(e.target.value as "regulation")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm">Končano v rednem delu</span>
+                    <span className="text-sm">{t("md.regulationEnd")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -741,7 +743,7 @@ export default function MatchDetails() {
                       onChange={(e) => setWinType(e.target.value as "penalty_shootout")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm">Končano po kazenskih strelih</span>
+                    <span className="text-sm">{t("md.penaltyEnd")}</span>
                   </label>
                 </div>
               </div>
@@ -754,7 +756,7 @@ export default function MatchDetails() {
                     <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm flex items-center justify-between" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
-                          <span className="font-bold">Ekipa {teamNum}</span>
+                          <span className="font-bold">{t("md.team")} {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
                               Goli:
@@ -786,7 +788,7 @@ export default function MatchDetails() {
                   disabled={loading}
                   className="flex-1"
                 >
-                  {loading ? "Shranjevanje..." : match.is_completed ? "Posodobi rezultate" : "Shrani rezultate"}
+                  {loading ? t("md.saving") : match.is_completed ? t("md.updateResults") : t("md.saveResults")}
                 </Button>
                 <Button
                   variant="outline"
@@ -820,13 +822,13 @@ export default function MatchDetails() {
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Users className="h-4 w-4" />
-          <span>{activeParticipants.length} prijavljenih igralcev</span>
+          <span>{activeParticipants.length} {t("md.registeredPlayers")}</span>
         </div>
 
         {Object.keys(teams).length > 0 && (
           <div className="space-y-3 mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold">Ekipe</h3>
+              <h3 className="text-sm font-semibold">{t("md.teams")}</h3>
               {usedAlgorithm && (
                 <Badge variant="outline" className="text-xs">
                   {usedAlgorithm}
@@ -839,7 +841,7 @@ export default function MatchDetails() {
                   <CardTitle className="text-sm" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">Ekipa {teamNum}</span>
+                        <span className="font-bold">{t("md.team")} {teamNum}</span>
                         <Badge variant="secondary" className="text-xs">
                           {teamPlayers.length} igralcev
                         </Badge>
@@ -885,10 +887,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -948,10 +950,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -980,7 +982,7 @@ export default function MatchDetails() {
         {unassigned.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold">
-              {Object.keys(teams).length > 0 ? "Nerazporejeni" : "Vsi prijavljeni"}
+              {Object.keys(teams).length > 0 ? t("md.unassigned") : t("md.allRegistered")}
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
@@ -1021,10 +1023,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -1086,10 +1088,10 @@ export default function MatchDetails() {
                                   .eq("id", matchId);
                                 setUsedAlgorithm("Ročno");
                                 
-                                toast.success("Ekipa posodobljena");
+                                toast.success(t("md.teamUpdated"));
                                 fetchParticipants();
                               } catch (error: any) {
-                                toast.error("Napaka pri spreminjanju ekipe");
+                                toast.error(t("md.errorTeamChange"));
                               }
                             }}
                           >
@@ -1117,7 +1119,7 @@ export default function MatchDetails() {
         {Object.keys(teams).length > 0 && (
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold">
-              Vsi prijavljeni igralci (Ocena iz Tekmovalcev)
+              {t("md.allRegisteredRatings")}
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
@@ -1140,7 +1142,7 @@ export default function MatchDetails() {
                       </Badge>
                       {p.team_number && (
                         <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
-                          Ekipa {p.team_number}
+                          {t("md.team")} {p.team_number}
                         </Badge>
                       )}
                     </div>
@@ -1167,7 +1169,7 @@ export default function MatchDetails() {
                       </Badge>
                       {p.team_number && (
                         <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
-                          Ekipa {p.team_number}
+                          {t("md.team")} {p.team_number}
                         </Badge>
                       )}
                     </div>
@@ -1183,7 +1185,7 @@ export default function MatchDetails() {
 
         {activeParticipants.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
-            Ni še prijavljenih igralcev
+            Ni še {t("md.registeredPlayers")}
           </p>
         )}
 

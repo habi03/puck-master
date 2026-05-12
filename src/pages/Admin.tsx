@@ -18,8 +18,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useI18n } from "@/lib/i18n";
 
 export default function Admin() {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -47,14 +49,14 @@ export default function Admin() {
   const navigate = useNavigate();
 
   const matchSchema = z.object({
-    match_date: z.string().min(1, "Datum je obvezen"),
-    match_time: z.string().min(1, "Ura je obvezna"),
-    number_of_teams: z.coerce.number().min(2, "Vsaj 2 ekipi").max(10, "Največ 10 ekip")
+    match_date: z.string().min(1, t("admin.dateRequired")),
+    match_time: z.string().min(1, t("admin.timeRequired")),
+    number_of_teams: z.coerce.number().min(2, t("admin.minTeams")).max(10, t("admin.maxTeams"))
   });
 
   const editMatchSchema = z.object({
-    match_date: z.string().min(1, "Datum je obvezen"),
-    match_time: z.string().min(1, "Ura je obvezna"),
+    match_date: z.string().min(1, t("admin.dateRequired")),
+    match_time: z.string().min(1, t("admin.timeRequired")),
   });
 
   const form = useForm<z.infer<typeof matchSchema>>({
@@ -112,7 +114,7 @@ export default function Admin() {
       
       if (error || !data) {
         localStorage.removeItem("currentLeagueId");
-        toast.error("Nimate več dostopa do te lige");
+        toast.error(t("index.noAccessLeague"));
         navigate("/");
         return;
       }
@@ -150,11 +152,11 @@ export default function Admin() {
       setIsSuperUser(data?.role === "super_user");
       
       if (!hasAdminAccess) {
-        toast.error("Nimate administratorskih pravic");
+        toast.error(t("admin.noAdminRights"));
         navigate("/league");
       }
     } catch (error: any) {
-      toast.error("Napaka pri preverjanju pravic");
+      toast.error(t("admin.errorChecking"));
       navigate("/league");
     }
   };
@@ -170,7 +172,7 @@ export default function Admin() {
       if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju članov");
+      toast.error(t("admin.errorMembers"));
     }
   };
 
@@ -185,7 +187,7 @@ export default function Admin() {
       if (error) throw error;
       setMatches(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju tekem");
+      toast.error(t("admin.errorMatches"));
     }
   };
 
@@ -234,7 +236,7 @@ export default function Admin() {
       if (error) throw error;
       setSeasons(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju sezon");
+      toast.error(t("admin.errorSeasons"));
     }
   };
 
@@ -288,7 +290,7 @@ export default function Admin() {
           } as any);
         if (error) throw error;
       }
-      toast.success("Sezonska vloga posodobljena");
+      toast.success(t("admin.seasonRoleUpdated"));
       fetchSeasonRoles(memberSeasonId);
     } catch (error: any) {
       toast.error(error.message);
@@ -299,7 +301,7 @@ export default function Admin() {
 
   const handleCreateSeason = async () => {
     if (!newSeasonName.trim()) {
-      toast.error("Ime sezone je obvezno");
+      toast.error(t("admin.seasonNameRequired"));
       return;
     }
     setLoading(true);
@@ -313,7 +315,7 @@ export default function Admin() {
         } as any);
 
       if (error) throw error;
-      toast.success("Sezona ustvarjena");
+      toast.success(t("admin.seasonCreated"));
       setNewSeasonName("");
       setSeasonDialogOpen(false);
       fetchSeasons();
@@ -343,7 +345,7 @@ export default function Admin() {
 
       if (activateError) throw activateError;
 
-      toast.success("Aktivna sezona spremenjena");
+      toast.success(t("admin.seasonActivated"));
       fetchSeasons();
     } catch (error: any) {
       toast.error(error.message);
@@ -353,7 +355,7 @@ export default function Admin() {
   };
 
   const handleDeleteSeason = async (seasonId: string) => {
-    if (!confirm("Ali ste prepričani? Tekme v tej sezoni bodo ostale brez sezone.")) return;
+    if (!confirm(t("admin.deleteSeasonConfirm"))) return;
     setLoading(true);
     try {
       const { error } = await supabase
@@ -362,7 +364,7 @@ export default function Admin() {
         .eq("id", seasonId);
 
       if (error) throw error;
-      toast.success("Sezona izbrisana");
+      toast.success(t("admin.seasonDeleted"));
       fetchSeasons();
     } catch (error: any) {
       toast.error(error.message);
@@ -392,9 +394,9 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success("Default točkovanje shranjeno");
+      toast.success(t("admin.saveScoring"));
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju točkovanja");
+      toast.error(t("admin.errorScoring"));
     } finally {
       setLoading(false);
     }
@@ -409,9 +411,9 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success("Barve ekip shranjene");
+      toast.success(t("admin.saveColors"));
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju barv");
+      toast.error(t("admin.errorColors"));
     } finally {
       setLoading(false);
     }
@@ -427,7 +429,7 @@ export default function Admin() {
         .eq("id", memberId);
 
       if (error) throw error;
-      toast.success("Vloga uspešno posodobljena");
+      toast.success(t("admin.roleUpdated"));
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message);
@@ -445,7 +447,7 @@ export default function Admin() {
         .eq("id", memberId);
 
       if (error) throw error;
-      toast.success("Član odstranjen iz lige");
+      toast.success(t("admin.memberRemoved"));
       fetchMembers();
     } catch (error: any) {
       toast.error(error.message);
@@ -472,7 +474,7 @@ export default function Admin() {
         } as any);
 
       if (error) throw error;
-      toast.success("Tekma uspešno ustvarjena");
+      toast.success(t("admin.matchCreated"));
       form.reset();
       setDialogOpen(false);
       fetchMatches();
@@ -489,22 +491,22 @@ export default function Admin() {
       // Validate password strength if provided
       if (newPassword && newPassword.trim() !== '') {
         if (newPassword.length < 8) {
-          toast.error("Geslo mora biti dolgo vsaj 8 znakov");
+          toast.error(t("admin.passwordMin8"));
           setLoading(false);
           return;
         }
         if (!/[A-Z]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno veliko črko");
+          toast.error(t("admin.passwordUpper"));
           setLoading(false);
           return;
         }
         if (!/[a-z]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno malo črko");
+          toast.error(t("admin.passwordLower"));
           setLoading(false);
           return;
         }
         if (!/[0-9]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno številko");
+          toast.error(t("admin.passwordDigit"));
           setLoading(false);
           return;
         }
@@ -517,18 +519,18 @@ export default function Admin() {
         .eq("id", currentLeagueId);
 
       if (error) throw error;
-      toast.success(newPassword ? "Geslo nastavljeno" : "Geslo odstranjeno");
+      toast.success(newPassword ? t("admin.passwordSet") : t("admin.passwordRemoved"));
       setLeaguePassword(newPassword || "");
       setNewPassword("");
     } catch (error: any) {
-      toast.error("Napaka pri posodabljanju gesla");
+      toast.error(t("admin.errorPassword"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteMatch = async (matchId: string) => {
-    if (!confirm("Ali ste prepričani, da želite izbrisati to tekmo? Izbrisani bodo tudi vsi prijavljeni igralci in rezultati.")) {
+    if (!confirm(t("admin.deleteMatchConfirm"))) {
       return;
     }
     
@@ -540,10 +542,10 @@ export default function Admin() {
         .eq("id", matchId);
 
       if (error) throw error;
-      toast.success("Tekma uspešno izbrisana");
+      toast.success(t("admin.matchDeleted"));
       fetchMatches();
     } catch (error: any) {
-      toast.error("Napaka pri brisanju tekme");
+      toast.error(t("admin.errorMatchDelete"));
     } finally {
       setLoading(false);
     }
@@ -572,12 +574,12 @@ export default function Admin() {
         .eq("id", editingMatch.id);
 
       if (error) throw error;
-      toast.success("Tekma uspešno posodobljena");
+      toast.success(t("admin.matchUpdated"));
       setEditDialogOpen(false);
       setEditingMatch(null);
       fetchMatches();
     } catch (error: any) {
-      toast.error("Napaka pri posodabljanju tekme");
+      toast.error(t("admin.errorMatchUpdate"));
     } finally {
       setLoading(false);
     }
@@ -593,31 +595,31 @@ export default function Admin() {
         <div className="mb-6">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Admin Panel
+            {t("admin.title")}
           </h2>
-          <p className="text-sm text-muted-foreground">Upravljanje lige in članov</p>
+          <p className="text-sm text-muted-foreground">{t("admin.subtitle")}</p>
         </div>
 
         <Tabs defaultValue="members" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="members">Člani</TabsTrigger>
-            <TabsTrigger value="matches">Tekme</TabsTrigger>
-            <TabsTrigger value="settings">Nastavitve</TabsTrigger>
+            <TabsTrigger value="members">{t("admin.members")}</TabsTrigger>
+            <TabsTrigger value="matches">{t("admin.matches")}</TabsTrigger>
+            <TabsTrigger value="settings">{t("admin.settings")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>{members.length} članov v ligi</span>
+                <span>{members.length} {t("admin.membersInLeague")}</span>
               </div>
               {seasons.length > 0 && (
                 <Select value={memberSeasonId} onValueChange={(v) => { setMemberSeasonId(v); fetchSeasonRoles(v); }}>
                   <SelectTrigger className="w-[170px]">
-                    <SelectValue placeholder="Izberi sezono" />
+                    <SelectValue placeholder={t("admin.selectSeason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="league">Liga (stalna vloga)</SelectItem>
+                    <SelectItem value="league">{t("admin.permanentRole")}</SelectItem>
                     {seasons.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         <span className="flex items-center gap-1.5">{s.name} {s.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
@@ -630,7 +632,7 @@ export default function Admin() {
 
             {memberSeasonId !== "league" && (
               <div className="text-xs text-muted-foreground p-2 rounded-lg bg-muted/50 border mb-2">
-                Urejate plačilni status za sezono: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
+                {t("admin.editingPayment")}: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
               </div>
             )}
 
@@ -644,20 +646,20 @@ export default function Admin() {
                 <Card key={member.id}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
-                      <span>{member.profiles?.full_name || member.profiles?.email || "Neznano ime"}</span>
+                      <span>{member.profiles?.full_name || member.profiles?.email || t("admin.unknownName")}</span>
                       <div className="flex gap-1">
                         {isSeasonView ? (
                           <>
                             <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
-                              {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
+                              {member.role === 'super_user' ? t("role.superUser") : member.role === 'admin' ? t("role.admin") : member.role === 'član' ? t("role.member") : member.role === 'poskusni_član' ? t("role.trialMember") : member.role.replace('_', ' ')}
                             </Badge>
                             <Badge variant={currentSeasonRole === 'plačan_član' ? 'default' : 'secondary'} className="text-xs">
-                              {currentSeasonRole === 'plačan_član' ? 'Plačan' : 'Neplačan'}
+                              {currentSeasonRole === 'plačan_član' ? t("admin.paid") : t("admin.unpaid")}
                             </Badge>
                           </>
                         ) : (
                           <Badge variant={(member.role === 'admin' || member.role === 'super_user') ? 'default' : 'secondary'} className="text-xs">
-                            {member.role === 'super_user' ? 'Super User' : member.role === 'admin' ? 'Admin' : member.role === 'član' ? 'Član' : member.role === 'poskusni_član' ? 'Poskusni član' : member.role.replace('_', ' ')}
+                            {member.role === 'super_user' ? t("role.superUser") : member.role === 'admin' ? t("role.admin") : member.role === 'član' ? t("role.member") : member.role === 'poskusni_član' ? t("role.trialMember") : member.role.replace('_', ' ')}
                           </Badge>
                         )}
                       </div>
@@ -675,8 +677,8 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="plačan_član">Plačan član</SelectItem>
-                          <SelectItem value="neplačan_član">Neplačan član</SelectItem>
+                          <SelectItem value="plačan_član">{t("admin.paidMember")}</SelectItem>
+                          <SelectItem value="neplačan_član">{t("admin.unpaidMember")}</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
@@ -689,10 +691,10 @@ export default function Admin() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {isSuperUser && <SelectItem value="super_user">Super User</SelectItem>}
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="član">Član</SelectItem>
-                          <SelectItem value="poskusni_član">Poskusni član</SelectItem>
+                          {isSuperUser && <SelectItem value="super_user">{t("role.superUser")}</SelectItem>}
+                          <SelectItem value="admin">{t("role.admin")}</SelectItem>
+                          <SelectItem value="član">{t("role.member")}</SelectItem>
+                          <SelectItem value="poskusni_član">{t("role.trialMember")}</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -705,7 +707,7 @@ export default function Admin() {
                         size="sm"
                         className="w-full"
                       >
-                        Odstrani iz lige
+                        {t("admin.removeFromLeague")}
                       </Button>
                     )}
                   </CardContent>
@@ -718,27 +720,27 @@ export default function Admin() {
           <TabsContent value="matches" className="mt-4">
             {!seasons.some(s => s.is_active) && (
               <div className="mb-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-sm text-destructive">
-                ⚠️ Za ustvarjanje tekem potrebujete aktivno sezono. Pojdite v Nastavitve → Sezone.
+                ⚠️ {t("admin.needActiveSeason")}
               </div>
             )}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>{matches.length} tekem</span>
+                <span>{matches.length} {t("admin.matchCount")}</span>
               </div>
               
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="gap-1" disabled={!seasons.some(s => s.is_active)}>
                     <Plus className="h-4 w-4" />
-                    Nova tekma
+                    {t("admin.newMatch")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
-                    <DialogTitle className="text-base">Ustvari novo tekmo</DialogTitle>
+                    <DialogTitle className="text-base">{t("admin.createMatch")}</DialogTitle>
                     <DialogDescription className="text-xs">
-                      Dodaj novo tekmo v ligo
+                      {t("admin.createMatchDesc")}
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -749,7 +751,7 @@ export default function Admin() {
                         name="match_date"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Datum</FormLabel>
+                            <FormLabel className="text-xs">{t("match.date")}</FormLabel>
                             <FormControl>
                               <Input type="date" {...field} className="text-sm" />
                             </FormControl>
@@ -763,7 +765,7 @@ export default function Admin() {
                         name="match_time"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Ura</FormLabel>
+                            <FormLabel className="text-xs">{t("match.time")}</FormLabel>
                             <FormControl>
                               <Input type="time" {...field} className="text-sm" />
                             </FormControl>
@@ -777,7 +779,7 @@ export default function Admin() {
                         name="number_of_teams"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Število ekip</FormLabel>
+                            <FormLabel className="text-xs">{t("admin.numTeams")}</FormLabel>
                             <FormControl>
                               <Input type="number" min="2" max="10" {...field} className="text-sm" />
                             </FormControl>
@@ -787,7 +789,7 @@ export default function Admin() {
                       />
                       
                       <Button type="submit" className="w-full" size="sm" disabled={loading}>
-                        Ustvari tekmo
+                        {t("admin.createMatchBtn")}
                       </Button>
                     </form>
                   </Form>
@@ -797,21 +799,21 @@ export default function Admin() {
 
             {matches.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
-                Ni še nobene tekme
+                {t("admin.noMatches")}
               </p>
             ) : (
               <div className="space-y-2">
                 {matches.map((match) => (
                   <Card key={match.id}>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Tekma</CardTitle>
+                      <CardTitle className="text-base">{t("admin.matchTitle")}</CardTitle>
                       <CardDescription className="text-xs">
-                        {new Date(match.match_date).toLocaleDateString('sl-SI')} ob {match.match_time.slice(0, 5)}
+                        {t("admin.matchDateAt", { date: new Date(match.match_date).toLocaleDateString(), time: match.match_time.slice(0, 5) })}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        Število ekip: {match.number_of_teams}
+                        {t("admin.teamCount", { n: match.number_of_teams })}
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -822,7 +824,7 @@ export default function Admin() {
                           className="flex-1 gap-1"
                         >
                           <Pencil className="h-3 w-3" />
-                          Uredi
+                          {t("admin.editBtn")}
                         </Button>
                         <Button
                           onClick={() => handleDeleteMatch(match.id)}
@@ -831,7 +833,7 @@ export default function Admin() {
                           size="sm"
                           className="flex-1"
                         >
-                          Izbriši
+                          {t("admin.deleteBtn")}
                         </Button>
                       </div>
                     </CardContent>
@@ -843,9 +845,9 @@ export default function Admin() {
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
               <DialogContent className="max-w-sm">
                 <DialogHeader>
-                  <DialogTitle className="text-base">Uredi tekmo</DialogTitle>
+                  <DialogTitle className="text-base">{t("admin.editMatch")}</DialogTitle>
                   <DialogDescription className="text-xs">
-                    Spremeni datum in uro tekme
+                    {t("admin.editMatchDesc")}
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -856,7 +858,7 @@ export default function Admin() {
                       name="match_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Datum</FormLabel>
+                          <FormLabel className="text-xs">{t("match.date")}</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} className="text-sm" />
                           </FormControl>
@@ -870,7 +872,7 @@ export default function Admin() {
                       name="match_time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Ura</FormLabel>
+                          <FormLabel className="text-xs">{t("match.time")}</FormLabel>
                           <FormControl>
                             <Input type="time" {...field} className="text-sm" />
                           </FormControl>
@@ -880,7 +882,7 @@ export default function Admin() {
                     />
                     
                     <Button type="submit" className="w-full" size="sm" disabled={loading}>
-                      {loading ? "Shranjujem..." : "Shrani spremembe"}
+                      {loading ? t("admin.savingBtn") : t("admin.saveChangesBtn")}
                     </Button>
                   </form>
                 </Form>
@@ -895,35 +897,35 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="h-5 w-5" />
-                  Geslo lige
+                  {t("admin.leaguePassword")}
                 </CardTitle>
                 <CardDescription>
-                  Zaščitite ligo z geslom. Samo uporabniki, ki poznajo geslo, se bodo lahko pridružili.
+                  {t("admin.leaguePasswordDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {leaguePassword && (
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium mb-1">Trenutno geslo:</p>
+                    <p className="text-sm font-medium mb-1">{t("admin.currentPassword")}:</p>
                     <p className="text-sm text-muted-foreground font-mono">{leaguePassword}</p>
                   </div>
                 )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">
-                    {leaguePassword ? "Novo geslo" : "Nastavi geslo"}
+                    {leaguePassword ? t("admin.newPassword") : t("admin.setPassword")}
                   </Label>
                   <Input
                     id="newPassword"
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={leaguePassword ? "Vnesite novo geslo ali pustite prazno za odstranitev" : "Vnesite geslo za ligo"}
+                    placeholder={leaguePassword ? t("admin.passwordPlaceholderUpdate") : t("admin.passwordPlaceholderSet")}
                   />
                   <p className="text-xs text-muted-foreground">
                     {leaguePassword 
-                      ? "Pustite prazno, če želite odstraniti geslo"
-                      : "Liga bo po nastavitvi gesla zaščitena"
+                      ? t("admin.passwordHelperRemove")
+                      : t("admin.passwordHelperSet")
                     }
                   </p>
                 </div>
@@ -933,7 +935,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : leaguePassword ? "Posodobi geslo" : "Nastavi geslo"}
+                  {loading ? t("admin.savingBtn") : leaguePassword ? t("admin.updatePassword") : t("admin.setPassword")}
                 </Button>
               </CardContent>
             </Card>
@@ -941,16 +943,16 @@ export default function Admin() {
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  🏆 Default točkovanje
+                  🏆 {t("admin.defaultScoring")}
                 </CardTitle>
                 <CardDescription>
-                  Privzete vrednosti točkovanja za nove tekme. Vsaka tekma lahko ima svoje točkovanje.
+                  {t("admin.defaultScoringDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="points_attendance">Prisotnost</Label>
+                    <Label htmlFor="points_attendance">{t("admin.attendance")}</Label>
                     <Input
                       id="points_attendance"
                       type="number"
@@ -960,7 +962,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_win">Zmaga (redni del)</Label>
+                    <Label htmlFor="points_win">{t("admin.winRegulation")}</Label>
                     <Input
                       id="points_win"
                       type="number"
@@ -970,7 +972,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_penalty_win">Zmaga (penali)</Label>
+                    <Label htmlFor="points_penalty_win">{t("admin.winPenalty")}</Label>
                     <Input
                       id="points_penalty_win"
                       type="number"
@@ -980,7 +982,7 @@ export default function Admin() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_penalty_loss">Poraz (penali)</Label>
+                    <Label htmlFor="points_penalty_loss">{t("admin.lossPenalty")}</Label>
                     <Input
                       id="points_penalty_loss"
                       type="number"
@@ -996,7 +998,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : "Shrani točkovanje"}
+                  {loading ? t("admin.savingBtn") : t("admin.saveScoring")}
                 </Button>
               </CardContent>
             </Card>
@@ -1005,17 +1007,17 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Barve ekip
+                  {t("admin.teamColors")}
                 </CardTitle>
                 <CardDescription>
-                  Nastavite barve za posamezne ekipe (do 4 ekipe).
+                  {t("admin.teamColorsDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   {teamColors.slice(0, 4).map((color, index) => (
                     <div key={index} className="space-y-2">
-                      <Label>Ekipa {index + 1}</Label>
+                      <Label>{t("admin.team")} {index + 1}</Label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
@@ -1046,7 +1048,7 @@ export default function Admin() {
                           borderColor: `${color}60`,
                         }}
                       >
-                        Ekipa {index + 1}
+                        {t("admin.team")} {index + 1}
                       </div>
                     </div>
                   ))}
@@ -1058,7 +1060,7 @@ export default function Admin() {
                   size="sm"
                   className="w-full"
                 >
-                  Ponastavi na privzete barve
+                  {t("admin.resetColors")}
                 </Button>
                 
                 <Button 
@@ -1066,7 +1068,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : "Shrani barve"}
+                  {loading ? t("admin.savingBtn") : t("admin.saveColors")}
                 </Button>
               </CardContent>
             </Card>
@@ -1075,40 +1077,40 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CalendarDays className="h-5 w-5" />
-                  Sezone
+                  {t("admin.seasons")}
                 </CardTitle>
                 <CardDescription>
-                  Upravljajte sezone lige. Aktivna sezona se privzeto izbere na domači strani.
+                  {t("admin.seasonsDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{seasons.length} sezon</span>
+                  <span className="text-sm text-muted-foreground">{seasons.length} {t("admin.seasonCount")}</span>
                   <Dialog open={seasonDialogOpen} onOpenChange={setSeasonDialogOpen}>
                     <DialogTrigger asChild>
                       <Button size="sm" className="gap-1">
                         <Plus className="h-4 w-4" />
-                        Nova sezona
+                        {t("admin.newSeason")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-sm">
                       <DialogHeader>
-                        <DialogTitle className="text-base">Ustvari novo sezono</DialogTitle>
+                        <DialogTitle className="text-base">{t("admin.createSeason")}</DialogTitle>
                         <DialogDescription className="text-xs">
-                          Dodaj novo sezono v ligo (npr. "Sezona 2024/25")
+                          {t("admin.createSeasonDesc")}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label>Ime sezone</Label>
+                          <Label>{t("admin.seasonNameLabel")}</Label>
                           <Input
                             value={newSeasonName}
                             onChange={(e) => setNewSeasonName(e.target.value)}
-                            placeholder="Sezona 2024/25"
+                            placeholder={t("admin.seasonNamePlaceholder")}
                           />
                         </div>
                         <Button onClick={handleCreateSeason} className="w-full" size="sm" disabled={loading}>
-                          {loading ? "Ustvarjam..." : "Ustvari sezono"}
+                          {loading ? t("admin.creatingBtn") : t("admin.createSeasonBtn")}
                         </Button>
                       </div>
                     </DialogContent>
@@ -1117,7 +1119,7 @@ export default function Admin() {
 
                 {seasons.length === 0 ? (
                   <p className="text-center text-sm text-muted-foreground py-4">
-                    Ni še nobene sezone. Ustvarite prvo sezono.
+                    {t("admin.noSeasons")}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -1140,7 +1142,7 @@ export default function Admin() {
                               variant="outline"
                               size="sm"
                             >
-                              Aktiviraj
+                              {t("admin.activate")}
                             </Button>
                           )}
                           <Button
