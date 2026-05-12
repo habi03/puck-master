@@ -172,7 +172,7 @@ export default function Admin() {
       if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju članov");
+      toast.error(t("admin.errorMembers"));
     }
   };
 
