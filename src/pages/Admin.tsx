@@ -998,7 +998,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : "Shrani točkovanje"}
+                  {loading ? t("admin.savingBtn") : t("admin.saveScoring")}
                 </Button>
               </CardContent>
             </Card>
