@@ -1095,22 +1095,22 @@ export default function Admin() {
                     </DialogTrigger>
                     <DialogContent className="max-w-sm">
                       <DialogHeader>
-                        <DialogTitle className="text-base">Ustvari novo sezono</DialogTitle>
+                        <DialogTitle className="text-base">{t("admin.createSeason")}</DialogTitle>
                         <DialogDescription className="text-xs">
-                          Dodaj novo sezono v ligo (npr. "Sezona 2024/25")
+                          {t("admin.createSeasonDesc")}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label>Ime sezone</Label>
+                          <Label>{t("admin.seasonNameLabel")}</Label>
                           <Input
                             value={newSeasonName}
                             onChange={(e) => setNewSeasonName(e.target.value)}
-                            placeholder="Sezona 2024/25"
+                            placeholder={t("admin.seasonNamePlaceholder")}
                           />
                         </div>
                         <Button onClick={handleCreateSeason} className="w-full" size="sm" disabled={loading}>
-                          {loading ? "Ustvarjam..." : "Ustvari sezono"}
+                          {loading ? t("admin.creatingBtn") : t("admin.createSeasonBtn")}
                         </Button>
                       </div>
                     </DialogContent>
