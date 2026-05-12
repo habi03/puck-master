@@ -364,7 +364,7 @@ export default function Admin() {
         .eq("id", seasonId);
 
       if (error) throw error;
-      toast.success("Sezona izbrisana");
+      toast.success(t("admin.seasonDeleted"));
       fetchSeasons();
     } catch (error: any) {
       toast.error(error.message);
