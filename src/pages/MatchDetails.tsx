@@ -635,7 +635,7 @@ export default function MatchDetails() {
                   const goals = result?.goals_scored || 0;
                   return (
                     <div key={teamNum} className="flex flex-col items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Ekipa {teamNum}</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t("md.team")} {teamNum}</span>
                       <div className="text-5xl font-bold text-primary">
                         {goals}
                       </div>
@@ -674,11 +674,11 @@ export default function MatchDetails() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="serpentine">Serpentine (Kača)</SelectItem>
+                    <SelectItem value="serpentine">{t("md.algoSerpentine")}</SelectItem>
                     <SelectItem value="abba">ABBA</SelectItem>
-                    <SelectItem value="first-last">Prvi-Zadnji</SelectItem>
-                    <SelectItem value="greedy">Greedy balansiranje</SelectItem>
-                    <SelectItem value="dp">DP optimalen (počasen)</SelectItem>
+                    <SelectItem value="first-last">{t("md.algoFirstLast")}</SelectItem>
+                    <SelectItem value="greedy">{t("md.algoGreedy")}</SelectItem>
+                    <SelectItem value="dp">{t("md.algoDp")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -756,7 +756,7 @@ export default function MatchDetails() {
                     <Card key={teamNum} style={getTeamCardStyle(parseInt(teamNum), teamColors)}>
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm flex items-center justify-between" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
-                          <span className="font-bold">Ekipa {teamNum}</span>
+                          <span className="font-bold">{t("md.team")} {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
                               Goli:
@@ -841,7 +841,7 @@ export default function MatchDetails() {
                   <CardTitle className="text-sm" style={getTeamTextColor(parseInt(teamNum), teamColors)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">Ekipa {teamNum}</span>
+                        <span className="font-bold">{t("md.team")} {teamNum}</span>
                         <Badge variant="secondary" className="text-xs">
                           {teamPlayers.length} igralcev
                         </Badge>
@@ -1142,7 +1142,7 @@ export default function MatchDetails() {
                       </Badge>
                       {p.team_number && (
                         <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
-                          Ekipa {p.team_number}
+                          {t("md.team")} {p.team_number}
                         </Badge>
                       )}
                     </div>
@@ -1169,7 +1169,7 @@ export default function MatchDetails() {
                       </Badge>
                       {p.team_number && (
                         <Badge className="text-xs flex-shrink-0" style={getTeamColorStyle(p.team_number, teamColors)}>
-                          Ekipa {p.team_number}
+                          {t("md.team")} {p.team_number}
                         </Badge>
                       )}
                     </div>
