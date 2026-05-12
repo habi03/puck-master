@@ -315,7 +315,7 @@ export default function Admin() {
         } as any);
 
       if (error) throw error;
-      toast.success("Sezona ustvarjena");
+      toast.success(t("admin.seasonCreated"));
       setNewSeasonName("");
       setSeasonDialogOpen(false);
       fetchSeasons();
