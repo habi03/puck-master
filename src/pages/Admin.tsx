@@ -574,12 +574,12 @@ export default function Admin() {
         .eq("id", editingMatch.id);
 
       if (error) throw error;
-      toast.success("Tekma uspešno posodobljena");
+      toast.success(t("admin.matchUpdated"));
       setEditDialogOpen(false);
       setEditingMatch(null);
       fetchMatches();
     } catch (error: any) {
-      toast.error("Napaka pri posodabljanju tekme");
+      toast.error(t("admin.errorMatchUpdate"));
     } finally {
       setLoading(false);
     }
