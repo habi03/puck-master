@@ -1060,7 +1060,7 @@ export default function Admin() {
                   size="sm"
                   className="w-full"
                 >
-                  Ponastavi na privzete barve
+                  {t("admin.resetColors")}
                 </Button>
                 
                 <Button 
@@ -1068,7 +1068,7 @@ export default function Admin() {
                   disabled={loading}
                   className="w-full"
                 >
-                  {loading ? "Shranjujem..." : "Shrani barve"}
+                  {loading ? t("admin.savingBtn") : t("admin.saveColors")}
                 </Button>
               </CardContent>
             </Card>
