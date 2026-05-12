@@ -1085,12 +1085,12 @@ export default function Admin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{seasons.length} sezon</span>
+                  <span className="text-sm text-muted-foreground">{seasons.length} {t("admin.seasonCount")}</span>
                   <Dialog open={seasonDialogOpen} onOpenChange={setSeasonDialogOpen}>
                     <DialogTrigger asChild>
                       <Button size="sm" className="gap-1">
                         <Plus className="h-4 w-4" />
-                        Nova sezona
+                        {t("admin.newSeason")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-sm">
