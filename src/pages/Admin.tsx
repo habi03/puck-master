@@ -474,7 +474,7 @@ export default function Admin() {
         } as any);
 
       if (error) throw error;
-      toast.success("Tekma uspešno ustvarjena");
+      toast.success(t("admin.matchCreated"));
       form.reset();
       setDialogOpen(false);
       fetchMatches();
