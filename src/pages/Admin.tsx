@@ -1007,10 +1007,10 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Barve ekip
+                  {t("admin.teamColors")}
                 </CardTitle>
                 <CardDescription>
-                  Nastavite barve za posamezne ekipe (do 4 ekipe).
+                  {t("admin.teamColorsDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
