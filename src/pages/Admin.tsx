@@ -872,7 +872,7 @@ export default function Admin() {
                       name="match_time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Ura</FormLabel>
+                          <FormLabel className="text-xs">{t("match.time")}</FormLabel>
                           <FormControl>
                             <Input type="time" {...field} className="text-sm" />
                           </FormControl>
