@@ -49,14 +49,14 @@ export default function Admin() {
   const navigate = useNavigate();
 
   const matchSchema = z.object({
-    match_date: z.string().min(1, "Datum je obvezen"),
-    match_time: z.string().min(1, "Ura je obvezna"),
-    number_of_teams: z.coerce.number().min(2, "Vsaj 2 ekipi").max(10, "Največ 10 ekip")
+    match_date: z.string().min(1, t("admin.dateRequired")),
+    match_time: z.string().min(1, t("admin.timeRequired")),
+    number_of_teams: z.coerce.number().min(2, t("admin.minTeams")).max(10, t("admin.maxTeams"))
   });
 
   const editMatchSchema = z.object({
-    match_date: z.string().min(1, "Datum je obvezen"),
-    match_time: z.string().min(1, "Ura je obvezna"),
+    match_date: z.string().min(1, t("admin.dateRequired")),
+    match_time: z.string().min(1, t("admin.timeRequired")),
   });
 
   const form = useForm<z.infer<typeof matchSchema>>({
