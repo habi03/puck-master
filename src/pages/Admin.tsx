@@ -1048,7 +1048,7 @@ export default function Admin() {
                           borderColor: `${color}60`,
                         }}
                       >
-                        Ekipa {index + 1}
+                        {t("admin.team")} {index + 1}
                       </div>
                     </div>
                   ))}
