@@ -44,6 +44,7 @@ type Participant = {
 };
 
 export default function MatchDetails() {
+  const { t } = useI18n();
   const { matchId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
