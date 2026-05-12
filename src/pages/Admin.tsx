@@ -943,10 +943,10 @@ export default function Admin() {
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  🏆 Default točkovanje
+                  🏆 {t("admin.defaultScoring")}
                 </CardTitle>
                 <CardDescription>
-                  Privzete vrednosti točkovanja za nove tekme. Vsaka tekma lahko ima svoje točkovanje.
+                  {t("admin.defaultScoringDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
