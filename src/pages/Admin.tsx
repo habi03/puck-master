@@ -530,7 +530,7 @@ export default function Admin() {
   };
 
   const handleDeleteMatch = async (matchId: string) => {
-    if (!confirm("Ali ste prepričani, da želite izbrisati to tekmo? Izbrisani bodo tudi vsi prijavljeni igralci in rezultati.")) {
+    if (!confirm(t("admin.deleteMatchConfirm"))) {
       return;
     }
     
