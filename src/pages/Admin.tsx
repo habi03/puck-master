@@ -1077,10 +1077,10 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CalendarDays className="h-5 w-5" />
-                  Sezone
+                  {t("admin.seasons")}
                 </CardTitle>
                 <CardDescription>
-                  Upravljajte sezone lige. Aktivna sezona se privzeto izbere na domači strani.
+                  {t("admin.seasonsDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
