@@ -345,7 +345,7 @@ export default function Admin() {
 
       if (activateError) throw activateError;
 
-      toast.success("Aktivna sezona spremenjena");
+      toast.success(t("admin.seasonActivated"));
       fetchSeasons();
     } catch (error: any) {
       toast.error(error.message);
