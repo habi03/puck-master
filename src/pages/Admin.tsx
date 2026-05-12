@@ -619,7 +619,7 @@ export default function Admin() {
                     <SelectValue placeholder={t("admin.selectSeason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="league">Liga (stalna vloga)</SelectItem>
+                    <SelectItem value="league">{t("admin.permanentRole")}</SelectItem>
                     {seasons.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         <span className="flex items-center gap-1.5">{s.name} {s.is_active && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-destructive/30 bg-destructive/10 text-[10px] font-semibold text-destructive"><span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />LIVE</span>}</span>
