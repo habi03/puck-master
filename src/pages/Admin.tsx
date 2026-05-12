@@ -491,22 +491,22 @@ export default function Admin() {
       // Validate password strength if provided
       if (newPassword && newPassword.trim() !== '') {
         if (newPassword.length < 8) {
-          toast.error("Geslo mora biti dolgo vsaj 8 znakov");
+          toast.error(t("admin.passwordMin8"));
           setLoading(false);
           return;
         }
         if (!/[A-Z]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno veliko črko");
+          toast.error(t("admin.passwordUpper"));
           setLoading(false);
           return;
         }
         if (!/[a-z]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno malo črko");
+          toast.error(t("admin.passwordLower"));
           setLoading(false);
           return;
         }
         if (!/[0-9]/.test(newPassword)) {
-          toast.error("Geslo mora vsebovati vsaj eno številko");
+          toast.error(t("admin.passwordDigit"));
           setLoading(false);
           return;
         }
