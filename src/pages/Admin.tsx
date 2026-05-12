@@ -1017,7 +1017,7 @@ export default function Admin() {
                 <div className="grid grid-cols-2 gap-4">
                   {teamColors.slice(0, 4).map((color, index) => (
                     <div key={index} className="space-y-2">
-                      <Label>Ekipa {index + 1}</Label>
+                      <Label>{t("admin.team")} {index + 1}</Label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
