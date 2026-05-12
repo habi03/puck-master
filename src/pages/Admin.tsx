@@ -952,7 +952,7 @@ export default function Admin() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="points_attendance">Prisotnost</Label>
+                    <Label htmlFor="points_attendance">{t("admin.attendance")}</Label>
                     <Input
                       id="points_attendance"
                       type="number"
