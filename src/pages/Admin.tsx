@@ -301,7 +301,7 @@ export default function Admin() {
 
   const handleCreateSeason = async () => {
     if (!newSeasonName.trim()) {
-      toast.error("Ime sezone je obvezno");
+      toast.error(t("admin.seasonNameRequired"));
       return;
     }
     setLoading(true);
