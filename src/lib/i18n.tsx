@@ -496,6 +496,20 @@ const translations = {
   "role.trialMember": { si: "Poskusni član", en: "Trial member", de: "Probemitglied" },
   "role.paidMember": { si: "Plačan član", en: "Paid member", de: "Zahlendes Mitglied" },
   "role.unpaidMember": { si: "Neplačan član", en: "Unpaid member", de: "Nicht-zahlendes Mitglied" },
+
+  // ===== MISC TOASTS / LABELS =====
+  "toast.membershipLoadError": { si: "Napaka pri nalaganju članstva", en: "Error loading membership", de: "Fehler beim Laden der Mitgliedschaft" },
+  "toast.participantsLoadError": { si: "Napaka pri nalaganju udeležencev", en: "Error loading participants", de: "Fehler beim Laden der Teilnehmer" },
+  "toast.noLeagueAccess": { si: "Nimate več dostopa do te lige", en: "You no longer have access to this league", de: "Sie haben keinen Zugriff mehr auf diese Liga" },
+  "toast.ratingSaved": { si: "Ocena uspešno shranjena", en: "Rating saved successfully", de: "Bewertung erfolgreich gespeichert" },
+  "toast.playersRemoved": { si: "Uspešno odstranjenih {count} igralcev", en: "Successfully removed {count} players", de: "{count} Spieler erfolgreich entfernt" },
+  "toast.positionsChanged": { si: "Uspešno spremenjenih {count} pozicij", en: "Successfully changed {count} positions", de: "{count} Positionen erfolgreich geändert" },
+  "md.clearTeams": { si: "Počisti ekipe", en: "Clear teams", de: "Teams leeren" },
+  "md.cancel": { si: "Prekliči", en: "Cancel", de: "Abbrechen" },
+  "md.cancelResultsReopen": { si: "Prekliči rezultate in odpri tekmo", en: "Cancel results and reopen match", de: "Ergebnisse abbrechen und Spiel öffnen" },
+  "md.goalsLabel": { si: "Goli:", en: "Goals:", de: "Tore:" },
+  "md.playersCount": { si: "{count} igralcev", en: "{count} players", de: "{count} Spieler" },
+  "md.average": { si: "Povprečje", en: "Average", de: "Durchschnitt" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
