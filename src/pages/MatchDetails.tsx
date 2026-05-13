@@ -438,11 +438,11 @@ export default function MatchDetails() {
       
       // Store which algorithm was used
       const algorithmNames: Record<string, string> = {
-        serpentine: "Serpentine (Kača)",
-        abba: "ABBA",
-        "first-last": "First-Last (Prvi-Zadnji)",
-        greedy: "Greedy balansiranje",
-        dp: "DP optimalen"
+        serpentine: t("md.algoSerpentine"),
+        abba: t("md.algoAbba"),
+        "first-last": t("md.algoFirstLastFull"),
+        greedy: t("md.algoGreedy"),
+        dp: t("md.algoDpFull")
       };
       const algorithmName = algorithmNames[algorithm];
       setUsedAlgorithm(algorithmName);
@@ -699,7 +699,7 @@ export default function MatchDetails() {
                   size="sm"
                   className="flex-1"
                 >
-                  Počisti ekipe
+                  {t("md.clearTeams")}
                 </Button>
               </div>
             </CardContent>
@@ -759,7 +759,7 @@ export default function MatchDetails() {
                           <span className="font-bold">{t("md.team")} {teamNum}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`goals-${teamNum}`} className="text-xs font-normal">
-                              Goli:
+                              {t("md.goalsLabel")}
                             </Label>
                             <Input
                               id={`goals-${teamNum}`}
@@ -801,7 +801,7 @@ export default function MatchDetails() {
                   }}
                   disabled={loading}
                 >
-                  Prekliči
+                  {t("md.cancel")}
                 </Button>
               </div>
             </DialogContent>
@@ -814,7 +814,7 @@ export default function MatchDetails() {
               onClick={cancelMatchResults}
               disabled={loading}
             >
-              Prekliči rezultate in odpri tekmo
+              {t("md.cancelResultsReopen")}
             </Button>
           )}
           </>
@@ -843,11 +843,11 @@ export default function MatchDetails() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold">{t("md.team")} {teamNum}</span>
                         <Badge variant="secondary" className="text-xs">
-                          {teamPlayers.length} igralcev
+                          {t("md.playersCount", { count: teamPlayers.length })}
                         </Badge>
                       </div>
                       <div className="text-xs font-normal text-muted-foreground">
-                        Povprečje: {(() => {
+                        {t("md.average")}: {(() => {
                           const playersOnly = teamPlayers.filter(p => p.position === "igralec");
                           if (playersOnly.length === 0) return "N/A";
                           return (playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length).toFixed(2);

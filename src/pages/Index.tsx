@@ -116,7 +116,7 @@ export default function Index() {
       if (error) throw error;
       setCurrentMembership(data);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju članstva");
+      toast.error(t("toast.membershipLoadError"));
     }
   };
 
@@ -193,7 +193,7 @@ export default function Index() {
 
       setParticipants(participantsWithProfiles);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju udeležencev");
+      toast.error(t("toast.participantsLoadError"));
     }
   };
 
