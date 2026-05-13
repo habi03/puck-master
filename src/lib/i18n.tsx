@@ -504,12 +504,8 @@ const translations = {
   "toast.ratingSaved": { si: "Ocena uspešno shranjena", en: "Rating saved successfully", de: "Bewertung erfolgreich gespeichert" },
   "toast.playersRemoved": { si: "Uspešno odstranjenih {count} igralcev", en: "Successfully removed {count} players", de: "{count} Spieler erfolgreich entfernt" },
   "toast.positionsChanged": { si: "Uspešno spremenjenih {count} pozicij", en: "Successfully changed {count} positions", de: "{count} Positionen erfolgreich geändert" },
-  "md.clearTeams": { si: "Počisti ekipe", en: "Clear teams", de: "Teams leeren" },
-  "md.cancel": { si: "Prekliči", en: "Cancel", de: "Abbrechen" },
   "md.cancelResultsReopen": { si: "Prekliči rezultate in odpri tekmo", en: "Cancel results and reopen match", de: "Ergebnisse abbrechen und Spiel öffnen" },
-  "md.goalsLabel": { si: "Goli:", en: "Goals:", de: "Tore:" },
   "md.playersCount": { si: "{count} igralcev", en: "{count} players", de: "{count} Spieler" },
-  "md.average": { si: "Povprečje", en: "Average", de: "Durchschnitt" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
