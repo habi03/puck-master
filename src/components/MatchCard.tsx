@@ -282,7 +282,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       if (error) throw error;
 
-      toast.success(`Uspešno odstranjenih ${playersToRemove.length} igralcev`);
+      toast.success(t("toast.playersRemoved", { count: playersToRemove.length }));
       setRemovePlayersDialogOpen(false);
       setPlayersToRemove([]);
       onUpdate();
@@ -351,7 +351,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         if (error) throw error;
       }
 
-      toast.success(`Uspešno spremenjenih ${changedParticipants.length} pozicij`);
+      toast.success(t("toast.positionsChanged", { count: changedParticipants.length }));
       setChangePositionDialogOpen(false);
       onUpdate();
     } catch (error: any) {

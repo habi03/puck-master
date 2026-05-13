@@ -101,7 +101,7 @@ export default function Players() {
       
       if (error || !data) {
         localStorage.removeItem("currentLeagueId");
-        toast.error("Nimate več dostopa do te lige");
+        toast.error(t("toast.noLeagueAccess"));
         navigate("/");
         return;
       }
@@ -325,7 +325,7 @@ export default function Players() {
 
       if (error) throw error;
 
-      toast.success("Ocena uspešno shranjena");
+      toast.success(t("toast.ratingSaved"));
       setDialogOpen(false);
       fetchPlayers();
     } catch (error: any) {
