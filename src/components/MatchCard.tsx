@@ -770,7 +770,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? sportConfig.positions.goalkeeper || "" : sportConfig.positions.player }));
+      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player") }));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
