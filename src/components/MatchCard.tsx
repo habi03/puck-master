@@ -126,7 +126,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .single();
 
       if (error) throw error;
-      setIsAdmin(data?.role === "admin");
+      setIsAdmin(data?.role === "admin" || data?.role === "super_user");
     } catch (error) {
       setIsAdmin(false);
     }
