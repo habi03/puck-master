@@ -1378,7 +1378,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                             {participant.profiles?.full_name || participant.profiles?.email || t("match.unknownName")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {participant.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player}
+                            {participant.position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player")}
                           </p>
                         </div>
                       </div>
