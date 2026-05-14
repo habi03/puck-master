@@ -506,6 +506,14 @@ const translations = {
   "toast.positionsChanged": { si: "Uspešno spremenjenih {count} pozicij", en: "Successfully changed {count} positions", de: "{count} Positionen erfolgreich geändert" },
   "md.cancelResultsReopen": { si: "Prekliči rezultate in odpri tekmo", en: "Cancel results and reopen match", de: "Ergebnisse abbrechen und Spiel öffnen" },
   "md.playersCount": { si: "{count} igralcev", en: "{count} players", de: "{count} Spieler" },
+  "leagues.nameMin": { si: "Ime mora biti dolgo vsaj 3 znake", en: "Name must be at least 3 characters", de: "Name muss mindestens 3 Zeichen lang sein" },
+  "leagues.nameMax": { si: "Ime je predolgo (max 100 znakov)", en: "Name is too long (max 100 characters)", de: "Name ist zu lang (max. 100 Zeichen)" },
+  "leagues.nameInvalid": { si: "Neveljavni znaki v imenu", en: "Invalid characters in name", de: "Ungültige Zeichen im Namen" },
+  "leagues.descMax": { si: "Opis je predolg (max 500 znakov)", en: "Description is too long (max 500 characters)", de: "Beschreibung ist zu lang (max. 500 Zeichen)" },
+  "leagues.passwordMin": { si: "Geslo mora biti dolgo vsaj 8 znakov", en: "Password must be at least 8 characters", de: "Passwort muss mindestens 8 Zeichen lang sein" },
+  "leagues.passwordMax": { si: "Geslo je predolgo (max 100 znakov)", en: "Password is too long (max 100 characters)", de: "Passwort ist zu lang (max. 100 Zeichen)" },
+  "leagues.seasonRequired": { si: "Ime sezone je obvezno", en: "Season name is required", de: "Saisonname ist erforderlich" },
+  "leagues.seasonMax": { si: "Ime sezone je predolgo", en: "Season name is too long", de: "Saisonname ist zu lang" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
