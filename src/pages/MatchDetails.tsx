@@ -1185,7 +1185,7 @@ export default function MatchDetails() {
 
         {activeParticipants.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
-            Ni še {t("md.registeredPlayers")}
+            {t("md.noPlayers")}
           </p>
         )}
 
