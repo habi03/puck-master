@@ -1138,7 +1138,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             ) : (
               <>
                 <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player })}
+                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player") })}
                 </Badge>
                 
                 {!userParticipation.brings_beer && !beerBringer && (
