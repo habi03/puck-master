@@ -319,8 +319,8 @@ export default function Profile() {
                 <h2 className="text-lg font-bold">{profile.full_name || profile.email.split("@")[0]}</h2>
                 <p className="text-sm text-muted-foreground">{profile.email}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant={membership.role === "admin" ? "default" : "secondary"}>
-                    {membership.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
+                  <Badge variant={(membership.role === "admin" || membership.role === "super_user") ? "default" : "secondary"}>
+                    {(membership.role === "admin" || membership.role === "super_user") && <Shield className="h-3 w-3 mr-1" />}
                     {roleMap[membership.role] || membership.role}
                   </Badge>
                 </div>
@@ -423,9 +423,9 @@ export default function Profile() {
               <PermissionRow label={t("profile.matchSignup")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
               <PermissionRow label={t("profile.viewLeaderboard")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
               <PermissionRow label={t("profile.ratingPlayers")} allowed={true} yes={t("profile.yes")} no={t("profile.no")} />
-              <PermissionRow label={t("profile.manageMatches")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
-              <PermissionRow label={t("profile.manageMembers")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
-              <PermissionRow label={t("profile.leagueSettings")} allowed={membership.role === "admin"} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.manageMatches")} allowed={membership.role === "admin" || membership.role === "super_user"} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.manageMembers")} allowed={membership.role === "admin" || membership.role === "super_user"} yes={t("profile.yes")} no={t("profile.no")} />
+              <PermissionRow label={t("profile.leagueSettings")} allowed={membership.role === "admin" || membership.role === "super_user"} yes={t("profile.yes")} no={t("profile.no")} />
             </div>
           </CardContent>
         </Card>
