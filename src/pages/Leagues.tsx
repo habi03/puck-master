@@ -17,26 +17,26 @@ import { z } from "zod";
 import { ALL_SPORTS, getSportConfig, getSportEmoji, SportType } from "@/lib/sportConfig";
 import { useI18n } from "@/lib/i18n";
 
-const leagueSchema = z.object({
+const makeLeagueSchema = (t: (k: string) => string) => z.object({
   name: z.string()
     .trim()
-    .min(3, "Ime mora biti dolgo vsaj 3 znake")
-    .max(100, "Ime je predolgo (max 100 znakov)")
-    .regex(/^[a-zA-Z0-9čćžšđČĆŽŠĐ\s-]+$/, "Neveljavni znaki v imenu"),
+    .min(3, t("leagues.nameMin"))
+    .max(100, t("leagues.nameMax"))
+    .regex(/^[a-zA-Z0-9čćžšđČĆŽŠĐ\s-]+$/, t("leagues.nameInvalid")),
   description: z.string()
     .trim()
-    .max(500, "Opis je predolg (max 500 znakov)")
+    .max(500, t("leagues.descMax"))
     .optional(),
   password: z.string()
     .trim()
-    .min(8, "Geslo mora biti dolgo vsaj 8 znakov")
-    .max(100, "Geslo je predolgo (max 100 znakov)")
+    .min(8, t("leagues.passwordMin"))
+    .max(100, t("leagues.passwordMax"))
     .optional()
     .or(z.literal('')),
   seasonName: z.string()
     .trim()
-    .min(1, "Ime sezone je obvezno")
-    .max(100, "Ime sezone je predolgo"),
+    .min(1, t("leagues.seasonRequired"))
+    .max(100, t("leagues.seasonMax")),
 });
 
 export default function Leagues() {
