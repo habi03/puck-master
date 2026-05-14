@@ -123,7 +123,7 @@ export default function Leagues() {
 
     try {
       // Validate input
-      const validatedData = leagueSchema.parse({
+      const validatedData = makeLeagueSchema(t).parse({
         name: newLeagueName,
         description: newLeagueDesc || "",
         password: newLeaguePassword || "",
