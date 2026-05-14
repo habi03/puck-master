@@ -605,18 +605,18 @@ export default function MatchDetails() {
           className="mb-4 gap-1"
         >
           <ArrowLeft className="h-4 w-4" />
-          Nazaj
+          {t("md.back")}
         </Button>
 
         <div className="mb-4">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            Tekma {new Date(match.match_date).toLocaleDateString('sl-SI')}
+            {t("md.matchOn")} {new Date(match.match_date).toLocaleDateString('sl-SI')}
             {match.is_completed && (
               <Badge variant="secondary" className="text-xs">{t("md.completed")}</Badge>
             )}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Ura: {match.match_time.slice(0, 5)} • {match.number_of_teams} ekipe
+            {t("md.time")}: {match.match_time.slice(0, 5)} • {match.number_of_teams} {t("md.teams")}
           </p>
         </div>
 
@@ -625,7 +625,7 @@ export default function MatchDetails() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
-                Rezultat tekme
+                {t("md.matchResult")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -661,7 +661,7 @@ export default function MatchDetails() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
-                Admin kontrole
+                {t("md.adminControls")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -690,7 +690,7 @@ export default function MatchDetails() {
                   size="sm"
                   className="flex-1"
                 >
-                  Razporedi ekipe
+                  {t("md.distributeTeams")}
                 </Button>
                 <Button 
                   onClick={clearTeams}
@@ -831,7 +831,7 @@ export default function MatchDetails() {
               <h3 className="text-sm font-semibold">{t("md.teams")}</h3>
               {usedAlgorithm && (
                 <Badge variant="outline" className="text-xs">
-                  {usedAlgorithm}
+                  {usedAlgorithm === "Ročno" ? t("md.manual") : usedAlgorithm}
                 </Badge>
               )}
             </div>
@@ -1193,7 +1193,7 @@ export default function MatchDetails() {
         {participants.filter(p => p.is_present === false || (p as any).is_absent === true).length > 0 && (
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold text-muted-foreground">
-              Odsotni
+              {t("md.absent")}
             </h3>
             <Card>
               <CardContent className="pt-4 space-y-2">
