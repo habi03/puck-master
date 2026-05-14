@@ -770,7 +770,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         });
 
       if (error) throw error;
-      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? sportConfig.positions.goalkeeper || "" : sportConfig.positions.player }));
+      toast.success(t("match.signUpSuccess", { position: position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player") }));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -1090,8 +1090,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
-                    {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
+                    <SelectItem value="igralec">{t("pos.player")}</SelectItem>
+                    {hasGoalkeeper && <SelectItem value="vratar">{t("pos.goalkeeper")}</SelectItem>}
                   </SelectContent>
                 </Select>
                 <Button 
@@ -1138,7 +1138,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             ) : (
               <>
                 <Badge variant="outline" className="w-full justify-center py-1.5 text-xs">
-                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player })}
+                  {t("match.signedUpAs", { position: userParticipation.position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player") })}
                 </Badge>
                 
                 {!userParticipation.brings_beer && !beerBringer && (
@@ -1258,8 +1258,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
-                            {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
+                            <SelectItem value="igralec">{t("pos.player")}</SelectItem>
+                            {hasGoalkeeper && <SelectItem value="vratar">{t("pos.goalkeeper")}</SelectItem>}
                           </SelectContent>
                         </Select>
                       )}
@@ -1378,7 +1378,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                             {participant.profiles?.full_name || participant.profiles?.email || t("match.unknownName")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {participant.position === "vratar" ? (sportConfig.positions.goalkeeper || "") : sportConfig.positions.player}
+                            {participant.position === "vratar" ? (hasGoalkeeper ? t("pos.goalkeeper") : "") : t("pos.player")}
                           </p>
                         </div>
                       </div>
@@ -1446,8 +1446,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-background border z-50">
-                        <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
-                        {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
+                        <SelectItem value="igralec">{t("pos.player")}</SelectItem>
+                        {hasGoalkeeper && <SelectItem value="vratar">{t("pos.goalkeeper")}</SelectItem>}
                       </SelectContent>
                     </Select>
                   </div>

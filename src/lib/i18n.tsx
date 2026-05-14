@@ -14,6 +14,8 @@ const translations = {
   "nav.signOut": { si: "Odjava", en: "Sign Out", de: "Abmelden" },
   "nav.signOutError": { si: "Napaka pri odjavi", en: "Error signing out", de: "Fehler beim Abmelden" },
   "nav.signOutSuccess": { si: "Uspešna odjava", en: "Successfully signed out", de: "Erfolgreich abgemeldet" },
+  "pos.player": { si: "Igralec", en: "Player", de: "Spieler" },
+  "pos.goalkeeper": { si: "Vratar", en: "Goalkeeper", de: "Torhüter" },
 
   // ===== AUTH =====
   "auth.title": { si: "Playta", en: "Playta", de: "Playta" },
