@@ -1446,8 +1446,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-background border z-50">
-                        <SelectItem value="igralec">{sportConfig.positions.player}</SelectItem>
-                        {hasGoalkeeper && <SelectItem value="vratar">{sportConfig.positions.goalkeeper}</SelectItem>}
+                        <SelectItem value="igralec">{t("pos.player")}</SelectItem>
+                        {hasGoalkeeper && <SelectItem value="vratar">{t("pos.goalkeeper")}</SelectItem>}
                       </SelectContent>
                     </Select>
                   </div>
