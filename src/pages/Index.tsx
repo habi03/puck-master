@@ -100,7 +100,7 @@ export default function Index() {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju profila");
+      toast.error(t("toast.profileLoadError"));
     }
   };
 
@@ -156,7 +156,7 @@ export default function Index() {
       if (error) throw error;
       setMatches(data || []);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju tekem");
+      toast.error(t("toast.matchesLoadError"));
     }
   };
 
