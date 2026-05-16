@@ -268,7 +268,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
   const handleRemoveSelectedPlayers = async () => {
     if (playersToRemove.length === 0) {
-      toast.error("Izberite vsaj enega igralca");
+      toast.error(t("toast.selectAtLeastOnePlayer"));
       return;
     }
 
@@ -317,7 +317,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       );
 
       if (changedParticipants.length === 0) {
-        toast.info("Nobena pozicija ni bila spremenjena");
+        toast.info(t("toast.noPositionChanged"));
         setChangePositionDialogOpen(false);
         return;
       }
@@ -371,7 +371,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success(match.signups_locked ? "Prijave odklenjene" : "Prijave zaklenjene");
+      toast.success(match.signups_locked ? t("toast.signupsUnlocked") : t("toast.signupsLocked"));
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -395,7 +395,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Lokacija shranjena");
+      toast.success(t("toast.locationSaved"));
       setLocationDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -426,7 +426,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Omejitve shranjene");
+      toast.success(t("toast.limitsSaved"));
       setMaxParticipantsDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -451,7 +451,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         .eq("id", match.id);
 
       if (error) throw error;
-      toast.success("Opomba shranjena");
+      toast.success(t("toast.noteSaved"));
       setNotesDialogOpen(false);
       onUpdate();
     } catch (error: any) {

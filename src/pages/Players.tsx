@@ -199,7 +199,7 @@ export default function Players() {
 
       setPlayers(playersData);
     } catch (error: any) {
-      toast.error("Napaka pri nalaganju igralcev");
+      toast.error(t("toast.playersLoadError"));
       console.error(error);
     }
   };
@@ -267,7 +267,7 @@ export default function Players() {
       setRatersPlayerId(player.id);
       setRatersDialogOpen(true);
     } catch (error) {
-      toast.error("Napaka pri nalaganju ocenjevalcev");
+      toast.error(t("toast.ratersLoadError"));
       console.error(error);
     }
   };
@@ -281,11 +281,11 @@ export default function Players() {
         .eq("rater_id", raterId)
         .eq("rated_player_id", ratersPlayerId);
       if (error) throw error;
-      toast.success("Ocena izbrisana");
+      toast.success(t("toast.ratingDeleted"));
       setRatersDialogOpen(false);
       fetchPlayers();
     } catch (error) {
-      toast.error("Napaka pri brisanju ocene");
+      toast.error(t("toast.ratingDeleteError"));
       console.error(error);
     }
   };
@@ -299,12 +299,12 @@ export default function Players() {
         .eq("rater_id", editingRater.id)
         .eq("rated_player_id", ratersPlayerId);
       if (error) throw error;
-      toast.success("Ocena posodobljena");
+      toast.success(t("toast.ratingUpdated"));
       setEditingRater(null);
       setRatersDialogOpen(false);
       fetchPlayers();
     } catch (error) {
-      toast.error("Napaka pri posodabljanju ocene");
+      toast.error(t("toast.ratingUpdateError"));
       console.error(error);
     }
   };
@@ -329,7 +329,7 @@ export default function Players() {
       setDialogOpen(false);
       fetchPlayers();
     } catch (error: any) {
-      toast.error("Napaka pri shranjevanju ocene");
+      toast.error(t("toast.ratingSaveError"));
       console.error(error);
     }
   };
