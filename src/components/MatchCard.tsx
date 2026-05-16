@@ -1007,9 +1007,13 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                 const active = participants.filter(p => !p.is_absent);
                 const playersCount = active.filter(p => p.position === "igralec").length;
                 const goalkeepersCount = active.filter(p => p.position === "vratar").length;
-                const playersText = `${playersCount}${match.max_players ? `/${match.max_players}` : ''} ${sportConfig.positions.player.toLowerCase()}ev`;
+                const playersText = match.max_players
+                  ? t("match.playersShortMax", { count: playersCount, max: match.max_players })
+                  : t("match.playersShort", { count: playersCount });
                 if (!hasGoalkeeper) return playersText;
-                const goalkeepersText = `${goalkeepersCount}${match.max_goalkeepers ? `/${match.max_goalkeepers}` : ''} ${(sportConfig.positions.goalkeeper || '').toLowerCase()}jev`;
+                const goalkeepersText = match.max_goalkeepers
+                  ? t("match.goalkeepersShortMax", { count: goalkeepersCount, max: match.max_goalkeepers })
+                  : t("match.goalkeepersShort", { count: goalkeepersCount });
                 return `${playersText}, ${goalkeepersText}`;
               })()}
             </span>
