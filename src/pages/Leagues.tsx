@@ -448,7 +448,7 @@ export default function Leagues() {
 
         {myLeagues.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t("leagues.yourLeagues")}</h3>
+            <h3 className="text-sm font-semibold mb-3 text-primary-foreground">{t("leagues.yourLeagues")}</h3>
             <div className="space-y-3">
               {myLeagues.map((membership) => (
                 <Card key={membership.id} className="bg-card/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-shadow">
@@ -514,8 +514,8 @@ export default function Leagues() {
           </div>
         )}
 
-        <div className="bg-card/95 backdrop-blur-sm border-2 rounded-xl p-4 shadow-lg">
-          <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t("leagues.allLeagues")}</h3>
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-primary-foreground">{t("leagues.allLeagues")}</h3>
           
           {/* Search & Filters */}
           <div className="mb-4 space-y-3">
