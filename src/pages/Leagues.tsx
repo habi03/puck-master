@@ -573,14 +573,14 @@ export default function Leagues() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredLeagues.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
                 {leagues.length === 0 ? t("leagues.noLeaguesYet") : t("leagues.noMatchFilter")}
               </p>
             ) : (
               filteredLeagues.map((league) => (
-                <Card key={league.id}>
+                <Card key={league.id} className="bg-card/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-shadow">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <span>{getSportEmoji((league as any).sport_type)}</span>
