@@ -451,7 +451,7 @@ export default function Leagues() {
             <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t("leagues.yourLeagues")}</h3>
             <div className="space-y-3">
               {myLeagues.map((membership) => (
-                <Card key={membership.id}>
+                <Card key={membership.id} className="bg-card/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center">
                     <div 
                       className="flex-1 cursor-pointer hover:bg-accent/50 transition-colors rounded-l-lg"
