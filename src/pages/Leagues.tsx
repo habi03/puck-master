@@ -331,10 +331,10 @@ export default function Leagues() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-primary/30">
       <Navbar user={user} />
       
-      <main className="px-4 py-4">
+      <main className="px-4 py-4 max-w-3xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold">{t("nav.myLeagues")}</h2>
