@@ -514,8 +514,8 @@ export default function Leagues() {
           </div>
         )}
 
-        <div>
-          <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{t("leagues.allLeagues")}</h3>
+        <div className="bg-card/95 backdrop-blur-sm border-2 rounded-xl p-4 shadow-lg">
+          <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t("leagues.allLeagues")}</h3>
           
           {/* Search & Filters */}
           <div className="mb-4 space-y-3">
