@@ -448,8 +448,8 @@ export default function Leagues() {
 
         {myLeagues.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{t("leagues.yourLeagues")}</h3>
-            <div className="space-y-2">
+            <h3 className="text-sm font-semibold mb-3 text-card-foreground">{t("leagues.yourLeagues")}</h3>
+            <div className="space-y-3">
               {myLeagues.map((membership) => (
                 <Card key={membership.id}>
                   <div className="flex items-center">
