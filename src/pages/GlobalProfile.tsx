@@ -130,7 +130,22 @@ export default function GlobalProfile() {
         throw new Error("Izbrati morate sliko");
       }
       const file = event.target.files[0];
-      const fileExt = file.name.split(".").pop();
+
+      const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
+      const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      const ALLOWED_AVATAR_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
+
+      if (file.size > MAX_AVATAR_SIZE) {
+        throw new Error("Max 5 MB");
+      }
+      if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+        throw new Error("JPEG, PNG, GIF, WebP");
+      }
+
+      const fileExt = (file.name.split(".").pop() || "").toLowerCase();
+      if (!ALLOWED_AVATAR_EXTS.includes(fileExt)) {
+        throw new Error("JPEG, PNG, GIF, WebP");
+      }
       const filePath = `${user.id}/avatar.${fileExt}`;
 
       if (avatarUrl) {
@@ -293,7 +308,7 @@ export default function GlobalProfile() {
                 <Input
                   id="avatar-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleAvatarUpload}
                   disabled={uploading}
                   className="hidden"
