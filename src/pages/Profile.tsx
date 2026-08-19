@@ -108,7 +108,7 @@ export default function Profile() {
         await fetchAllSeasonStats(userId, leagueId, leagueRes.data);
       }
     } catch (error) {
-      console.error("Error fetching profile data:", error);
+      // Error details intentionally not logged to the browser console.
       toast.error(t("common.error"));
     }
   };
@@ -197,7 +197,7 @@ export default function Profile() {
         averageRating: ratingRes.data?.average_rating || 0,
       });
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      // Error details intentionally not logged to the browser console.
     }
   };
 
@@ -282,7 +282,7 @@ export default function Profile() {
 
       setSeasonStats(perSeason);
     } catch (error) {
-      console.error("Error fetching season stats:", error);
+      // Error details intentionally not logged to the browser console.
     }
   };
 
