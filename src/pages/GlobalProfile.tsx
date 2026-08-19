@@ -308,7 +308,7 @@ export default function GlobalProfile() {
                 <Input
                   id="avatar-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleAvatarUpload}
                   disabled={uploading}
                   className="hidden"
