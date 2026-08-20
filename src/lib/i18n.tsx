@@ -20,6 +20,7 @@ const translations = {
   // ===== AUTH =====
   "auth.title": { si: "Playta", en: "Playta", de: "Playta" },
   "auth.setNewPassword": { si: "Nastavite novo geslo", en: "Set a new password", de: "Neues Passwort festlegen" },
+  "auth.tagline": { si: "Organizacija rekreativnih športnih lig, tekem in lestvic", en: "Sports league management, match scheduling and leaderboards", de: "Verwaltung von Sportligen, Spielplänen und Ranglisten" },
   "auth.loginSubtitle": { si: "Prijavite se v svoj račun", en: "Sign in to your account", de: "Melden Sie sich an" },
   "auth.registerSubtitle": { si: "Ustvarite nov račun", en: "Create a new account", de: "Erstellen Sie ein neues Konto" },
   "auth.newPassword": { si: "Novo geslo", en: "New password", de: "Neues Passwort" },

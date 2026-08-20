@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 import { useI18n } from "@/lib/i18n";
+import Seo from "@/components/Seo";
 
 export default function Auth() {
   const { t } = useI18n();
