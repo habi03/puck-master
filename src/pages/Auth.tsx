@@ -207,17 +207,23 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" 
          style={{ background: "var(--gradient-hero)" }}>
+      <Seo
+        title="Playta – prijava | Organizacija športnih lig in tekem"
+        description="Prijavite se v Playto: organizacija rekreativnih športnih tekem, razporejanje ekip, lestvice in ocene igralcev za hokej, nogomet, košarko in odbojko."
+      />
       <Card className="w-full max-w-sm shadow-lg">
         <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Playta
-          </CardTitle>
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("auth.tagline")}</p>
           <CardDescription className="text-sm">
             {isPasswordReset 
               ? t("auth.setNewPassword") 
               : isLogin ? t("auth.loginSubtitle") : t("auth.registerSubtitle")}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {isPasswordReset ? (
             <form onSubmit={handleUpdatePassword} className="space-y-3">
