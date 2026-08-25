@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +28,7 @@ interface PlayerWithRating {
   location?: string;
   birth_date?: string;
   role?: string;
+  season_role?: string;
   average_rating: number;
   total_ratings: number;
   myRating?: number;
@@ -123,6 +125,8 @@ export default function Players() {
   }, [user, currentLeagueId]);
 
   const fetchPlayers = async () => {
+    if (!currentLeagueId || !user) return;
+
     try {
       // Fetch all league members
       const { data: members, error: membersError } = await supabase
@@ -159,6 +163,30 @@ export default function Players() {
 
       if (rolesError) throw rolesError;
 
+      // Fetch paid/unpaid roles for the active season
+      const { data: activeSeason, error: seasonError } = await supabase
+        .from("seasons")
+        .select("id")
+        .eq("league_id", currentLeagueId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (seasonError) throw seasonError;
+
+      let seasonRoles: { user_id: string; role: string }[] = [];
+
+      if (activeSeason) {
+        const { data, error } = await supabase
+          .from("season_member_roles")
+          .select("user_id, role")
+          .eq("league_id", currentLeagueId)
+          .eq("season_id", activeSeason.id)
+          .in("user_id", userIds);
+
+        if (error) throw error;
+        seasonRoles = data || [];
+      }
+
       // Fetch my ratings
       const { data: myRatings, error: myRatingsError } = await supabase
         .from("player_ratings")
@@ -174,6 +202,7 @@ export default function Players() {
           const ratingData = ratings.find(r => r.player_id === profile.id);
           const myRating = myRatings.find(r => r.rated_player_id === profile.id);
           const memberRole = memberRoles.find(m => m.user_id === profile.id);
+          const seasonRole = seasonRoles.find(m => m.user_id === profile.id);
           
           const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
@@ -190,6 +219,7 @@ export default function Players() {
             location: profile.location || undefined,
             birth_date: profile.birth_date || undefined,
             role: memberRole ? roleMap[memberRole.role] || memberRole.role : undefined,
+            season_role: activeSeason ? (seasonRole?.role || "neplačan_član") : undefined,
             average_rating: ratingData?.average_rating || 0,
             total_ratings: ratingData?.total_ratings || 0,
             myRating: myRating?.rating,
@@ -375,9 +405,16 @@ export default function Players() {
                           {player.full_name}
                         </CardTitle>
                         {player.role && (
-                          <p className="text-xs text-muted-foreground">
-                            {player.role}
-                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs text-muted-foreground">
+                              {player.role}
+                            </span>
+                            {player.season_role && (
+                              <Badge variant={player.season_role === "plačan_član" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                                {player.season_role === "plačan_član" ? t("admin.paid") : t("admin.unpaid")}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
