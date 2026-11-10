@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -44,8 +44,10 @@ export default function Admin() {
   const [seasons, setSeasons] = useState<any[]>([]);
   const [newSeasonName, setNewSeasonName] = useState("");
   const [seasonDialogOpen, setSeasonDialogOpen] = useState(false);
-  const [memberSeasonId, setMemberSeasonId] = useState<string>("league");
+  // "" = not resolved yet; members view defaults to the active season once seasons load
+  const [memberSeasonId, setMemberSeasonId] = useState<string>("");
   const [seasonRoles, setSeasonRoles] = useState<Record<string, string>>({});
+  const seasonDefaultLeague = useRef<string | null>(null);
   const navigate = useNavigate();
 
   const matchSchema = z.object({
@@ -235,8 +237,24 @@ export default function Admin() {
 
       if (error) throw error;
       setSeasons(data || []);
+
+      // Members tab defaults to the active season (payment status), not the permanent role
+      if (seasonDefaultLeague.current !== currentLeagueId) {
+        seasonDefaultLeague.current = currentLeagueId;
+        const activeSeason = (data || []).find((s: any) => s.is_active);
+        if (activeSeason) {
+          setMemberSeasonId(activeSeason.id);
+          fetchSeasonRoles(activeSeason.id);
+        } else {
+          setMemberSeasonId("league");
+        }
+      }
     } catch (error: any) {
       toast.error(t("admin.errorSeasons"));
+      if (seasonDefaultLeague.current !== currentLeagueId) {
+        seasonDefaultLeague.current = currentLeagueId;
+        setMemberSeasonId("league");
+      }
     }
   };
 
@@ -613,7 +631,7 @@ export default function Admin() {
                 <Users className="h-4 w-4" />
                 <span>{members.length} {t("admin.membersInLeague")}</span>
               </div>
-              {seasons.length > 0 && (
+              {seasons.length > 0 && memberSeasonId !== "" && (
                 <Select value={memberSeasonId} onValueChange={(v) => { setMemberSeasonId(v); fetchSeasonRoles(v); }}>
                   <SelectTrigger className="w-[170px]">
                     <SelectValue placeholder={t("admin.selectSeason")} />
@@ -630,14 +648,21 @@ export default function Admin() {
               )}
             </div>
 
-            {memberSeasonId !== "league" && (
+            {memberSeasonId !== "league" && memberSeasonId !== "" && (
               <div className="text-xs text-muted-foreground p-2 rounded-lg bg-muted/50 border mb-2">
                 {t("admin.editingPayment")}: <strong>{seasons.find(s => s.id === memberSeasonId)?.name}</strong>
               </div>
             )}
 
+            {memberSeasonId === "" && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground p-4">
+                <Users className="h-4 w-4 animate-pulse" />
+                <span>{t("common.loading")}</span>
+              </div>
+            )}
+
             {members.map((member) => {
-              const isSeasonView = memberSeasonId !== "league";
+              const isSeasonView = memberSeasonId !== "league" && memberSeasonId !== "";
               const currentSeasonRole = isSeasonView
                 ? (seasonRoles[member.user_id] || "neplačan_član")
                 : null;
