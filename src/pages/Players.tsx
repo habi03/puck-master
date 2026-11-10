@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -386,8 +387,19 @@ export default function Players() {
               {t("players.noPlayers")}
             </p>
           ) : (
-            players.map((player) => (
-              <Card key={player.id}>
+            players.map((player) => {
+              const isPaid = player.season_role === "plačan_član";
+              return (
+              <Card
+                key={player.id}
+                className={cn(
+                  "transition-colors",
+                  player.season_role &&
+                    (isPaid
+                      ? "border-success/45 bg-success/10"
+                      : "border-destructive/45 bg-destructive/10")
+                )}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div 
@@ -410,8 +422,14 @@ export default function Players() {
                               {player.role}
                             </span>
                             {player.season_role && (
-                              <Badge variant={player.season_role === "plačan_član" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                                {player.season_role === "plačan_član" ? t("admin.paid") : t("admin.unpaid")}
+                              <Badge
+                                variant={isPaid ? "default" : "destructive"}
+                                className={cn(
+                                  "text-[10px] px-1.5 py-0",
+                                  isPaid && "bg-success text-success-foreground hover:bg-success/80"
+                                )}
+                              >
+                                {isPaid ? t("admin.paid") : t("admin.unpaid")}
                               </Badge>
                             )}
                           </div>
@@ -488,7 +506,8 @@ export default function Players() {
                   </div>
                 </CardContent>
               </Card>
-            ))
+              );
+            })
           )}
         </div>
 
