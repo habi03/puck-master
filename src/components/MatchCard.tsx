@@ -329,14 +329,14 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
         // Calculate new rating based on position
         let combinedRating = null;
         if (newPosition === "igralec") {
-          combinedRating = 3.0;
+          combinedRating = 3;
           const { data: ratingData } = await supabase
             .from("rating_aggregates")
             .select("average_rating")
             .eq("player_id", participant.player_id)
             .single();
           if (ratingData?.average_rating) {
-            combinedRating = ratingData.average_rating;
+            combinedRating = Math.round(ratingData.average_rating);
           }
         }
 
@@ -572,7 +572,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
         // Only calculate rating for players (not goalkeepers)
         if (player.position === "igralec") {
-          combinedRating = 3.0; // Default middle value
+          combinedRating = 3; // Default middle value
 
           // Get peer rating
           const { data: ratingData } = await supabase
@@ -582,7 +582,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
             .single();
 
           if (ratingData?.average_rating) {
-            combinedRating = ratingData.average_rating;
+            combinedRating = Math.round(ratingData.average_rating);
           }
         }
 
@@ -651,7 +651,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       // Only calculate rating for players (not goalkeepers)
       if (position === "igralec") {
-        combinedRating = 3.0; // Default middle value
+        combinedRating = 3; // Default middle value
 
         // Get peer rating
         const { data: ratingData } = await supabase
@@ -660,7 +660,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           .eq("player_id", currentUser.id)
           .single();
 
-        const peerRating = ratingData?.average_rating || 3.0;
+        const peerRating = ratingData?.average_rating || 3;
 
         // Get leaderboard data for current league
         const { data: leagueData } = await supabase
@@ -755,7 +755,7 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
           }
 
           // Calculate combined rating: 0.6 * peer rating + position bonus
-          combinedRating = 0.6 * peerRating + positionBonus;
+          combinedRating = Math.round(0.6 * peerRating + positionBonus);
           }
         }
       }

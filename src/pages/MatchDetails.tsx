@@ -850,7 +850,7 @@ export default function MatchDetails() {
                         {t("md.average")}: {(() => {
                           const playersOnly = teamPlayers.filter(p => p.position === "igralec");
                           if (playersOnly.length === 0) return "N/A";
-                          return (playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length).toFixed(2);
+                          return Math.round(playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length);
                         })()}
                       </div>
                     </div>
@@ -930,7 +930,7 @@ export default function MatchDetails() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-muted-foreground">
-                          ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
+                          ⭐ {p.combined_rating ? Math.round(p.combined_rating) : "N/A"}
                         </span>
                         {isAdmin && (
                           <Select
@@ -1068,7 +1068,7 @@ export default function MatchDetails() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-muted-foreground">
-                          ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
+                          ⭐ {p.combined_rating ? Math.round(p.combined_rating) : "N/A"}
                         </span>
                         {isAdmin && (
                           <Select
@@ -1174,7 +1174,7 @@ export default function MatchDetails() {
                       )}
                     </div>
                     <span className="text-muted-foreground flex-shrink-0">
-                      ⭐ {p.combined_rating?.toFixed(2) || "N/A"}
+                      ⭐ {p.combined_rating ? Math.round(p.combined_rating) : "N/A"}
                     </span>
                   </div>
                 ))}

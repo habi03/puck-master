@@ -48,7 +48,7 @@ export default function Players() {
   const [players, setPlayers] = useState<PlayerWithRating[]>([]);
   const [currentLeagueId, setCurrentLeagueId] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithRating | null>(null);
-  const [rating, setRating] = useState<number>(5.0);
+  const [rating, setRating] = useState<number>(5);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ url: string; name: string; location?: string; birth_date?: string } | null>(null);
@@ -237,7 +237,7 @@ export default function Players() {
 
   const handleRatePlayer = (player: PlayerWithRating) => {
     setSelectedPlayer(player);
-    setRating(player.myRating || 5.0);
+    setRating(player.myRating || 5);
     setDialogOpen(true);
   };
 
@@ -443,7 +443,7 @@ export default function Players() {
                     >
                       <Star className="h-4 w-4 fill-primary text-primary" />
                       <span className="font-bold text-sm">
-                        {player.average_rating.toFixed(2)}
+                        {Math.round(player.average_rating)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         ({player.total_ratings})
@@ -482,18 +482,18 @@ export default function Players() {
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label>{t("players.rating")}: {rating.toFixed(1)}/10</Label>
+                              <Label>{t("players.rating")}: {rating}/10</Label>
                               <Slider
                                 value={[rating]}
-                                onValueChange={(value) => setRating(Math.round(value[0] * 10) / 10)}
+                                onValueChange={(value) => setRating(Math.round(value[0]))}
                                 min={1}
                                 max={10}
-                                step={0.1}
+                                step={1}
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>1.0 - {t("players.worst")}</span>
-                                <span>10.0 - {t("players.best")}</span>
+                                <span>1 - {t("players.worst")}</span>
+                                <span>10 - {t("players.best")}</span>
                               </div>
                             </div>
                             <Button onClick={submitRating} className="w-full">
@@ -562,7 +562,7 @@ export default function Players() {
                       <span className="text-sm font-medium flex-1">{rater.full_name}</span>
                       {isSuperUser && rater.rating !== undefined && (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-primary">{Number(rater.rating).toFixed(1)}</span>
+                          <span className="text-sm font-bold text-primary">{Math.round(Number(rater.rating))}</span>
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setEditingRater(rater); setEditRatingValue(Number(rater.rating)); }}>
                             <Star className="h-3.5 w-3.5" />
                           </Button>
@@ -578,13 +578,13 @@ export default function Players() {
               {/* Inline edit rating for super user */}
               {editingRater && (
                 <div className="mt-4 p-3 border rounded-lg space-y-3">
-                  <Label className="text-sm">{t("players.editRatingFor", { name: editingRater.full_name })}: {editRatingValue.toFixed(1)}/10</Label>
+                  <Label className="text-sm">{t("players.editRatingFor", { name: editingRater.full_name })}: {editRatingValue}/10</Label>
                   <Slider
                     value={[editRatingValue]}
-                    onValueChange={(v) => setEditRatingValue(Math.round(v[0] * 10) / 10)}
+                    onValueChange={(v) => setEditRatingValue(Math.round(v[0]))}
                     min={1}
                     max={10}
-                    step={0.1}
+                    step={1}
                   />
                   <div className="flex gap-2">
                     <Button size="sm" onClick={handleEditRating} className="flex-1">{t("common.save")}</Button>
