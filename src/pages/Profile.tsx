@@ -367,7 +367,7 @@ export default function Profile() {
               <StatItem
                 icon={<Trophy className="h-4 w-4 text-secondary" />}
                 label={t("profile.rating")}
-                value={stats.averageRating > 0 ? Math.round(stats.averageRating) : "–"}
+                value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "–"}
               />
             </div>
           </CardContent>

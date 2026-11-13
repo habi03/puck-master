@@ -443,7 +443,7 @@ export default function Players() {
                     >
                       <Star className="h-4 w-4 fill-primary text-primary" />
                       <span className="font-bold text-sm">
-                        {Math.round(player.average_rating)}
+                        {player.average_rating.toFixed(1)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         ({player.total_ratings})

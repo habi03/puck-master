@@ -850,7 +850,7 @@ export default function MatchDetails() {
                         {t("md.average")}: {(() => {
                           const playersOnly = teamPlayers.filter(p => p.position === "igralec");
                           if (playersOnly.length === 0) return "N/A";
-                          return Math.round(playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length);
+                          return (playersOnly.reduce((sum, p) => sum + (p.combined_rating || 0), 0) / playersOnly.length).toFixed(1);
                         })()}
                       </div>
                     </div>
