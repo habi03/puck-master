@@ -64,6 +64,8 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
   const [changePositionDialogOpen, setChangePositionDialogOpen] = useState(false);
   const [positionChanges, setPositionChanges] = useState<Record<string, "igralec" | "vratar">>({});
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [teamsDialogOpen, setTeamsDialogOpen] = useState(false);
+  const [teamsValue, setTeamsValue] = useState<string>("2");
   const [locationValue, setLocationValue] = useState(match.location || "");
   const [maxParticipantsDialogOpen, setMaxParticipantsDialogOpen] = useState(false);
   const [maxPlayersValue, setMaxPlayersValue] = useState<string>(match.max_players?.toString() || "");
@@ -372,6 +374,37 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
 
       if (error) throw error;
       toast.success(match.signups_locked ? t("toast.signupsUnlocked") : t("toast.signupsLocked"));
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenTeams = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTeamsValue(String(match.number_of_teams));
+    setTeamsDialogOpen(true);
+  };
+
+  const handleSaveTeams = async () => {
+    const n = parseInt(teamsValue, 10);
+    if (n === match.number_of_teams) { setTeamsDialogOpen(false); return; }
+    setLoading(true);
+    try {
+      const { error: pErr } = await supabase
+        .from("match_participants")
+        .update({ team_number: null })
+        .eq("match_id", match.id);
+      if (pErr) throw pErr;
+      const { error } = await supabase
+        .from("matches")
+        .update({ number_of_teams: n, team_algorithm: null })
+        .eq("id", match.id);
+      if (error) throw error;
+      toast.success(t("match.teamsSaved"));
+      setTeamsDialogOpen(false);
       onUpdate();
     } catch (error: any) {
       toast.error(error.message);
@@ -963,6 +996,10 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
                             </>
                           )}
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleOpenTeams}>
+                          <Users className="h-4 w-4 mr-2" />
+                          {t("match.changeTeamCount")}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleOpenLocation}>
                           <MapPin className="h-4 w-4 mr-2" />
                           {t("match.setLocation")}
@@ -1482,6 +1519,33 @@ export default function MatchCard({ match, currentUser, participants, onUpdate }
       </Dialog>
 
       {/* Dialog for location */}
+      <Dialog open={teamsDialogOpen} onOpenChange={setTeamsDialogOpen}>
+        <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>{t("match.changeTeamCount")}</DialogTitle>
+            <DialogDescription>{t("match.teamCountDesc")}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={teamsValue} onValueChange={setTeamsValue}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {[2, 3, 4].map((n) => (
+                  <SelectItem key={n} value={String(n)}>{n} {t("match.teamsLabel")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setTeamsDialogOpen(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button className="flex-1" onClick={handleSaveTeams} disabled={loading}>
+              {loading ? t("md.saving") : t("common.save")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
         <DialogContent className="max-w-sm w-[calc(100%-2rem)] mx-auto" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
