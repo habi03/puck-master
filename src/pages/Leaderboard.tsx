@@ -172,7 +172,8 @@ export default function Leaderboard() {
           match_id
         `)
         .in("match_id", matchIds)
-        .eq("is_present", true);
+        .eq("is_present", true)
+        .eq("is_absent", false);
 
       if (participantsError) throw participantsError;
 
