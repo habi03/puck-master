@@ -169,7 +169,8 @@ export default function Leaderboard() {
           player_id,
           position,
           team_number,
-          match_id
+          match_id,
+          brings_beer
         `)
         .in("match_id", matchIds)
         .eq("is_present", true)
@@ -193,13 +194,11 @@ export default function Leaderboard() {
 
       if (profilesError) throw profilesError;
 
-      // Get beer counts from rating_aggregates
-      const { data: beerData, error: beerError } = await supabase
-        .from("rating_aggregates")
-        .select("player_id, beers_brought")
-        .in("player_id", playerIds);
-
-      if (beerError) throw beerError;
+      // Count beers only within the selected matches (season-scoped)
+      const beerCounts = new Map<string, number>();
+      participants?.forEach(p => {
+        if (p.brings_beer) beerCounts.set(p.player_id, (beerCounts.get(p.player_id) || 0) + 1);
+      });
 
       // Build leaderboard by player and position
       const leaderboardMap = new Map<string, LeaderboardEntry>();
@@ -207,7 +206,7 @@ export default function Leaderboard() {
       participants?.forEach(participant => {
         const key = `${participant.player_id}_${participant.position}`;
         const profile = profiles?.find(p => p.id === participant.player_id);
-        const beerCount = beerData?.find(b => b.player_id === participant.player_id)?.beers_brought || 0;
+        const beerCount = beerCounts.get(participant.player_id) || 0;
         
         // Get scoring config for this specific match
         const matchScoring = matchScoringMap.get(participant.match_id) || { ...leagueDefaults, attendanceExplicitlySet: false };

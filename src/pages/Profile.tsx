@@ -192,7 +192,7 @@ export default function Profile() {
         matchesPlayed,
         wins,
         goals: goals.length,
-        beersBrought: seasonId === "all" ? (ratingRes.data?.beers_brought || 0) : beersBrought,
+        beersBrought,
         totalPoints,
         averageRating: ratingRes.data?.average_rating || 0,
       });
